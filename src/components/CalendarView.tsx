@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import moment from "moment";
@@ -61,6 +61,20 @@ const formats = {
 const DATE_KEY_FORMAT = "YYYY-MM-DD";
 const DATE_TIME_FORMAT = "YYYY-MM-DD HH:mm";
 
+type CalendarSlotPoint = {
+  clientX?: number;
+  clientY?: number;
+  x?: number;
+  y?: number;
+};
+
+type CalendarDateHeaderProps = {
+  date: Date;
+  label: ReactNode;
+  drilldownView?: string | null;
+  onDrillDown?: () => void;
+};
+
 export function dateKeyFromCalendarValue(value: Date | string) {
   if (typeof value === "string") {
     const parsed = moment(
@@ -85,6 +99,60 @@ export function dateKeyFromCalendarValue(value: Date | string) {
   }
 
   return moment(value).format(DATE_KEY_FORMAT);
+}
+
+export function dateKeyFromVisibleMonthCell(point?: CalendarSlotPoint) {
+  if (typeof document === "undefined" || !point) return null;
+
+  const x =
+    typeof point.clientX === "number"
+      ? point.clientX
+      : typeof point.x === "number"
+        ? point.x - window.scrollX
+        : null;
+  const y =
+    typeof point.clientY === "number"
+      ? point.clientY
+      : typeof point.y === "number"
+        ? point.y - window.scrollY
+        : null;
+  if (x === null || y === null) return null;
+
+  const target = document.elementFromPoint(x, y);
+  const row = target?.closest(".rbc-month-row");
+  if (!row) return null;
+
+  const cells = Array.from(
+    row.querySelectorAll<HTMLElement>(".rbc-date-cell"),
+  );
+  const cell = cells.find((candidate) => {
+    const rect = candidate.getBoundingClientRect();
+    return x >= rect.left && x <= rect.right;
+  });
+  return (
+    cell
+      ?.querySelector<HTMLElement>("[data-calendar-date]")
+      ?.dataset.calendarDate ?? null
+  );
+}
+
+function CalendarDateHeader({
+  date,
+  label,
+  drilldownView,
+  onDrillDown,
+}: CalendarDateHeaderProps) {
+  const content = (
+    <span data-calendar-date={dateKeyFromCalendarValue(date)}>{label}</span>
+  );
+
+  if (!drilldownView) return content;
+
+  return (
+    <button type="button" className="rbc-button-link" onClick={onDrillDown}>
+      {content}
+    </button>
+  );
 }
 
 export function scheduleStartDate(schedule: Pick<Schedule, "date" | "time">) {
@@ -152,8 +220,15 @@ export function CalendarView() {
     [schedules]
   );
 
-  const handleSelectSlot = ({ start }: { start: Date }) => {
-    const dateStr = dateKeyFromCalendarValue(start);
+  const handleSelectSlot = ({
+    start,
+    box,
+  }: {
+    start: Date;
+    box?: CalendarSlotPoint;
+  }) => {
+    const dateStr =
+      dateKeyFromVisibleMonthCell(box) ?? dateKeyFromCalendarValue(start);
     setModal({ initialDate: dateStr });
   };
 
@@ -233,6 +308,7 @@ export function CalendarView() {
           messages={messages}
           formats={formats}
           culture="ko"
+          components={{ month: { dateHeader: CalendarDateHeader } }}
           eventPropGetter={(event) =>
             event.id === highlightedId
               ? { className: "rbc-event-find-highlight" }
