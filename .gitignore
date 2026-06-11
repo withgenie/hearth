@@ -32,6 +32,7 @@ dist-ssr
 # Release pipeline
 .env.release
 dist/release/
+dist-mas/
 
 # Claude Code local settings
 .claude/
@@ -41,6 +42,7 @@ video-intro/
 
 # insane-design analysis artifacts (not source)
 insane-design/
+.codegraph/
 
 # MAS code-signing material (provisioning profiles, certs)
 certs/*.provisionprofile
