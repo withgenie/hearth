@@ -103,7 +103,7 @@ const renderBoard = () =>
     </ToastProvider>,
   );
 
-describe("MemoBoard Focus view", () => {
+describe("MemoBoard views", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -226,5 +226,47 @@ describe("MemoBoard Focus view", () => {
     expect(noteScope.getByText("#중요")).toBeInTheDocument();
     expect(noteScope.getByText("#UI")).toBeInTheDocument();
     expect(noteScope.getByText("#Ops")).toBeInTheDocument();
+  });
+  it("renders the default list view as compact rows instead of memo cards", () => {
+    const { container } = renderBoard();
+
+    expect(container.querySelectorAll("[data-memo-list-row]")).toHaveLength(
+      mockMemos.length,
+    );
+    expect(container.querySelector(".memo-card")).not.toBeInTheDocument();
+  });
+
+  it("opens a project-scoped memo dialog from matrix empty-space double click", () => {
+    const openedProjectIds: Array<number | null | undefined> = [];
+    const onNewMemo = (event: Event) => {
+      const detail = (event as CustomEvent<{ projectId?: number | null }>)
+        .detail;
+      openedProjectIds.push(detail?.projectId);
+    };
+    window.addEventListener("memo:new-dialog", onNewMemo);
+
+    try {
+      renderBoard();
+      fireEvent.click(screen.getByRole("tab", { name: /매트릭스/ }));
+
+      const tile = screen.getByText("Tool Project").closest("section");
+      const body = tile?.querySelector<HTMLElement>(
+        '[data-memo-project-id="10"]',
+      );
+      expect(body).not.toBeNull();
+
+      fireEvent.doubleClick(body as HTMLElement);
+      expect(openedProjectIds).toEqual([10]);
+
+      const row = within(body as HTMLElement)
+        .getByText("tools ui memo")
+        .closest("[data-memo-id]");
+      expect(row).not.toBeNull();
+
+      fireEvent.doubleClick(row as HTMLElement);
+      expect(openedProjectIds).toEqual([10]);
+    } finally {
+      window.removeEventListener("memo:new-dialog", onNewMemo);
+    }
   });
 });

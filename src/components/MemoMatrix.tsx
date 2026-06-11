@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import type { Memo, MemoTag, Project } from "../types";
 import type { MemoUpdateInput } from "../api";
 import type { MemoGroup } from "../lib/memoSequence";
@@ -12,6 +13,7 @@ export function MemoMatrix({
   onUpdate,
   onDelete,
   onCreateTag,
+  onCreateInProject,
 }: {
   groups: MemoGroup[];
   projects: Project[];
@@ -21,6 +23,7 @@ export function MemoMatrix({
   onUpdate: (id: number, fields: MemoUpdateInput) => void | Promise<unknown>;
   onDelete: (id: number) => void;
   onCreateTag: (name: string) => Promise<MemoTag>;
+  onCreateInProject: (projectId: number | null) => void;
 }) {
   return (
     <div className="grid gap-4 grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 auto-rows-fr flex-1 min-h-0">
@@ -34,6 +37,7 @@ export function MemoMatrix({
             key={key}
             title={title}
             priority={priority}
+            projectId={g.kind === "project" ? g.project.id : null}
             memos={g.memos}
             projects={projects}
             sequence={sequence}
@@ -42,6 +46,7 @@ export function MemoMatrix({
             onUpdate={onUpdate}
             onDelete={onDelete}
             onCreateTag={onCreateTag}
+            onCreateInProject={onCreateInProject}
           />
         );
       })}
@@ -52,6 +57,7 @@ export function MemoMatrix({
 function Tile({
   title,
   priority,
+  projectId,
   memos,
   projects,
   sequence,
@@ -60,9 +66,11 @@ function Tile({
   onUpdate,
   onDelete,
   onCreateTag,
+  onCreateInProject,
 }: {
   title: string;
   priority: string | null;
+  projectId: number | null;
   memos: Memo[];
   projects: Project[];
   sequence: Map<number, number>;
@@ -71,7 +79,14 @@ function Tile({
   onUpdate: (id: number, fields: MemoUpdateInput) => void | Promise<unknown>;
   onDelete: (id: number) => void;
   onCreateTag: (name: string) => Promise<MemoTag>;
+  onCreateInProject: (projectId: number | null) => void;
 }) {
+  const handleBodyDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target;
+    if (!(target instanceof Element) || target.closest("[data-memo-id]")) return;
+    onCreateInProject(projectId);
+  };
+
   return (
     <section className="flex flex-col min-h-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] overflow-hidden">
       <header className="flex items-center gap-2 px-3 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]">
@@ -87,7 +102,11 @@ function Tile({
           {memos.length}
         </span>
       </header>
-      <div className="flex-1 min-h-0 overflow-y-auto p-1.5">
+      <div
+        className="flex-1 min-h-0 overflow-y-auto p-1.5"
+        data-memo-project-id={projectId ?? "none"}
+        onDoubleClick={handleBodyDoubleClick}
+      >
         {memos.map((m) => (
           <MemoRow
             key={m.id}

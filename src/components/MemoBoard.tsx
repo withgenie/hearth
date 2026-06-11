@@ -8,9 +8,15 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { LucideIcon } from "lucide-react";
 import {
+  GripVertical,
   Plus,
   StickyNote,
   LayoutList,
@@ -19,7 +25,7 @@ import {
 } from "lucide-react";
 import { Icon } from "../ui/Icon";
 import { cn } from "../lib/cn";
-import { MemoCard } from "./MemoCard";
+import { MemoRow } from "./MemoRow";
 import { MemoMatrix } from "./MemoMatrix";
 import { FocusMemoBoard } from "./FocusMemoBoard";
 import { useMemos } from "../hooks/useMemos";
@@ -27,11 +33,13 @@ import { useProjects } from "../hooks/useProjects";
 import { useCategories } from "../hooks/useCategories";
 import { useMemoTags } from "../hooks/useMemoTags";
 import { PRIORITIES } from "../types";
+import type { Memo, MemoTag, Project } from "../types";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
 import { useToast } from "../ui/Toast";
 import { globalSequence, groupMemosByProject } from "../lib/memoSequence";
 import * as api from "../api";
+import type { MemoUpdateInput } from "../api";
 
 // Stable Set reference so `useProjects`'s effect deps don't churn every
 // render (useProjects useCallback-s `load` on [priorities, category], and
@@ -165,6 +173,11 @@ export function MemoBoard() {
   const handleCreate = () => {
     window.dispatchEvent(new CustomEvent("memo:new-dialog"));
   };
+  const handleCreateInProject = (projectId: number | null) => {
+    window.dispatchEvent(
+      new CustomEvent("memo:new-dialog", { detail: { projectId } }),
+    );
+  };
 
   const activeMemo =
     activeId !== null ? (memos.find((m) => m.id === activeId) ?? null) : null;
@@ -238,6 +251,7 @@ export function MemoBoard() {
           onUpdate={update}
           onDelete={remove}
           onCreateTag={(name) => memoTags.create({ name })}
+          onCreateInProject={handleCreateInProject}
         />
       ) : (
         <DndContext
@@ -246,7 +260,7 @@ export function MemoBoard() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex flex-col gap-6 flex-1 min-h-0">
+          <div className="flex flex-col gap-4 flex-1 min-h-0">
             {groups.map((g) => {
               const key = g.kind === "project" ? `proj-${g.project.id}` : "etc";
               const title =
@@ -254,22 +268,25 @@ export function MemoBoard() {
                   ? `${g.project.name} · ${g.project.priority}`
                   : "기타 · 프로젝트 미연결";
               return (
-                <section key={key}>
-                  <header className="mb-3 flex items-center gap-2 text-[12px] text-[var(--color-text-muted)] border-b border-[var(--color-border)] pb-1.5">
+                <section
+                  key={key}
+                  className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]"
+                >
+                  <header className="flex items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-[12px] text-[var(--color-text-muted)]">
                     <span className="font-semibold text-[var(--color-text)]">
                       {title}
                     </span>
-                    <span className="text-[var(--color-text-dim)]">
-                      ({g.memos.length})
+                    <span className="ml-auto text-[var(--color-text-dim)]">
+                      {g.memos.length}개
                     </span>
                   </header>
                   <SortableContext
                     items={g.memos.map((m) => m.id)}
-                    strategy={rectSortingStrategy}
+                    strategy={verticalListSortingStrategy}
                   >
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
+                    <div className="divide-y divide-[var(--color-border)]">
                       {g.memos.map((m) => (
-                        <MemoCard
+                        <SortableMemoRow
                           key={m.id}
                           memo={m}
                           projects={projects}
@@ -297,6 +314,76 @@ export function MemoBoard() {
           </DragOverlay>
         </DndContext>
       )}
+    </div>
+  );
+}
+function SortableMemoRow({
+  memo,
+  projects,
+  tags,
+  onUpdate,
+  onDelete,
+  onCreateTag,
+  sequenceNumber,
+  highlighted,
+}: {
+  memo: Memo;
+  projects: Project[];
+  tags: MemoTag[];
+  onUpdate: (id: number, fields: MemoUpdateInput) => void | Promise<unknown>;
+  onDelete: (id: number) => void;
+  onCreateTag: (name: string) => Promise<MemoTag>;
+  sequenceNumber: number;
+  highlighted?: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: memo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.55 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-memo-list-row
+      style={style}
+      className={cn(
+        "flex items-start gap-1 bg-[var(--color-surface-1)] px-2 py-1",
+        isDragging && "relative z-10 shadow-lg",
+      )}
+    >
+      <button
+        ref={setActivatorNodeRef}
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label={`메모 #${sequenceNumber} 순서 이동`}
+        className="mt-1.5 shrink-0 cursor-grab rounded p-1 text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] active:cursor-grabbing"
+      >
+        <Icon icon={GripVertical} size={14} />
+      </button>
+      <div className="min-w-0 flex-1">
+        <MemoRow
+          memo={memo}
+          projects={projects}
+          tags={tags}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+          onCreateTag={onCreateTag}
+          sequenceNumber={sequenceNumber}
+          highlighted={highlighted}
+        />
+      </div>
     </div>
   );
 }
