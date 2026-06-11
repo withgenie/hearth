@@ -58,6 +58,41 @@ const formats = {
     `${moment(start).format("A h:mm")} – ${moment(end).format("A h:mm")}`,
   timeGutterFormat: (date: Date) => moment(date).format("A h:mm"),
 };
+const DATE_KEY_FORMAT = "YYYY-MM-DD";
+const DATE_TIME_FORMAT = "YYYY-MM-DD HH:mm";
+
+export function dateKeyFromCalendarValue(value: Date | string) {
+  if (typeof value === "string") {
+    const parsed = moment(
+      value,
+      [DATE_TIME_FORMAT, DATE_KEY_FORMAT, moment.ISO_8601],
+      true,
+    );
+    return (parsed.isValid() ? parsed : moment(value)).format(DATE_KEY_FORMAT);
+  }
+
+  // Month-view slot dates and date-only schedule values are sometimes handed
+  // back as UTC-midnight Date objects. Treat exact UTC midnight as a date-only
+  // sentinel so western time zones don't shift the semantic calendar day back.
+  if (
+    value.getUTCHours() === 0 &&
+    value.getUTCMinutes() === 0 &&
+    value.getUTCSeconds() === 0 &&
+    value.getUTCMilliseconds() === 0 &&
+    value.getHours() !== 0
+  ) {
+    return moment.utc(value).format(DATE_KEY_FORMAT);
+  }
+
+  return moment(value).format(DATE_KEY_FORMAT);
+}
+
+export function scheduleStartDate(schedule: Pick<Schedule, "date" | "time">) {
+  const parsed = schedule.time
+    ? moment(`${schedule.date} ${schedule.time}`, DATE_TIME_FORMAT, true)
+    : moment(schedule.date, DATE_KEY_FORMAT, true);
+  return (parsed.isValid() ? parsed : moment(schedule.date)).toDate();
+}
 
 export function CalendarView() {
   const { schedules, create, update, remove } = useSchedules();
@@ -91,7 +126,7 @@ export function CalendarView() {
     if (pendingFocusId === null) return;
     const found = schedules.find((s) => s.id === pendingFocusId);
     if (!found) return;
-    setCurrentDate(moment(found.date).toDate());
+    setCurrentDate(scheduleStartDate(found));
     setHighlightedId(found.id);
     setPendingFocusId(null);
     const t = window.setTimeout(() => setHighlightedId(null), 2400);
@@ -101,8 +136,7 @@ export function CalendarView() {
   const events: CalendarEvent[] = useMemo(
     () =>
       schedules.map((s) => {
-        const dateStr = s.time ? `${s.date}T${s.time}` : s.date;
-        const start = new Date(dateStr);
+        const start = scheduleStartDate(s);
         const end = new Date(start.getTime() + 60 * 60 * 1000);
         const hasReminder = s.remind_before_5min || s.remind_at_start;
         return {
@@ -119,7 +153,7 @@ export function CalendarView() {
   );
 
   const handleSelectSlot = ({ start }: { start: Date }) => {
-    const dateStr = moment(start).format("YYYY-MM-DD");
+    const dateStr = dateKeyFromCalendarValue(start);
     setModal({ initialDate: dateStr });
   };
 
@@ -152,7 +186,7 @@ export function CalendarView() {
     end: Date | string;
   }) => {
     const s = event.resource;
-    const newDate = moment(start).format("YYYY-MM-DD");
+    const newDate = dateKeyFromCalendarValue(start);
     await update(s.id, {
       date: newDate,
       time: s.time ?? undefined,
