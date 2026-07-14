@@ -190,4 +190,39 @@ describe("MonthGrid", () => {
 
     expect(screen.getByText(shiftCode).className).toContain(tokenClass);
   });
+
+  it("keeps a generic shift without D, E, or OFF metadata visible as a normal chip", () => {
+    render(
+      <MonthGrid
+        month={new Date(2026, 6, 1)}
+        schedules={[
+          {
+            id: "generic-shift",
+            date: "2026-07-03",
+            time: "09:00",
+            title: "현장 근무",
+            kind: "shift",
+            shiftCode: null,
+          },
+        ]}
+        onSelectDate={vi.fn()}
+      />,
+    );
+
+    const cell = screen
+      .getByRole("button", { name: "2026년 7월 3일 금요일" })
+      .closest("[role='gridcell']") as HTMLElement;
+    const scoped = within(cell);
+
+    expect(scoped.queryByText("D")).toBeNull();
+    expect(scoped.queryByText("E")).toBeNull();
+    expect(scoped.queryByText("OFF")).toBeNull();
+    expect(scoped.getByText("현장 근무").textContent).toBe("현장 근무");
+    const chip = scoped.getByTestId("month-grid-chip");
+    expect(chip.className).toContain("text-[12px]");
+    expect(
+      (chip.querySelector("[data-color-rail]") as HTMLElement).style
+        .backgroundColor,
+    ).toBe("var(--color-brand)");
+  });
 });

@@ -145,7 +145,10 @@ export function MonthGrid({
             schedule.kind === "shift" && schedule.shiftCode != null,
         );
         const regularSchedules = daySchedules
-          .filter((schedule) => schedule.kind !== "shift")
+          .filter(
+            (schedule) =>
+              schedule.kind !== "shift" || schedule.shiftCode == null,
+          )
           .sort((left, right) =>
             scheduleSortValue(left).localeCompare(scheduleSortValue(right)),
           );
