@@ -1,6 +1,8 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type AnimationEvent,
   type ReactNode,
@@ -21,6 +23,8 @@ import { useTauriDbChangeBridge } from "./lib/dbChangeBridge";
 import type { Priority, Tab } from "./types";
 
 type ViewPhase = "idle" | "exiting" | "entering";
+
+const TAB_VIEW_PHASE_MS = 150;
 
 const phaseClass: Record<ViewPhase, string> = {
   idle: "tab-view--idle",
@@ -56,6 +60,12 @@ export function TabViewTransition({
   const [displayedTab, setDisplayedTab] = useState(activeTab);
   const [phase, setPhase] = useState<ViewPhase>("idle");
   const reducedMotion = usePrefersReducedMotion();
+  const activeTabRef = useRef(activeTab);
+  const phaseRef = useRef(phase);
+  const phaseFallbackRef = useRef<number | null>(null);
+
+  activeTabRef.current = activeTab;
+  phaseRef.current = phase;
 
   useEffect(() => {
     if (activeTab === displayedTab) {
@@ -72,14 +82,45 @@ export function TabViewTransition({
     }
   }, [activeTab, displayedTab, phase, reducedMotion]);
 
-  const finishPhase = (event: AnimationEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
-    if (phase === "exiting") {
-      setDisplayedTab(activeTab);
+  const advancePhase = useCallback((expectedPhase: Exclude<ViewPhase, "idle">) => {
+    if (phaseRef.current !== expectedPhase) return;
+    if (phaseFallbackRef.current !== null) {
+      window.clearTimeout(phaseFallbackRef.current);
+      phaseFallbackRef.current = null;
+    }
+    if (expectedPhase === "exiting") {
+      setDisplayedTab(activeTabRef.current);
+      phaseRef.current = "entering";
       setPhase("entering");
       return;
     }
-    if (phase === "entering") setPhase("idle");
+    phaseRef.current = "idle";
+    setPhase("idle");
+  }, []);
+
+  useEffect(() => {
+    if (phase === "idle" || reducedMotion) return;
+    const expectedPhase = phase;
+    const fallback = window.setTimeout(
+      () => advancePhase(expectedPhase),
+      TAB_VIEW_PHASE_MS,
+    );
+    phaseFallbackRef.current = fallback;
+    return () => {
+      window.clearTimeout(fallback);
+      if (phaseFallbackRef.current === fallback) phaseFallbackRef.current = null;
+    };
+  }, [advancePhase, phase, reducedMotion]);
+
+  const finishPhase = (event: AnimationEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    const expectedPhase =
+      event.animationName === "tab-view-exit"
+        ? "exiting"
+        : event.animationName === "tab-view-enter"
+          ? "entering"
+          : null;
+    if (expectedPhase) advancePhase(expectedPhase);
   };
 
   return (
