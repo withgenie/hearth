@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -22,12 +22,14 @@ import {
   LayoutList,
   LayoutGrid,
   Monitor,
+  NotebookText,
 } from "lucide-react";
 import { Icon } from "../ui/Icon";
 import { cn } from "../lib/cn";
 import { MemoRow } from "./MemoRow";
 import { MemoMatrix } from "./MemoMatrix";
 import { FocusMemoBoard } from "./FocusMemoBoard";
+import { JournalMemoList } from "./JournalMemoList";
 import { useMemos } from "../hooks/useMemos";
 import { useProjects } from "../hooks/useProjects";
 import { useCategories } from "../hooks/useCategories";
@@ -36,10 +38,11 @@ import { PRIORITIES } from "../types";
 import type { Memo, MemoTag, Project } from "../types";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
+import { Input } from "../ui/Input";
 import { useToast } from "../ui/Toast";
 import { globalSequence, groupMemosByProject } from "../lib/memoSequence";
 import * as api from "../api";
-import type { MemoUpdateInput } from "../api";
+import type { MemoUpdateInput, MemoView } from "../api";
 
 // Stable Set reference so `useProjects`'s effect deps don't churn every
 // render (useProjects useCallback-s `load` on [priorities, category], and
@@ -48,7 +51,7 @@ import type { MemoUpdateInput } from "../api";
 const ALL_PRIORITIES = new Set(PRIORITIES);
 
 export function MemoBoard() {
-  const { memos, update, remove, reload } = useMemos();
+  const { memos, create, update, remove, reload } = useMemos();
   // MemoBoard wants every project for the grouping + picker; `null` means
   // "no category filter" (전체 보기) so NULL-category rows are also included.
   const { projects } = useProjects(ALL_PRIORITIES, null);
@@ -68,13 +71,49 @@ export function MemoBoard() {
 
   const [activeId, setActiveId] = useState<number | null>(null);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
-  const [view, setView] = useState<"list" | "matrix" | "focus">(() => {
-    const v = localStorage.getItem("hearth.memoboard.view");
-    return v === "matrix" || v === "focus" ? v : "list";
-  });
+  const [view, setView] = useState<MemoView>("list");
+  const viewSelectedByUser = useRef(false);
+  const [quickMemo, setQuickMemo] = useState("");
+  const [savingQuickMemo, setSavingQuickMemo] = useState(false);
+
   useEffect(() => {
-    localStorage.setItem("hearth.memoboard.view", view);
-  }, [view]);
+    let active = true;
+    api
+      .getUiPreferences()
+      .then((preferences) => {
+        if (active && !viewSelectedByUser.current) {
+          setView(preferences.memoView);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load UI preferences:", error);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectView = (nextView: MemoView) => {
+    viewSelectedByUser.current = true;
+    setView(nextView);
+    void api.saveUiPreferences({ memoView: nextView }).catch((error) => {
+      toast.error(`뷰 설정 저장 실패: ${error}`);
+    });
+  };
+
+  const submitQuickMemo = async () => {
+    const content = quickMemo.trim();
+    if (!content || savingQuickMemo) return;
+    setSavingQuickMemo(true);
+    try {
+      await create({ content });
+      setQuickMemo("");
+    } catch (error) {
+      toast.error(`메모 저장 실패: ${error}`);
+    } finally {
+      setSavingQuickMemo(false);
+    }
+  };
 
   // Listen for search-palette focus requests. We scroll the card into view
   // and trigger a one-shot glow via `find-highlight`. Re-keying on every
@@ -194,21 +233,27 @@ export function MemoBoard() {
           >
             <ViewTab
               active={view === "list"}
-              onClick={() => setView("list")}
+              onClick={() => selectView("list")}
               icon={LayoutList}
               label="리스트"
             />
             <ViewTab
               active={view === "matrix"}
-              onClick={() => setView("matrix")}
+              onClick={() => selectView("matrix")}
               icon={LayoutGrid}
               label="매트릭스"
             />
             <ViewTab
               active={view === "focus"}
-              onClick={() => setView("focus")}
+              onClick={() => selectView("focus")}
               icon={Monitor}
               label="포커스"
+            />
+            <ViewTab
+              active={view === "journal"}
+              onClick={() => selectView("journal")}
+              icon={NotebookText}
+              label="저널"
             />
           </div>
           <Button
@@ -221,6 +266,32 @@ export function MemoBoard() {
           </Button>
         </div>
       </div>
+      <div className="relative mb-4">
+        <Input
+          aria-label="갑자기 메모"
+          placeholder="갑자기 메모"
+          value={quickMemo}
+          disabled={savingQuickMemo}
+          onChange={(event) => setQuickMemo(event.target.value)}
+          onKeyDown={(event) => {
+            if (
+              event.key === "Enter" &&
+              !event.nativeEvent.isComposing &&
+              event.keyCode !== 229
+            ) {
+              event.preventDefault();
+              void submitQuickMemo();
+            }
+          }}
+          className="pr-20"
+        />
+        <span
+          aria-live="polite"
+          className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] text-[var(--color-text-dim)]"
+        >
+          {savingQuickMemo ? "저장 중" : "Enter로 저장"}
+        </span>
+      </div>
       {memos.length === 0 ? (
         <EmptyState
           className="flex-1"
@@ -228,6 +299,8 @@ export function MemoBoard() {
           title="메모가 없습니다"
           description="⌘K 또는 메모 추가 버튼으로 시작하세요"
         />
+      ) : view === "journal" ? (
+        <JournalMemoList memos={memos} projects={projects} />
       ) : view === "focus" ? (
         <FocusMemoBoard
           memos={memos}

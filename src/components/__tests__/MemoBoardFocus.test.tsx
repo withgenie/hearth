@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import type { CategoryRow, Memo, MemoTag, Project } from "../../types";
 import { MemoBoard } from "../MemoBoard";
 import { ToastProvider } from "../../ui/Toast";
@@ -8,7 +14,12 @@ import { ToastProvider } from "../../ui/Toast";
 const update = vi.fn();
 const remove = vi.fn();
 const reload = vi.fn();
+const create = vi.fn();
 const createTag = vi.fn();
+const { getUiPreferences, saveUiPreferences } = vi.hoisted(() => ({
+  getUiPreferences: vi.fn(),
+  saveUiPreferences: vi.fn(),
+}));
 
 let mockMemos: Memo[] = [];
 let mockProjects: Project[] = [];
@@ -19,6 +30,7 @@ vi.mock("../../hooks/useMemos", () => ({
   useMemos: () => ({
     memos: mockMemos,
     loading: false,
+    create,
     update,
     remove,
     reload,
@@ -44,6 +56,8 @@ vi.mock("../../hooks/useMemoTags", () => ({
 vi.mock("../../api", () => ({
   updateMemo: vi.fn(),
   reorderMemos: vi.fn(),
+  getUiPreferences,
+  saveUiPreferences,
 }));
 
 const tag = (id: number, name: string): MemoTag => ({
@@ -107,6 +121,17 @@ describe("MemoBoard views", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    getUiPreferences.mockResolvedValue({
+      memoView: "list",
+      activeTab: "projects",
+    });
+    saveUiPreferences.mockImplementation(async (input) => ({
+      memoView: input.memoView ?? "list",
+      activeTab: "projects",
+    }));
+    create.mockImplementation(async ({ content }) =>
+      memo({ id: 100, content, created_at: "2026-07-14 12:00:00" }),
+    );
     mockTags = [tag(1, "중요"), tag(2, "UI"), tag(3, "Ops")];
     mockCategories = [category(1, "Tools"), category(2, "Lab")];
     mockProjects = [
@@ -140,21 +165,82 @@ describe("MemoBoard views", () => {
     ];
   });
 
-  it("persists and restores the Focus tab", () => {
+  it("persists and restores the Focus tab through typed UI preferences", async () => {
     const { unmount } = renderBoard();
+    await waitFor(() => expect(getUiPreferences).toHaveBeenCalledOnce());
     fireEvent.click(screen.getByRole("tab", { name: /포커스/ }));
 
-    expect(localStorage.getItem("hearth.memoboard.view")).toBe("focus");
+    expect(saveUiPreferences).toHaveBeenCalledWith({ memoView: "focus" });
+    expect(localStorage.getItem("hearth.memoboard.view")).toBeNull();
     expect(screen.getByTestId("focus-board-surface")).toBeInTheDocument();
 
     unmount();
+    getUiPreferences.mockResolvedValue({
+      memoView: "focus",
+      activeTab: "projects",
+    });
     renderBoard();
 
-    expect(screen.getByRole("tab", { name: /포커스/ })).toHaveAttribute(
-      "aria-selected",
-      "true",
+    await waitFor(() =>
+      expect(screen.getByRole("tab", { name: /포커스/ })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
     );
     expect(screen.getByTestId("focus-board-surface")).toBeInTheDocument();
+  });
+
+  it("offers all four views and hydrates the persisted Journal view", async () => {
+    getUiPreferences.mockResolvedValue({
+      memoView: "journal",
+      activeTab: "memos",
+    });
+    renderBoard();
+
+    expect(screen.getAllByRole("tab")).toHaveLength(4);
+    await waitFor(() =>
+      expect(screen.getByRole("tab", { name: "저널" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    expect(screen.getByTestId("journal-memo-list")).toBeInTheDocument();
+  });
+
+  it("quick-captures trimmed text on Enter and clears only after success", async () => {
+    let finishCreate: ((value: Memo) => void) | undefined;
+    create.mockImplementation(
+      () =>
+        new Promise<Memo>((resolve) => {
+          finishCreate = resolve;
+        }),
+    );
+    renderBoard();
+    const input = screen.getByRole("textbox", { name: "갑자기 메모" });
+
+    fireEvent.change(input, { target: { value: "  오늘의 생각  " } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(create).toHaveBeenCalledWith({ content: "오늘의 생각" });
+    expect(input).toHaveValue("  오늘의 생각  ");
+
+    finishCreate?.(memo({ id: 101, content: "오늘의 생각" }));
+    await waitFor(() => expect(input).toHaveValue(""));
+  });
+
+  it("keeps quick-capture text on failure and ignores IME composition Enter", async () => {
+    create.mockRejectedValue(new Error("disk full"));
+    renderBoard();
+    const input = screen.getByRole("textbox", { name: "갑자기 메모" });
+
+    fireEvent.change(input, { target: { value: "조합 중" } });
+    fireEvent.keyDown(input, { key: "Enter", isComposing: true });
+    expect(create).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => expect(create).toHaveBeenCalledOnce());
+    expect(input).toHaveValue("조합 중");
+    expect(await screen.findByText(/메모 저장 실패/)).toBeInTheDocument();
   });
 
   it("filters Focus notes to important memos", () => {

@@ -183,6 +183,25 @@ export const getAiSettings = () => invoke<AiSettings>("get_ai_settings");
 export const saveAiSettings = (input: { openai_api_key?: string }) =>
   invoke<AiSettings>("save_ai_settings", { input });
 
+export type MemoView = "list" | "matrix" | "focus" | "journal";
+export type ActiveTab = "projects" | "calendar" | "memos";
+
+export type UiPreferences = {
+  memoView: MemoView;
+  activeTab: ActiveTab;
+};
+
+export type SaveUiPreferencesInput = {
+  memoView?: MemoView;
+  activeTab?: ActiveTab;
+};
+
+export const getUiPreferences = () =>
+  invoke<UiPreferences>("get_ui_preferences");
+
+export const saveUiPreferences = (input: SaveUiPreferencesInput) =>
+  invoke<UiPreferences>("save_ui_preferences", { input });
+
 // UI scale (Cmd+=/-/0). Persisted in the settings KV table.
 export const getUiScale = () => invoke<number>("get_ui_scale");
 export const setUiScale = (scale: number) =>
