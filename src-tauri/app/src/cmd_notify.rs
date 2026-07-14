@@ -8,11 +8,11 @@
 use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use std::collections::HashMap;
 use std::sync::Mutex;
+use tauri::async_runtime::JoinHandle;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_notification::NotificationExt;
-use tauri::async_runtime::JoinHandle;
 
-use crate::models::Schedule;
+use crate::models::{Schedule, ScheduleKind};
 use crate::AppState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -206,7 +206,7 @@ pub fn reschedule_all_future(app: &AppHandle) -> Result<(), String> {
         let mut stmt = db
             .prepare(
                 "SELECT id, date, time, location, description, notes, \
-                 remind_before_5min, remind_at_start, created_at, updated_at \
+                 kind, color, icon, remind_before_5min, remind_at_start, created_at, updated_at \
                  FROM schedules \
                  WHERE remind_before_5min = 1 OR remind_at_start = 1",
             )
@@ -214,8 +214,8 @@ pub fn reschedule_all_future(app: &AppHandle) -> Result<(), String> {
 
         let rows: Vec<Schedule> = stmt
             .query_map([], |row| {
-                let b5: i64 = row.get(6)?;
-                let ba: i64 = row.get(7)?;
+                let b5: i64 = row.get(9)?;
+                let ba: i64 = row.get(10)?;
                 Ok(Schedule {
                     id: row.get(0)?,
                     date: row.get(1)?,
@@ -223,10 +223,13 @@ pub fn reschedule_all_future(app: &AppHandle) -> Result<(), String> {
                     location: row.get(3)?,
                     description: row.get(4)?,
                     notes: row.get(5)?,
+                    kind: ScheduleKind::parse(&row.get::<_, String>(6)?)?,
+                    color: row.get(7)?,
+                    icon: row.get(8)?,
                     remind_before_5min: b5 != 0,
                     remind_at_start: ba != 0,
-                    created_at: row.get(8)?,
-                    updated_at: row.get(9)?,
+                    created_at: row.get(11)?,
+                    updated_at: row.get(12)?,
                 })
             })
             .map_err(|e| e.to_string())?

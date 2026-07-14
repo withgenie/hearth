@@ -449,14 +449,17 @@ pub fn import_json_merge(
         } else {
             if !dry_run {
                 tx.execute(
-                    "INSERT INTO schedules (date, time, location, description, notes, remind_before_5min, remind_at_start, created_at, updated_at)
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                    "INSERT INTO schedules (date, time, location, description, notes, kind, color, icon, remind_before_5min, remind_at_start, created_at, updated_at)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
                     rusqlite::params![
                         s.date,
                         s.time,
                         s.location,
                         s.description,
                         s.notes,
+                        s.kind.as_str(),
+                        s.color,
+                        s.icon,
                         s.remind_before_5min as i64,
                         s.remind_at_start as i64,
                         s.created_at,
@@ -523,6 +526,77 @@ mod tests {
         assert_eq!(imported.content, "legacy memo");
         assert_eq!(imported.font_size, MemoFontSize::Normal);
         assert!(imported.tags.is_empty());
+    }
+
+    #[test]
+    fn schedule_metadata_export_import_roundtrip() {
+        use crate::models::ScheduleKind;
+        use crate::schedules;
+
+        // Given: an anniversary schedule exported from one database.
+        let mut source = fresh();
+        schedules::create(
+            &mut source,
+            Source::Cli,
+            &schedules::NewSchedule {
+                date: "2026-07-18",
+                time: None,
+                location: None,
+                description: Some("launch anniversary"),
+                notes: None,
+                kind: Some(ScheduleKind::Anniversary),
+                color: Some("#a855f7"),
+                icon: Some("👨‍👩‍👧‍👦"),
+                remind_before_5min: false,
+                remind_at_start: false,
+            },
+        )
+        .unwrap();
+        let dump = export_json(&source, false).unwrap();
+
+        // When: the dump is merged into another database.
+        let mut target = fresh();
+        let report = import_json_merge(&mut target, &dump, false).unwrap();
+
+        // Then: the imported schedule retains its typed metadata.
+        assert_eq!(report.inserted_schedules, 1);
+        let imported = schedules::list(&target, None).unwrap().remove(0);
+        assert_eq!(imported.kind, ScheduleKind::Anniversary);
+        assert_eq!(imported.color.as_deref(), Some("#a855f7"));
+        assert_eq!(imported.icon.as_deref(), Some("👨‍👩‍👧‍👦"));
+    }
+
+    #[test]
+    fn legacy_schedule_export_defaults_to_event_metadata() {
+        use crate::models::ScheduleKind;
+
+        // Given: a JSON export produced before schedule metadata existed.
+        let legacy = r#"{
+            "projects": [],
+            "memos": [],
+            "schedules": [{
+                "id": 1,
+                "date": "2026-07-19",
+                "time": null,
+                "location": null,
+                "description": "legacy",
+                "notes": null,
+                "remind_before_5min": false,
+                "remind_at_start": false,
+                "created_at": "2026-07-14 00:00:00",
+                "updated_at": "2026-07-14 00:00:00"
+            }],
+            "categories": [],
+            "clients": []
+        }"#;
+
+        // When: the old export is deserialized by the current model.
+        let dump: Dump = serde_json::from_str(legacy).unwrap();
+
+        // Then: compatibility defaults fill the additive metadata fields.
+        assert_eq!(dump.schedules[0].kind, ScheduleKind::Event);
+        assert!(dump.schedules[0].color.is_none());
+        assert!(dump.schedules[0].icon.is_none());
     }
 
     #[test]

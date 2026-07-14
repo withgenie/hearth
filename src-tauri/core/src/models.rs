@@ -22,10 +22,47 @@ pub struct Schedule {
     pub location: Option<String>,
     pub description: Option<String>,
     pub notes: Option<String>,
+    #[serde(default)]
+    pub kind: ScheduleKind,
+    pub color: Option<String>,
+    pub icon: Option<String>,
     pub remind_before_5min: bool,
     pub remind_at_start: bool,
     pub created_at: String,
     pub updated_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum ScheduleKind {
+    #[default]
+    Event,
+    Task,
+    Shift,
+    Anniversary,
+}
+
+impl ScheduleKind {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            ScheduleKind::Event => "event",
+            ScheduleKind::Task => "task",
+            ScheduleKind::Shift => "shift",
+            ScheduleKind::Anniversary => "anniversary",
+        }
+    }
+
+    pub fn parse(input: &str) -> rusqlite::Result<Self> {
+        match input {
+            "event" => Ok(ScheduleKind::Event),
+            "task" => Ok(ScheduleKind::Task),
+            "shift" => Ok(ScheduleKind::Shift),
+            "anniversary" => Ok(ScheduleKind::Anniversary),
+            other => Err(rusqlite::Error::InvalidParameterName(format!(
+                "invalid schedule kind: {other}"
+            ))),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]

@@ -1,6 +1,6 @@
 use crate::AppState;
 use hearth_core::audit::Source;
-use hearth_core::models::Schedule;
+use hearth_core::models::{Schedule, ScheduleKind};
 use hearth_core::schedules::{self, NewSchedule, UpdateSchedule};
 use serde::Deserialize;
 use tauri::{AppHandle, State};
@@ -12,6 +12,9 @@ pub struct ScheduleInput {
     pub location: Option<String>,
     pub description: Option<String>,
     pub notes: Option<String>,
+    pub kind: Option<ScheduleKind>,
+    pub color: Option<String>,
+    pub icon: Option<String>,
     #[serde(default)]
     pub remind_before_5min: bool,
     #[serde(default)]
@@ -44,6 +47,9 @@ pub fn create_schedule(
                 location: data.location.as_deref(),
                 description: data.description.as_deref(),
                 notes: data.notes.as_deref(),
+                kind: data.kind,
+                color: data.color.as_deref(),
+                icon: data.icon.as_deref(),
                 remind_before_5min: data.remind_before_5min,
                 remind_at_start: data.remind_at_start,
             },
@@ -73,6 +79,9 @@ pub fn update_schedule(
                 location: data.location.as_deref(),
                 description: data.description.as_deref(),
                 notes: data.notes.as_deref(),
+                kind: data.kind,
+                color: data.color.as_deref(),
+                icon: data.icon.as_deref(),
                 remind_before_5min: Some(data.remind_before_5min),
                 remind_at_start: Some(data.remind_at_start),
             },

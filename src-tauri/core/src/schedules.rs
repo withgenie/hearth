@@ -1,5 +1,5 @@
 use crate::audit::{write_audit, Op, Source};
-use crate::models::Schedule;
+use crate::models::{Schedule, ScheduleKind};
 use rusqlite::{params, Connection};
 
 fn row_to(row: &rusqlite::Row) -> rusqlite::Result<Schedule> {
@@ -10,14 +10,17 @@ fn row_to(row: &rusqlite::Row) -> rusqlite::Result<Schedule> {
         location: row.get(3)?,
         description: row.get(4)?,
         notes: row.get(5)?,
-        remind_before_5min: row.get::<_, i64>(6)? != 0,
-        remind_at_start: row.get::<_, i64>(7)? != 0,
-        created_at: row.get(8)?,
-        updated_at: row.get(9)?,
+        kind: ScheduleKind::parse(&row.get::<_, String>(6)?)?,
+        color: row.get(7)?,
+        icon: row.get(8)?,
+        remind_before_5min: row.get::<_, i64>(9)? != 0,
+        remind_at_start: row.get::<_, i64>(10)? != 0,
+        created_at: row.get(11)?,
+        updated_at: row.get(12)?,
     })
 }
 
-const COLS: &str = "id, date, time, location, description, notes, remind_before_5min, remind_at_start, created_at, updated_at";
+const COLS: &str = "id, date, time, location, description, notes, kind, color, icon, remind_before_5min, remind_at_start, created_at, updated_at";
 
 pub fn list(conn: &Connection, month: Option<&str>) -> rusqlite::Result<Vec<Schedule>> {
     let (sql, params_vec): (String, Vec<Box<dyn rusqlite::types::ToSql>>) = match month {
@@ -61,6 +64,9 @@ pub struct NewSchedule<'a> {
     pub location: Option<&'a str>,
     pub description: Option<&'a str>,
     pub notes: Option<&'a str>,
+    pub kind: Option<ScheduleKind>,
+    pub color: Option<&'a str>,
+    pub icon: Option<&'a str>,
     pub remind_before_5min: bool,
     pub remind_at_start: bool,
 }
@@ -68,14 +74,17 @@ pub struct NewSchedule<'a> {
 pub fn create(conn: &mut Connection, source: Source, input: &NewSchedule<'_>) -> rusqlite::Result<Schedule> {
     let tx = conn.transaction()?;
     tx.execute(
-        "INSERT INTO schedules (date, time, location, description, notes, remind_before_5min, remind_at_start)
-         VALUES (?1,?2,?3,?4,?5,?6,?7)",
+        "INSERT INTO schedules (date, time, location, description, notes, kind, color, icon, remind_before_5min, remind_at_start)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
         params![
             input.date,
             input.time,
             input.location,
             input.description,
             input.notes,
+            input.kind.unwrap_or_default().as_str(),
+            input.color,
+            input.icon,
             input.remind_before_5min as i64,
             input.remind_at_start as i64,
         ],
@@ -87,6 +96,9 @@ pub fn create(conn: &mut Connection, source: Source, input: &NewSchedule<'_>) ->
         "location": input.location,
         "description": input.description,
         "notes": input.notes,
+        "kind": input.kind.unwrap_or_default(),
+        "color": input.color,
+        "icon": input.icon,
         "remind_before_5min": input.remind_before_5min,
         "remind_at_start": input.remind_at_start,
     });
@@ -101,6 +113,9 @@ pub struct UpdateSchedule<'a> {
     pub location: Option<&'a str>,
     pub description: Option<&'a str>,
     pub notes: Option<&'a str>,
+    pub kind: Option<ScheduleKind>,
+    pub color: Option<&'a str>,
+    pub icon: Option<&'a str>,
     pub remind_before_5min: Option<bool>,
     pub remind_at_start: Option<bool>,
 }
@@ -115,6 +130,9 @@ pub fn update(conn: &mut Connection, source: Source, id: i64, patch: &UpdateSche
     if let Some(v) = patch.location { sets.push("location = ?"); vals.push(Box::new(v.to_string())); }
     if let Some(v) = patch.description { sets.push("description = ?"); vals.push(Box::new(v.to_string())); }
     if let Some(v) = patch.notes { sets.push("notes = ?"); vals.push(Box::new(v.to_string())); }
+    if let Some(v) = patch.kind { sets.push("kind = ?"); vals.push(Box::new(v.as_str())); }
+    if let Some(v) = patch.color { sets.push("color = ?"); vals.push(Box::new(v.to_string())); }
+    if let Some(v) = patch.icon { sets.push("icon = ?"); vals.push(Box::new(v.to_string())); }
     if let Some(v) = patch.remind_before_5min { sets.push("remind_before_5min = ?"); vals.push(Box::new(v as i64)); }
     if let Some(v) = patch.remind_at_start { sets.push("remind_at_start = ?"); vals.push(Box::new(v as i64)); }
     if sets.is_empty() { return Err(rusqlite::Error::ToSqlConversionFailure("no fields".into())); }
@@ -162,6 +180,7 @@ mod tests {
             &NewSchedule {
                 date: "2026-05-01", time: Some("09:00"),
                 location: None, description: Some("dentist"), notes: None,
+                kind: None, color: None, icon: None,
                 remind_before_5min: true, remind_at_start: false,
             },
         ).unwrap();
@@ -178,6 +197,7 @@ mod tests {
                 &mut c, Source::Cli,
                 &NewSchedule {
                     date, time: None, location: None, description: None, notes: None,
+                    kind: None, color: None, icon: None,
                     remind_before_5min: false, remind_at_start: false,
                 },
             ).unwrap();
@@ -194,6 +214,7 @@ mod tests {
             &NewSchedule {
                 date: "2026-05-01", time: None, location: None,
                 description: None, notes: None,
+                kind: None, color: None, icon: None,
                 remind_before_5min: false, remind_at_start: false,
             },
         ).unwrap();
@@ -201,6 +222,7 @@ mod tests {
             &mut c, Source::Cli, s.id,
             &UpdateSchedule {
                 date: None, time: None, location: None, description: None, notes: None,
+                kind: None, color: None, icon: None,
                 remind_before_5min: Some(true), remind_at_start: Some(true),
             },
         ).unwrap();

@@ -225,7 +225,10 @@ hearth schedule list --from 2026-05-01 --to 2026-05-31
 hearth schedule create 2026-05-01 --time 09:00 --description "월간 계획"
 hearth schedule create 2026-05-02 --location "온라인" --notes "자료 먼저 준비"
 hearth schedule create 2026-05-03 --time 14:00 --description "데모" --remind-5min --remind-start
+hearth schedule create 2026-05-04 --description "마감" --kind task --color "#0ea5e9" --icon "✅"
 ```
+
+`--kind`는 `event`, `task`, `shift`, `anniversary` 중 하나를 받으며, 생략하면 기존 일정과 호환되는 `event`로 저장됩니다. `--color`와 `--icon`은 캘린더 표시용 선택 메타데이터이며, `--icon`을 사용할 때는 스티커 역할을 할 이모지 1개를 전달하세요.
 
 일정을 수정합니다.
 
@@ -233,6 +236,7 @@ hearth schedule create 2026-05-03 --time 14:00 --description "데모" --remind-5
 hearth schedule update 7 --date 2026-05-04 --time 10:30
 hearth schedule update 7 --description "데모 리허설" --location "회의실"
 hearth schedule update 7 --remind-5min false --remind-start true
+hearth schedule update 7 --kind anniversary --color "#f59e0b" --icon "🎂"
 ```
 
 일정을 조회하거나 삭제합니다.

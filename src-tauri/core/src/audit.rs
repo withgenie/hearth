@@ -487,6 +487,9 @@ fn build_schedules_insert(
         "location",
         "description",
         "notes",
+        "kind",
+        "color",
+        "icon",
         "remind_before_5min",
         "remind_at_start",
         "created_at",
@@ -518,6 +521,22 @@ fn build_schedules_insert(
         ),
         Box::new(
             v.get("notes")
+                .and_then(|x| x.as_str())
+                .map(|s| s.to_string()),
+        ),
+        Box::new(
+            v.get("kind")
+                .and_then(|x| x.as_str())
+                .unwrap_or("event")
+                .to_string(),
+        ),
+        Box::new(
+            v.get("color")
+                .and_then(|x| x.as_str())
+                .map(|s| s.to_string()),
+        ),
+        Box::new(
+            v.get("icon")
                 .and_then(|x| x.as_str())
                 .map(|s| s.to_string()),
         ),
@@ -699,6 +718,42 @@ mod tests {
         assert!(memos::get(&c, m.id).unwrap().is_none());
         undo(&mut c, 1).unwrap();
         assert_eq!(memos::get(&c, m.id).unwrap().unwrap().content, "hi");
+    }
+
+    #[test]
+    fn schedule_metadata_survives_audit_restore() {
+        use crate::models::ScheduleKind;
+        use crate::schedules;
+
+        // Given: a task schedule with display metadata that was deleted.
+        let mut c = fresh_conn();
+        let schedule = schedules::create(
+            &mut c,
+            Source::Cli,
+            &schedules::NewSchedule {
+                date: "2026-07-17",
+                time: None,
+                location: None,
+                description: Some("audit metadata"),
+                notes: None,
+                kind: Some(ScheduleKind::Task),
+                color: Some("#22c55e"),
+                icon: Some("✅"),
+                remind_before_5min: false,
+                remind_at_start: false,
+            },
+        )
+        .unwrap();
+        schedules::delete(&mut c, Source::Cli, schedule.id).unwrap();
+
+        // When: the delete audit entry is undone.
+        undo(&mut c, 1).unwrap();
+
+        // Then: the restored row retains all schedule metadata.
+        let restored = schedules::get(&c, schedule.id).unwrap().unwrap();
+        assert_eq!(restored.kind, ScheduleKind::Task);
+        assert_eq!(restored.color.as_deref(), Some("#22c55e"));
+        assert_eq!(restored.icon.as_deref(), Some("✅"));
     }
 
     #[test]

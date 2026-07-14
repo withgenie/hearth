@@ -734,12 +734,12 @@ fn list_schedules(app: &AppHandle, args: &Value) -> Result<Value, String> {
 fn load_schedule_row(db: &rusqlite::Connection, id: i64) -> Result<crate::models::Schedule, String> {
     db.query_row(
         "SELECT id, date, time, location, description, notes, \
-         remind_before_5min, remind_at_start, created_at, updated_at \
+         kind, color, icon, remind_before_5min, remind_at_start, created_at, updated_at \
          FROM schedules WHERE id = ?1",
         [id],
         |row| {
-            let b5: i64 = row.get(6)?;
-            let ba: i64 = row.get(7)?;
+            let b5: i64 = row.get(9)?;
+            let ba: i64 = row.get(10)?;
             Ok(crate::models::Schedule {
                 id: row.get(0)?,
                 date: row.get(1)?,
@@ -747,10 +747,13 @@ fn load_schedule_row(db: &rusqlite::Connection, id: i64) -> Result<crate::models
                 location: row.get(3)?,
                 description: row.get(4)?,
                 notes: row.get(5)?,
+                kind: crate::models::ScheduleKind::parse(&row.get::<_, String>(6)?)?,
+                color: row.get(7)?,
+                icon: row.get(8)?,
                 remind_before_5min: b5 != 0,
                 remind_at_start: ba != 0,
-                created_at: row.get(8)?,
-                updated_at: row.get(9)?,
+                created_at: row.get(11)?,
+                updated_at: row.get(12)?,
             })
         },
     )

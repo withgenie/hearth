@@ -376,6 +376,26 @@ fn schedule_create_list_delete_roundtrip() {
     assert_eq!(v["ok"], true);
     assert_eq!(v["data"]["date"], "2026-05-10");
     assert_eq!(v["data"]["remind_before_5min"], true);
+    for field in [
+        "id",
+        "date",
+        "time",
+        "location",
+        "description",
+        "notes",
+        "remind_before_5min",
+        "remind_at_start",
+        "created_at",
+        "updated_at",
+    ] {
+        assert!(
+            v["data"].get(field).is_some(),
+            "missing legacy field {field}"
+        );
+    }
+    assert_eq!(v["data"]["kind"], "event");
+    assert!(v["data"]["color"].is_null());
+    assert!(v["data"]["icon"].is_null());
     let id = v["data"]["id"].as_i64().unwrap();
 
     // list (no filter)
@@ -435,6 +455,94 @@ fn schedule_create_list_delete_roundtrip() {
 
     let v = stdout_json(hearth(db_str).args(["schedule", "list"]).assert());
     assert_eq!(v["data"].as_array().unwrap().len(), 0);
+}
+
+#[test]
+fn schedule_metadata_create_persists() {
+    // Given: an empty Hearth database.
+    let dir = TempDir::new().unwrap();
+    let db = dir.path().join("t.db");
+    let db_str = db.to_str().unwrap();
+
+    // When: a task schedule is created with display metadata.
+    let created = stdout_json(
+        hearth(db_str)
+            .args([
+                "schedule",
+                "create",
+                "2026-07-14",
+                "--kind",
+                "task",
+                "--color",
+                "#0ea5e9",
+                "--icon",
+                "👩🏽‍💻",
+            ])
+            .assert(),
+    );
+
+    // Then: create and list expose the persisted typed fields.
+    assert_eq!(created["data"]["kind"], "task");
+    assert_eq!(created["data"]["color"], "#0ea5e9");
+    assert_eq!(created["data"]["icon"], "👩🏽‍💻");
+    let listed = stdout_json(hearth(db_str).args(["schedule", "list"]).assert());
+    assert_eq!(listed["data"][0]["kind"], "task");
+    assert_eq!(listed["data"][0]["color"], "#0ea5e9");
+    assert_eq!(listed["data"][0]["icon"], "👩🏽‍💻");
+}
+
+#[test]
+fn schedule_metadata_update_persists() {
+    // Given: a legacy-compatible event created without metadata flags.
+    let dir = TempDir::new().unwrap();
+    let db = dir.path().join("t.db");
+    let db_str = db.to_str().unwrap();
+    let created = stdout_json(
+        hearth(db_str)
+            .args(["schedule", "create", "2026-07-15"])
+            .assert(),
+    );
+    let id = created["data"]["id"].as_i64().unwrap().to_string();
+
+    // When: the schedule metadata is updated.
+    let updated = stdout_json(
+        hearth(db_str)
+            .args([
+                "schedule",
+                "update",
+                &id,
+                "--kind",
+                "anniversary",
+                "--color",
+                "#f59e0b",
+                "--icon",
+                "🎂",
+            ])
+            .assert(),
+    );
+
+    // Then: the update response exposes all persisted metadata.
+    assert_eq!(updated["data"]["kind"], "anniversary");
+    assert_eq!(updated["data"]["color"], "#f59e0b");
+    assert_eq!(updated["data"]["icon"], "🎂");
+}
+
+#[test]
+fn schedule_metadata_rejects_unknown_kind_with_exit_2() {
+    // Given: an empty Hearth database.
+    let dir = TempDir::new().unwrap();
+    let db = dir.path().join("t.db");
+    let db_str = db.to_str().unwrap();
+
+    // When: schedule create receives a kind outside the supported enum.
+    let assertion = hearth(db_str)
+        .args(["schedule", "create", "2026-07-16", "--kind", "meeting"])
+        .assert();
+
+    // Then: clap rejects it as malformed CLI input.
+    assertion
+        .code(2)
+        .stderr(predicate::str::contains("invalid value 'meeting'"));
 }
 
 // ── Task 7.3 — category ──────────────────────────────────────────────────────

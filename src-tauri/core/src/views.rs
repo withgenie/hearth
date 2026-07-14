@@ -1,4 +1,4 @@
-use crate::models::{Memo, Project, Schedule};
+use crate::models::{Memo, Project, Schedule, ScheduleKind};
 use chrono::{Duration, Local};
 use rusqlite::Connection;
 use serde::Serialize;
@@ -15,7 +15,7 @@ pub fn today(conn: &Connection) -> rusqlite::Result<TodayView> {
     let today = Local::now().format("%Y-%m-%d").to_string();
     // schedules today
     let mut stmt = conn.prepare(
-        "SELECT id,date,time,location,description,notes,remind_before_5min,remind_at_start,created_at,updated_at
+        "SELECT id,date,time,location,description,notes,kind,color,icon,remind_before_5min,remind_at_start,created_at,updated_at
          FROM schedules WHERE date = ?1 ORDER BY COALESCE(time,'') ASC",
     )?;
     let schedules_today: Vec<Schedule> = stmt
@@ -27,10 +27,13 @@ pub fn today(conn: &Connection) -> rusqlite::Result<TodayView> {
                 location: r.get(3)?,
                 description: r.get(4)?,
                 notes: r.get(5)?,
-                remind_before_5min: r.get::<_, i64>(6)? != 0,
-                remind_at_start: r.get::<_, i64>(7)? != 0,
-                created_at: r.get(8)?,
-                updated_at: r.get(9)?,
+                kind: ScheduleKind::parse(&r.get::<_, String>(6)?)?,
+                color: r.get(7)?,
+                icon: r.get(8)?,
+                remind_before_5min: r.get::<_, i64>(9)? != 0,
+                remind_at_start: r.get::<_, i64>(10)? != 0,
+                created_at: r.get(11)?,
+                updated_at: r.get(12)?,
             })
         })?
         .filter_map(|r| r.ok())
@@ -91,7 +94,7 @@ pub fn overdue(conn: &Connection) -> rusqlite::Result<OverdueView> {
         .to_string();
 
     let mut stmt = conn.prepare(
-        "SELECT id,date,time,location,description,notes,remind_before_5min,remind_at_start,created_at,updated_at
+        "SELECT id,date,time,location,description,notes,kind,color,icon,remind_before_5min,remind_at_start,created_at,updated_at
          FROM schedules WHERE date < ?1 ORDER BY date DESC LIMIT 50",
     )?;
     let overdue_schedules: Vec<Schedule> = stmt
@@ -103,10 +106,13 @@ pub fn overdue(conn: &Connection) -> rusqlite::Result<OverdueView> {
                 location: r.get(3)?,
                 description: r.get(4)?,
                 notes: r.get(5)?,
-                remind_before_5min: r.get::<_, i64>(6)? != 0,
-                remind_at_start: r.get::<_, i64>(7)? != 0,
-                created_at: r.get(8)?,
-                updated_at: r.get(9)?,
+                kind: ScheduleKind::parse(&r.get::<_, String>(6)?)?,
+                color: r.get(7)?,
+                icon: r.get(8)?,
+                remind_before_5min: r.get::<_, i64>(9)? != 0,
+                remind_at_start: r.get::<_, i64>(10)? != 0,
+                created_at: r.get(11)?,
+                updated_at: r.get(12)?,
             })
         })?
         .filter_map(|r| r.ok())

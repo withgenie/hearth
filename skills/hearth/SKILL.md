@@ -31,10 +31,11 @@ description: |
   - Mutation recipe: `"$HEARTH" project update <id> [--name "<name>"] [--priority <P0-P4>] [--category "<category>"] [--path "<path>"] [--evaluation "<memo>"]`
 - `schedule.create`
   - Read phase: 날짜가 상대 표현이면 현재 날짜 기준으로 YYYY-MM-DD 로 해석. 기존 중복 가능성은 `"$HEARTH" schedule list --from <date> --to <date>` 로 확인
-  - Mutation recipe: `"$HEARTH" schedule create <YYYY-MM-DD> [--time HH:MM] [--description "<title>"] [--location "<place>"] [--notes "<notes>"] [--remind-5min] [--remind-start]`
+  - Mutation recipe: `"$HEARTH" schedule create <YYYY-MM-DD> [--time HH:MM] [--description "<title>"] [--location "<place>"] [--notes "<notes>"] [--kind event|task|shift|anniversary] [--color "<color>"] [--icon "<emoji>"] [--remind-5min] [--remind-start]`
+  - `--icon`을 제안할 때는 단어 대신 스티커 역할을 할 이모지 1개를 사용
 - `schedule.update`
   - Read phase: `"$HEARTH" schedule list --from <start> --to <end>` 또는 `"$HEARTH" search "<query>" --scope schedule --limit 10`; 선택한 대상은 `"$HEARTH" schedule get <id>`
-  - Mutation recipe: `"$HEARTH" schedule update <id> [--date YYYY-MM-DD] [--time HH:MM] [--description "<title>"] [--location "<place>"] [--notes "<notes>"] [--remind-5min true|false] [--remind-start true|false]`
+  - Mutation recipe: `"$HEARTH" schedule update <id> [--date YYYY-MM-DD] [--time HH:MM] [--description "<title>"] [--location "<place>"] [--notes "<notes>"] [--kind event|task|shift|anniversary] [--color "<color>"] [--icon "<emoji>"] [--remind-5min true|false] [--remind-start true|false]`
 - `memo.create`
   - Read phase: 프로젝트 연결 가능성이 있으면 `"$HEARTH" project list`; 특정 프로젝트명이 있으면 `"$HEARTH" search "<project>" --scope project --limit 5`; 태그를 붙일 수 있으면 `"$HEARTH" memo-tag list` 로 기존 태그를 확인
   - Mutation recipe: `"$HEARTH" memo create "<content>" [--color yellow|blue|green|pink|purple] [--project <project.id>] [--size small|normal|large] [--bold] [--tag "<name>" ...] [--focus-x <0..1>] [--focus-y <0..1>]`

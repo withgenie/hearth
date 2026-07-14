@@ -1,7 +1,27 @@
 use anyhow::Result;
 use clap::Subcommand;
 use hearth_core::audit::Source;
+use hearth_core::models::ScheduleKind;
 use hearth_core::schedules::{self, NewSchedule, UpdateSchedule};
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+pub(crate) enum ScheduleKindArg {
+    Event,
+    Task,
+    Shift,
+    Anniversary,
+}
+
+impl From<ScheduleKindArg> for ScheduleKind {
+    fn from(value: ScheduleKindArg) -> Self {
+        match value {
+            ScheduleKindArg::Event => ScheduleKind::Event,
+            ScheduleKindArg::Task => ScheduleKind::Task,
+            ScheduleKindArg::Shift => ScheduleKind::Shift,
+            ScheduleKindArg::Anniversary => ScheduleKind::Anniversary,
+        }
+    }
+}
 
 #[derive(Subcommand)]
 pub enum ScheduleCmd {
@@ -31,6 +51,12 @@ pub enum ScheduleCmd {
         description: Option<String>,
         #[arg(long)]
         notes: Option<String>,
+        #[arg(long, value_enum)]
+        kind: Option<ScheduleKindArg>,
+        #[arg(long)]
+        color: Option<String>,
+        #[arg(long)]
+        icon: Option<String>,
         /// Remind 5 minutes before.
         #[arg(long)]
         remind_5min: bool,
@@ -51,6 +77,12 @@ pub enum ScheduleCmd {
         description: Option<String>,
         #[arg(long)]
         notes: Option<String>,
+        #[arg(long, value_enum)]
+        kind: Option<ScheduleKindArg>,
+        #[arg(long)]
+        color: Option<String>,
+        #[arg(long)]
+        icon: Option<String>,
         /// Set remind-5min flag.
         #[arg(long)]
         remind_5min: Option<bool>,
@@ -98,6 +130,9 @@ pub fn dispatch(db_path_flag: Option<&str>, sub: ScheduleCmd, pretty: bool) -> R
             location,
             description,
             notes,
+            kind,
+            color,
+            icon,
             remind_5min,
             remind_start,
         } => {
@@ -110,6 +145,9 @@ pub fn dispatch(db_path_flag: Option<&str>, sub: ScheduleCmd, pretty: bool) -> R
                     location: location.as_deref(),
                     description: description.as_deref(),
                     notes: notes.as_deref(),
+                    kind: kind.map(Into::into),
+                    color: color.as_deref(),
+                    icon: icon.as_deref(),
                     remind_before_5min: remind_5min,
                     remind_at_start: remind_start,
                 },
@@ -123,6 +161,9 @@ pub fn dispatch(db_path_flag: Option<&str>, sub: ScheduleCmd, pretty: bool) -> R
             location,
             description,
             notes,
+            kind,
+            color,
+            icon,
             remind_5min,
             remind_start,
         } => {
@@ -136,6 +177,9 @@ pub fn dispatch(db_path_flag: Option<&str>, sub: ScheduleCmd, pretty: bool) -> R
                     location: location.as_deref(),
                     description: description.as_deref(),
                     notes: notes.as_deref(),
+                    kind: kind.map(Into::into),
+                    color: color.as_deref(),
+                    icon: icon.as_deref(),
                     remind_before_5min: remind_5min,
                     remind_at_start: remind_start,
                 },

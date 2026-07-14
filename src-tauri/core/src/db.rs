@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 /// (column drop, type change, etc.) should bump this and snapshot through
 /// a similarly-named `.pre-X.Y.bak` next to the canonical DB.
 const SCHEMA_VERSION_1: i64 = 1;
+const SCHEDULE_METADATA_SCHEMA_VERSION: i64 = 2;
 const PRE_1_0_BAK_SUFFIX: &str = ".pre-1.0.bak";
 
 pub fn init_db(db_path: &Path) -> Result<Connection> {
@@ -27,6 +28,7 @@ pub fn init_db(db_path: &Path) -> Result<Connection> {
         snapshot_pre_1_0_if_needed(&conn, db_path);
     }
     run_migrations(&conn)?;
+    migrate_schedule_metadata(&conn)?;
     stamp_schema_version(&conn)?;
 
     Ok(conn)
@@ -165,6 +167,32 @@ fn ensure_schedule_reminder_columns(conn: &Connection) -> Result<()> {
             "ALTER TABLE schedules ADD COLUMN remind_at_start INTEGER NOT NULL DEFAULT 0;",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_schedule_metadata(conn: &Connection) -> Result<()> {
+    let version: i64 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    if version >= SCHEDULE_METADATA_SCHEMA_VERSION {
+        return Ok(());
+    }
+
+    let mut stmt = conn.prepare("PRAGMA table_info('schedules')")?;
+    let columns: Vec<String> = stmt
+        .query_map([], |row| row.get::<_, String>(1))?
+        .filter_map(|row| row.ok())
+        .collect();
+    if !columns.iter().any(|column| column == "kind") {
+        conn.execute_batch("ALTER TABLE schedules ADD COLUMN kind TEXT NOT NULL DEFAULT 'event';")?;
+    }
+    if !columns.iter().any(|column| column == "color") {
+        conn.execute_batch("ALTER TABLE schedules ADD COLUMN color TEXT;")?;
+    }
+    if !columns.iter().any(|column| column == "icon") {
+        conn.execute_batch("ALTER TABLE schedules ADD COLUMN icon TEXT;")?;
+    }
+    conn.execute_batch(&format!(
+        "PRAGMA user_version = {SCHEDULE_METADATA_SCHEMA_VERSION};"
+    ))?;
     Ok(())
 }
 
@@ -349,6 +377,9 @@ fn run_migrations(conn: &Connection) -> Result<()> {
             location TEXT,
             description TEXT,
             notes TEXT,
+            kind TEXT NOT NULL DEFAULT 'event',
+            color TEXT,
+            icon TEXT,
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             updated_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
@@ -494,6 +525,40 @@ mod tests {
 
         // Running again is a no-op (idempotent).
         ensure_schedule_reminder_columns(&conn).unwrap();
+    }
+
+    #[test]
+    fn init_db_migrates_v1_schedule_metadata_and_is_idempotent() {
+        // Given: a schema-version 1 database with a schedule created before metadata existed.
+        let dir = tempfile::tempdir().unwrap();
+        let db_path = dir.path().join("data.db");
+        {
+            let conn = Connection::open(&db_path).unwrap();
+            legacy_schema(&conn);
+            ensure_schedule_reminder_columns(&conn).unwrap();
+            conn.execute(
+                "INSERT INTO schedules (date, description) VALUES ('2026-07-14', 'legacy')",
+                [],
+            )
+            .unwrap();
+            conn.execute_batch("PRAGMA user_version = 1;").unwrap();
+        }
+
+        // When: the current initializer opens the database twice.
+        let conn = init_db(&db_path).unwrap();
+        drop(conn);
+        let conn = init_db(&db_path).unwrap();
+
+        // Then: metadata exists with compatibility defaults and the migration is stamped once.
+        let metadata: (String, Option<String>, Option<String>) = conn
+            .query_row(
+                "SELECT kind, color, icon FROM schedules WHERE description = 'legacy'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .unwrap();
+        assert_eq!(metadata, ("event".to_string(), None, None));
+        assert_eq!(user_version(&conn), 2);
     }
 
     #[test]
@@ -700,7 +765,7 @@ mod tests {
         let conn = init_db(&db_path).unwrap();
 
         assert!(!bak_path.exists(), "fresh install must not snapshot");
-        assert_eq!(user_version(&conn), SCHEMA_VERSION_1);
+        assert_eq!(user_version(&conn), SCHEDULE_METADATA_SCHEMA_VERSION);
     }
 
     #[test]
@@ -722,7 +787,7 @@ mod tests {
         let conn = init_db(&db_path).unwrap();
 
         assert!(bak_path.exists(), "snapshot must be created");
-        assert_eq!(user_version(&conn), SCHEMA_VERSION_1);
+        assert_eq!(user_version(&conn), SCHEDULE_METADATA_SCHEMA_VERSION);
 
         // Snapshot reflects real seeded data.
         let bak_conn = Connection::open(&bak_path).unwrap();
