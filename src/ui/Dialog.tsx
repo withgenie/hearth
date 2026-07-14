@@ -67,7 +67,7 @@ export function Dialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/50"
+      className="dialog-backdrop fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/50"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -79,6 +79,7 @@ export function Dialog({
         aria-labelledby={labelledBy}
         tabIndex={-1}
         className={cn(
+          "dialog-panel",
           "w-full max-w-md rounded-[var(--radius-xl)]",
           "bg-[var(--color-surface-1)] border border-[var(--color-border)]",
           "shadow-[var(--shadow-e3)] p-5 outline-none",

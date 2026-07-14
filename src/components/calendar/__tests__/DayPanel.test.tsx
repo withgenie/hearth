@@ -47,6 +47,7 @@ describe("DayPanel", () => {
     const panel = screen.getByRole("dialog", {
       name: "2026년 7월 14일 화요일",
     });
+    expect(panel).toHaveClass("day-panel-surface");
     const rows = within(panel).getAllByTestId("day-panel-schedule");
     expect(rows.map((row) => row.textContent)).toEqual([
       expect.stringContaining("09:00"),

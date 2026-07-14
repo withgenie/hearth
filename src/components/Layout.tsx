@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { TopBar } from "./TopBar";
@@ -43,6 +43,49 @@ export function Layout({
     };
   }, []);
   const [activeTab, setActiveTab] = useState<Tab>("projects");
+  const userSelectedTabRef = useRef(false);
+  const changeActiveTab = useCallback(
+    (tab: Tab) => {
+      userSelectedTabRef.current = true;
+      setActiveTab(tab);
+      void api.saveUiPreferences({ activeTab: tab }).catch(() => {
+        toast.error("탭 설정을 저장하지 못했습니다");
+      });
+    },
+    [toast],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    void api
+      .getUiPreferences()
+      .then((preferences) => {
+        if (!cancelled && !userSelectedTabRef.current) {
+          setActiveTab(preferences.activeTab);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("탭 설정을 불러오지 못했습니다");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [toast]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!event.metaKey || event.ctrlKey || event.altKey) return;
+      let tab: Tab | undefined;
+      if (event.key === "1") tab = "projects";
+      if (event.key === "2") tab = "calendar";
+      if (event.key === "3") tab = "memos";
+      if (!tab) return;
+      event.preventDefault();
+      changeActiveTab(tab);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [changeActiveTab]);
   const [priorities, setPriorities] = useState<Set<Priority>>(
     new Set(PRIORITIES),
   );
@@ -65,9 +108,9 @@ export function Layout({
   };
 
   const openNewProject = useCallback(() => {
-    setActiveTab("projects");
+    changeActiveTab("projects");
     setNewProjectOpen(true);
-  }, []);
+  }, [changeActiveTab]);
 
   const [newMemoOpen, setNewMemoOpen] = useState(false);
   const [newMemoProjectId, setNewMemoProjectId] = useState<number | null>(null);
@@ -120,13 +163,13 @@ export function Layout({
   }, [toast]);
 
   const openNewMemo = useCallback(() => {
-    setActiveTab("memos");
+    changeActiveTab("memos");
     setNewMemoOpen(true);
-  }, []);
+  }, [changeActiveTab]);
 
   const commands = buildLocalCommands({
     openNewProject,
-    openNewSchedule: () => setActiveTab("calendar"),
+    openNewSchedule: () => changeActiveTab("calendar"),
     openNewMemo,
   });
 
@@ -135,15 +178,14 @@ export function Layout({
   // validated against the canonical PRIORITIES list. Categories are now
   // user-editable, so `set_filter` accepts any non-empty string and trusts
   // the agent to use a live name; stale names just show an empty filter
-  // until the user picks something else. Deps array is empty: every setter
-  // is a React-stable reference.
+  // until the user picks something else.
   const handleClientIntent = useCallback((call: ToolCall) => {
     const args = call.arguments ?? {};
     switch (call.name) {
       case "switch_tab": {
         const tab = args.tab;
         if (tab === "projects" || tab === "calendar" || tab === "memos") {
-          setActiveTab(tab);
+          changeActiveTab(tab);
         }
         break;
       }
@@ -165,7 +207,7 @@ export function Layout({
         break;
       }
     }
-  }, []);
+  }, [changeActiveTab]);
 
   // Global right-click blocker: suppress the native WebKit menu (which
   // includes "Inspect Element" in dev). Cards that want their own menu
@@ -185,7 +227,7 @@ export function Layout({
     >
       <TopBar
         active={activeTab}
-        onChange={setActiveTab}
+        onChange={changeActiveTab}
         onOpenSettings={() => {
           setSettingsInitialTab("general");
           setSettingsOpen(true);
@@ -220,7 +262,7 @@ export function Layout({
       <FindPalette
         open={findOpen}
         onClose={() => setFindOpen(false)}
-        onNavigate={setActiveTab}
+        onNavigate={changeActiveTab}
       />
       <NewProjectDialog
         open={newProjectOpen}

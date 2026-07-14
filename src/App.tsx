@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type AnimationEvent,
+  type ReactNode,
+} from "react";
 import "./App.css";
 import { Layout } from "./components/Layout";
 import { ProjectList } from "./components/ProjectList";
@@ -12,7 +18,81 @@ import { useProjects } from "./hooks/useProjects";
 import { useMemos } from "./hooks/useMemos";
 import { useUiScale } from "./hooks/useUiScale";
 import { useTauriDbChangeBridge } from "./lib/dbChangeBridge";
-import type { Priority } from "./types";
+import type { Priority, Tab } from "./types";
+
+type ViewPhase = "idle" | "exiting" | "entering";
+
+const phaseClass: Record<ViewPhase, string> = {
+  idle: "tab-view--idle",
+  exiting: "tab-view--exiting",
+  entering: "tab-view--entering",
+};
+
+function usePrefersReducedMotion() {
+  const [reducedMotion, setReducedMotion] = useState(
+    () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
+  );
+
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = (event: MediaQueryListEvent) => {
+      setReducedMotion(event.matches);
+    };
+    query.addEventListener("change", syncPreference);
+    return () => query.removeEventListener("change", syncPreference);
+  }, []);
+
+  return reducedMotion;
+}
+
+export function TabViewTransition({
+  activeTab,
+  children,
+}: {
+  activeTab: Tab;
+  children: (tab: Tab) => ReactNode;
+}) {
+  const [displayedTab, setDisplayedTab] = useState(activeTab);
+  const [phase, setPhase] = useState<ViewPhase>("idle");
+  const reducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (activeTab === displayedTab) {
+      if (reducedMotion && phase !== "idle") setPhase("idle");
+      return;
+    }
+    if (reducedMotion) {
+      setDisplayedTab(activeTab);
+      setPhase("idle");
+      return;
+    }
+    if (phase !== "exiting") {
+      setPhase("exiting");
+    }
+  }, [activeTab, displayedTab, phase, reducedMotion]);
+
+  const finishPhase = (event: AnimationEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (phase === "exiting") {
+      setDisplayedTab(activeTab);
+      setPhase("entering");
+      return;
+    }
+    if (phase === "entering") setPhase("idle");
+  };
+
+  return (
+    <div
+      aria-label="선택한 화면"
+      className={`tab-view ${phaseClass[phase]}`}
+      onAnimationEnd={finishPhase}
+      role="tabpanel"
+    >
+      {children(displayedTab)}
+    </div>
+  );
+}
 
 function ProjectsTab({
   priorities,
@@ -85,17 +165,21 @@ function App() {
       <ToastProvider>
         <Layout>
           {({ activeTab, priorities, category, openNewProject }) => (
-            <>
-              {activeTab === "projects" && (
-                <ProjectsTab
-                  priorities={priorities}
-                  category={category}
-                  onAdd={openNewProject}
-                />
+            <TabViewTransition activeTab={activeTab}>
+              {(displayedTab) => (
+                <>
+                  {displayedTab === "projects" && (
+                    <ProjectsTab
+                      priorities={priorities}
+                      category={category}
+                      onAdd={openNewProject}
+                    />
+                  )}
+                  {displayedTab === "calendar" && <CalendarView />}
+                  {displayedTab === "memos" && <MemoBoard />}
+                </>
               )}
-              {activeTab === "calendar" && <CalendarView />}
-              {activeTab === "memos" && <MemoBoard />}
-            </>
+            </TabViewTransition>
           )}
         </Layout>
         <MigrationWizard />

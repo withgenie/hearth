@@ -164,7 +164,7 @@ export function DayPanel({
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={onPanelKeyDown}
-        className="fixed inset-y-0 right-0 flex w-full max-w-md min-w-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-surface-1)] text-[var(--color-text)] opacity-100 shadow-[var(--shadow-e3)] outline-none transition-[transform,opacity] duration-150 ease-[var(--ease-out-smooth)] starting:translate-x-full starting:opacity-0 motion-reduce:transform-none motion-reduce:transition-none"
+        className="day-panel-surface fixed inset-y-0 right-0 flex w-full max-w-md min-w-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-surface-1)] text-[var(--color-text)] shadow-[var(--shadow-e3)] outline-none"
       >
         <header className="shrink-0 border-b border-[var(--color-border)] p-4">
           <div className="flex min-w-0 items-center gap-2">
