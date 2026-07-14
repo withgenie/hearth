@@ -68,6 +68,19 @@ function memo(overrides: Partial<Memo> = {}): Memo {
   };
 }
 
+function pointerDrag(source: HTMLElement, target: HTMLElement) {
+  const pointer = {
+    pointerId: 1,
+    pointerType: "mouse",
+    button: 0,
+    isPrimary: true,
+  };
+  fireEvent.pointerDown(source, { ...pointer, clientX: 10, clientY: 10 });
+  fireEvent.pointerEnter(target, { ...pointer, clientX: 120, clientY: 40 });
+  fireEvent.pointerMove(target, { ...pointer, clientX: 120, clientY: 40 });
+  fireEvent.pointerUp(target, { ...pointer, clientX: 120, clientY: 40 });
+}
+
 describe("CalendarView", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -286,8 +299,8 @@ describe("CalendarView", () => {
     ];
     render(<CalendarView />);
 
-    fireEvent.dragStart(screen.getByText("E"));
-    fireEvent.drop(
+    pointerDrag(
+      screen.getByRole("button", { name: "야간 당직 E 일정 이동" }),
       screen
         .getByRole("button", { name: "2026년 7월 16일 목요일" })
         .closest("[role='gridcell']") as HTMLElement,
@@ -317,8 +330,8 @@ describe("CalendarView", () => {
     scheduleHook.update.mockRejectedValueOnce(new Error("database busy"));
     render(<CalendarView />);
 
-    fireEvent.dragStart(screen.getByText("제품 회의"));
-    fireEvent.drop(
+    pointerDrag(
+      screen.getByRole("button", { name: "제품 회의 일정 이동" }),
       screen
         .getByRole("button", { name: "2026년 7월 15일 수요일" })
         .closest("[role='gridcell']") as HTMLElement,

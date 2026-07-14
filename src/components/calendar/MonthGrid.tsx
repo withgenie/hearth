@@ -1,4 +1,10 @@
-import { useState, type CSSProperties, type DragEvent } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 import { cn } from "../../lib/cn";
 import { buildMonthCells } from "./dateUtils";
 
@@ -70,20 +76,21 @@ function scheduleSortValue(schedule: MonthGridSchedule): string {
 interface DraggableScheduleProps {
   schedule: MonthGridSchedule;
   isDragging: boolean;
-  onDragStart: (
-    event: DragEvent<HTMLElement>,
+  onPointerDown: (
+    event: PointerEvent<HTMLElement>,
     schedule: MonthGridSchedule,
   ) => void;
-  onDragEnd: () => void;
-  onSelectDate: (dateKey: string) => void;
+  onClick: (
+    event: MouseEvent<HTMLButtonElement>,
+    schedule: MonthGridSchedule,
+  ) => void;
 }
 
 function EventChip({
   schedule,
   isDragging,
-  onDragStart,
-  onDragEnd,
-  onSelectDate,
+  onPointerDown,
+  onClick,
 }: DraggableScheduleProps) {
   const railColor =
     schedule.railColor ??
@@ -94,21 +101,20 @@ function EventChip({
   return (
     <button
       type="button"
-      draggable
       aria-label={`${schedule.title} 일정 이동`}
+      aria-grabbed={isDragging}
       data-testid="month-grid-chip"
       data-dragging={isDragging ? "true" : undefined}
       className={cn(
-        "pointer-events-auto relative flex min-w-0 cursor-grab items-center gap-1 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] py-1 pl-2.5 pr-1 text-left text-[12px] leading-4 text-[var(--color-text)] outline-none transition-[opacity,box-shadow] duration-[120ms] hover:ring-1 hover:ring-[var(--color-border-strong)] active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[var(--color-brand-hi)]",
+        "pointer-events-auto relative flex min-w-0 touch-none select-none cursor-grab items-center gap-1 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] py-1 pl-2.5 pr-1 text-left text-[12px] leading-4 text-[var(--color-text)] outline-none transition-[opacity,box-shadow] duration-[120ms] hover:ring-1 hover:ring-[var(--color-border-strong)] active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[var(--color-brand-hi)]",
         isDeadline && "font-medium text-[var(--color-danger)]",
         isDragging && "opacity-50",
       )}
       title={[schedule.time, schedule.title, "드래그하여 날짜 변경"]
         .filter(Boolean)
         .join(" · ")}
-      onClick={() => onSelectDate(schedule.date)}
-      onDragStart={(event) => onDragStart(event, schedule)}
-      onDragEnd={onDragEnd}
+      onClick={(event) => onClick(event, schedule)}
+      onPointerDown={(event) => onPointerDown(event, schedule)}
     >
       <span
         aria-hidden="true"
@@ -141,30 +147,47 @@ export function MonthGrid({
     useState<MonthGridSchedule | null>(null);
   const [dropTargetDate, setDropTargetDate] = useState<string | null>(null);
   const [moveStatus, setMoveStatus] = useState("");
+  const activePointerDrag = useRef<{
+    pointerId: number;
+    schedule: MonthGridSchedule;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
+  const suppressedClickScheduleId = useRef<MonthGridSchedule["id"] | null>(
+    null,
+  );
   const cells = buildMonthCells(month, today);
   const schedulesByDate = new Map<string, MonthGridSchedule[]>();
 
-  const beginDrag = (
-    event: DragEvent<HTMLElement>,
+  const beginPointerDrag = (
+    event: PointerEvent<HTMLElement>,
     schedule: MonthGridSchedule,
   ) => {
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", String(schedule.id));
-    }
+    if (!onMoveSchedule || event.isPrimary === false) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
     setMoveStatus("");
-    setDraggedSchedule(schedule);
+    activePointerDrag.current = {
+      pointerId: event.pointerId,
+      schedule,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
   };
 
-  const endDrag = () => {
+  const clearPointerDrag = () => {
+    activePointerDrag.current = null;
     setDraggedSchedule(null);
     setDropTargetDate(null);
   };
 
-  const dropSchedule = async (targetDate: string, targetLabel: string) => {
-    const schedule = draggedSchedule;
-    endDrag();
-    if (!schedule || schedule.date === targetDate || !onMoveSchedule) return;
+  const moveSchedule = async (
+    schedule: MonthGridSchedule,
+    targetDate: string,
+    targetLabel: string,
+  ) => {
+    if (schedule.date === targetDate || !onMoveSchedule) return;
 
     try {
       await onMoveSchedule(schedule.id, targetDate);
@@ -176,6 +199,60 @@ export function MonthGrid({
         `${schedule.title} 일정을 이동하지 못했습니다. 다시 시도해 주세요.`,
       );
     }
+  };
+
+  const enterPointerTarget = (
+    event: PointerEvent<HTMLElement>,
+    targetDate: string,
+  ) => {
+    const active = activePointerDrag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    const movedFarEnough =
+      Math.hypot(event.clientX - active.startX, event.clientY - active.startY) >=
+      5;
+    if (active.schedule.date !== targetDate || movedFarEnough) {
+      active.moved = true;
+    }
+    if (!active.moved) return;
+    setDraggedSchedule(active.schedule);
+    setDropTargetDate(
+      active.schedule.date === targetDate ? null : targetDate,
+    );
+  };
+
+  const finishPointerDrag = (
+    event: PointerEvent<HTMLElement>,
+    targetDate: string,
+    targetLabel: string,
+  ) => {
+    const active = activePointerDrag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    const shouldMove = active.moved && active.schedule.date !== targetDate;
+    if (active.moved) {
+      suppressedClickScheduleId.current = active.schedule.id;
+      window.setTimeout(() => {
+        if (suppressedClickScheduleId.current === active.schedule.id) {
+          suppressedClickScheduleId.current = null;
+        }
+      }, 0);
+    }
+    clearPointerDrag();
+    if (shouldMove) {
+      void moveSchedule(active.schedule, targetDate, targetLabel);
+    }
+  };
+
+  const selectScheduleDate = (
+    event: MouseEvent<HTMLButtonElement>,
+    schedule: MonthGridSchedule,
+  ) => {
+    if (suppressedClickScheduleId.current === schedule.id) {
+      suppressedClickScheduleId.current = null;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    onSelectDate(schedule.date);
   };
 
   for (const schedule of schedules) {
@@ -200,6 +277,16 @@ export function MonthGrid({
         aria-colcount={7}
         aria-rowcount={7}
         className="grid h-full min-h-0 grid-cols-7 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-1)]"
+        onPointerCancel={clearPointerDrag}
+        onPointerLeave={(event) => {
+          if (
+            event.relatedTarget instanceof Node &&
+            event.currentTarget.contains(event.relatedTarget)
+          ) {
+            return;
+          }
+          clearPointerDrag();
+        }}
       >
       {WEEKDAY_LABELS.map((label, weekday) => (
         <div
@@ -264,34 +351,19 @@ export function MonthGrid({
               dropTargetDate === cell.dateKey &&
                 "bg-[var(--color-brand-soft)] ring-2 ring-inset ring-[var(--color-brand-hi)]",
             )}
-            onDragOver={(event) => {
-              if (
-                !draggedSchedule ||
-                draggedSchedule.date === cell.dateKey ||
-                !onMoveSchedule
-              ) {
-                return;
-              }
-              event.preventDefault();
-              if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
-              setDropTargetDate(cell.dateKey);
-            }}
-            onDragLeave={(event) => {
-              if (
-                event.relatedTarget instanceof Node &&
-                event.currentTarget.contains(event.relatedTarget)
-              ) {
-                return;
-              }
-              if (dropTargetDate === cell.dateKey) setDropTargetDate(null);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              void dropSchedule(
+            onPointerEnter={(event) =>
+              enterPointerTarget(event, cell.dateKey)
+            }
+            onPointerMove={(event) =>
+              enterPointerTarget(event, cell.dateKey)
+            }
+            onPointerUp={(event) =>
+              finishPointerDrag(
+                event,
                 cell.dateKey,
                 DATE_LABEL_FORMAT.format(cell.date),
-              );
-            }}
+              )
+            }
           >
             <button
               type="button"
@@ -322,21 +394,24 @@ export function MonthGrid({
                 {shifts[0] && (
                   <button
                     type="button"
-                    draggable
                     aria-label={`${shifts[0].title} 일정 이동`}
+                    aria-grabbed={draggedSchedule?.id === shifts[0].id}
                     data-shift-code={shifts[0].shiftCode}
                     data-dragging={
                       draggedSchedule?.id === shifts[0].id ? "true" : undefined
                     }
                     className={cn(
-                      "pointer-events-auto inline-flex h-5 cursor-grab items-center rounded-full border px-1.5 text-[11px] font-semibold leading-none outline-none transition-[opacity,box-shadow] duration-[120ms] active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[var(--color-brand-hi)]",
+                      "pointer-events-auto inline-flex h-5 touch-none select-none cursor-grab items-center rounded-full border px-1.5 text-[11px] font-semibold leading-none outline-none transition-[opacity,box-shadow] duration-[120ms] active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[var(--color-brand-hi)]",
                       shiftBadgeClasses(shifts[0].shiftCode),
                       draggedSchedule?.id === shifts[0].id && "opacity-50",
                     )}
                     title={`${shifts[0].title} · 드래그하여 날짜 변경`}
-                    onClick={() => onSelectDate(shifts[0].date)}
-                    onDragStart={(event) => beginDrag(event, shifts[0])}
-                    onDragEnd={endDrag}
+                    onClick={(event) =>
+                      selectScheduleDate(event, shifts[0])
+                    }
+                    onPointerDown={(event) =>
+                      beginPointerDrag(event, shifts[0])
+                    }
                   >
                     {shifts[0].shiftCode}
                   </button>
@@ -349,9 +424,8 @@ export function MonthGrid({
                     key={schedule.id}
                     schedule={schedule}
                     isDragging={draggedSchedule?.id === schedule.id}
-                    onDragStart={beginDrag}
-                    onDragEnd={endDrag}
-                    onSelectDate={onSelectDate}
+                    onPointerDown={beginPointerDrag}
+                    onClick={selectScheduleDate}
                   />
                 ))}
               </div>

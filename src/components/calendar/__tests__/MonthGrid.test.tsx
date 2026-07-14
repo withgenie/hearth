@@ -86,6 +86,18 @@ describe("MonthGrid", () => {
     },
   ];
 
+  function pointerDrag(
+    source: HTMLElement,
+    target: HTMLElement,
+    pointerType: "mouse" | "touch" | "pen" = "mouse",
+  ) {
+    const pointer = { pointerId: 1, pointerType, button: 0, isPrimary: true };
+    fireEvent.pointerDown(source, { ...pointer, clientX: 10, clientY: 10 });
+    fireEvent.pointerEnter(target, { ...pointer, clientX: 120, clientY: 40 });
+    fireEvent.pointerMove(target, { ...pointer, clientX: 120, clientY: 40 });
+    fireEvent.pointerUp(target, { ...pointer, clientX: 120, clientY: 40 });
+  }
+
   it("renders a Korean seven-column grid with today, weekend, and adjacent-month semantics", () => {
     render(
       <MonthGrid
@@ -232,13 +244,14 @@ describe("MonthGrid", () => {
     ).toBe("var(--color-brand)");
   });
 
-  it("drags both schedule chips and shift capsules onto another date", async () => {
+  it("moves schedule chips with physical pointer events without a native drag event", async () => {
     const onMoveSchedule = vi.fn().mockResolvedValue(undefined);
+    const onSelectDate = vi.fn();
     render(
       <MonthGrid
         month={new Date(2026, 6, 1)}
         schedules={schedules}
-        onSelectDate={vi.fn()}
+        onSelectDate={onSelectDate}
         onMoveSchedule={onMoveSchedule}
       />,
     );
@@ -246,31 +259,43 @@ describe("MonthGrid", () => {
     const targetCell = screen
       .getByRole("button", { name: "2026년 7월 2일 목요일" })
       .closest("[role='gridcell']") as HTMLElement;
-    const chip = screen
-      .getByText("팀 미팅")
-      .closest("[draggable='true']") as HTMLElement;
-    fireEvent.dragStart(chip);
-    fireEvent.dragOver(targetCell);
+    const chip = screen.getByRole("button", { name: "팀 미팅 일정 이동" });
+    fireEvent.pointerDown(chip, {
+      pointerId: 1,
+      pointerType: "mouse",
+      button: 0,
+      isPrimary: true,
+      clientX: 10,
+      clientY: 10,
+    });
+    fireEvent.pointerEnter(targetCell, {
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: 120,
+      clientY: 40,
+    });
     expect(targetCell.getAttribute("data-drop-target")).toBe("true");
-    fireEvent.drop(targetCell);
+    fireEvent.pointerMove(targetCell, {
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: 120,
+      clientY: 40,
+    });
+    fireEvent.pointerUp(targetCell, {
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: 120,
+      clientY: 40,
+    });
+    fireEvent.click(chip);
 
     await waitFor(() =>
       expect(onMoveSchedule).toHaveBeenCalledWith(2, "2026-07-02"),
     );
+    expect(onMoveSchedule).toHaveBeenCalledTimes(1);
+    expect(onSelectDate).not.toHaveBeenCalled();
     expect(screen.getByRole("status").textContent).toContain(
       "팀 미팅 일정을 2026년 7월 2일 목요일로 이동했습니다.",
-    );
-
-    const shift = screen.getByText("D");
-    expect(shift.getAttribute("draggable")).toBe("true");
-    fireEvent.dragStart(shift);
-    fireEvent.drop(targetCell);
-
-    await waitFor(() =>
-      expect(onMoveSchedule).toHaveBeenCalledWith(1, "2026-07-02"),
-    );
-    expect(screen.getByRole("status").textContent).toContain(
-      "D 근무 일정을 2026년 7월 2일 목요일로 이동했습니다.",
     );
   });
 
@@ -295,11 +320,12 @@ describe("MonthGrid", () => {
         />,
       );
 
-      fireEvent.dragStart(screen.getByText(shiftCode));
-      fireEvent.drop(
+      pointerDrag(
+        screen.getByRole("button", { name: `${shiftCode} 근무 일정 이동` }),
         screen
           .getByRole("button", { name: "2026년 7월 3일 금요일" })
           .closest("[role='gridcell']") as HTMLElement,
+        shiftCode === "OFF" ? "touch" : "mouse",
       );
 
       await waitFor(() =>
@@ -322,11 +348,8 @@ describe("MonthGrid", () => {
     const sourceCell = screen
       .getByRole("button", { name: "2026년 7월 1일 수요일" })
       .closest("[role='gridcell']") as HTMLElement;
-    const chip = screen
-      .getByText("팀 미팅")
-      .closest("[draggable='true']") as HTMLElement;
-    fireEvent.dragStart(chip);
-    fireEvent.drop(sourceCell);
+    const chip = screen.getByRole("button", { name: "팀 미팅 일정 이동" });
+    pointerDrag(chip, sourceCell);
     expect(onMoveSchedule).not.toHaveBeenCalled();
 
     rerender(
@@ -336,14 +359,44 @@ describe("MonthGrid", () => {
         onSelectDate={vi.fn()}
       />,
     );
-    fireEvent.dragStart(
-      screen.getByText("팀 미팅").closest("[draggable='true']") as HTMLElement,
-    );
-    fireEvent.drop(
+    pointerDrag(
+      screen.getByRole("button", { name: "팀 미팅 일정 이동" }),
       screen
         .getByRole("button", { name: "2026년 7월 2일 목요일" })
         .closest("[role='gridcell']") as HTMLElement,
     );
     expect(onMoveSchedule).not.toHaveBeenCalled();
+  });
+
+  it("keeps a schedule chip's ordinary click behavior when no drag occurred", () => {
+    const onSelectDate = vi.fn();
+    render(
+      <MonthGrid
+        month={new Date(2026, 6, 1)}
+        schedules={schedules}
+        onSelectDate={onSelectDate}
+        onMoveSchedule={vi.fn()}
+      />,
+    );
+
+    const chip = screen.getByRole("button", { name: "팀 미팅 일정 이동" });
+    fireEvent.pointerDown(chip, {
+      pointerId: 1,
+      pointerType: "mouse",
+      button: 0,
+      isPrimary: true,
+      clientX: 10,
+      clientY: 10,
+    });
+    fireEvent.pointerUp(chip, {
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: 10,
+      clientY: 10,
+    });
+    fireEvent.click(chip);
+
+    expect(onSelectDate).toHaveBeenCalledOnce();
+    expect(onSelectDate).toHaveBeenCalledWith("2026-07-01");
   });
 });
