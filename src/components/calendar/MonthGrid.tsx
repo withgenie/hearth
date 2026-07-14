@@ -51,6 +51,10 @@ const DATE_LABEL_FORMAT = new Intl.DateTimeFormat("ko-KR", {
   weekday: "long",
 });
 
+function pointerCoordinate(value: number): number {
+  return Number.isFinite(value) ? value : 0;
+}
+
 const DEFAULT_RAIL_COLOR: Record<Exclude<MonthGridKind, "shift">, string> = {
   event: "var(--color-brand)",
   task: "var(--color-success)",
@@ -146,6 +150,10 @@ export function MonthGrid({
   const [draggedSchedule, setDraggedSchedule] =
     useState<MonthGridSchedule | null>(null);
   const [dropTargetDate, setDropTargetDate] = useState<string | null>(null);
+  const [dragPreviewPosition, setDragPreviewPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [moveStatus, setMoveStatus] = useState("");
   const activePointerDrag = useRef<{
     pointerId: number;
@@ -170,8 +178,8 @@ export function MonthGrid({
     activePointerDrag.current = {
       pointerId: event.pointerId,
       schedule,
-      startX: event.clientX,
-      startY: event.clientY,
+      startX: pointerCoordinate(event.clientX),
+      startY: pointerCoordinate(event.clientY),
       moved: false,
     };
   };
@@ -180,6 +188,7 @@ export function MonthGrid({
     activePointerDrag.current = null;
     setDraggedSchedule(null);
     setDropTargetDate(null);
+    setDragPreviewPosition(null);
   };
 
   const moveSchedule = async (
@@ -207,14 +216,16 @@ export function MonthGrid({
   ) => {
     const active = activePointerDrag.current;
     if (!active || active.pointerId !== event.pointerId) return;
+    const pointerX = pointerCoordinate(event.clientX);
+    const pointerY = pointerCoordinate(event.clientY);
     const movedFarEnough =
-      Math.hypot(event.clientX - active.startX, event.clientY - active.startY) >=
-      5;
+      Math.hypot(pointerX - active.startX, pointerY - active.startY) >= 5;
     if (active.schedule.date !== targetDate || movedFarEnough) {
       active.moved = true;
     }
     if (!active.moved) return;
     setDraggedSchedule(active.schedule);
+    setDragPreviewPosition({ x: pointerX, y: pointerY });
     setDropTargetDate(
       active.schedule.date === targetDate ? null : targetDate,
     );
@@ -271,6 +282,31 @@ export function MonthGrid({
       >
         {moveStatus}
       </span>
+      {draggedSchedule && dragPreviewPosition && (
+        <div
+          aria-hidden="true"
+          data-testid="month-grid-drag-preview"
+          className="pointer-events-none fixed z-[100] flex max-w-[260px] items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-brand-hi)] bg-[var(--color-surface-1)] px-3 py-2 text-[12px] font-medium text-[var(--color-text-hi)] shadow-[0_12px_30px_rgba(0,0,0,0.28)]"
+          style={{
+            left: dragPreviewPosition.x + 10,
+            top: dragPreviewPosition.y + 12,
+            transform: "translateZ(0) rotate(0.5deg)",
+          }}
+        >
+          {draggedSchedule.icon && <span>{draggedSchedule.icon}</span>}
+          {draggedSchedule.shiftCode && (
+            <span className="rounded-full bg-[var(--color-surface-3)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--color-brand-hi)]">
+              {draggedSchedule.shiftCode}
+            </span>
+          )}
+          {draggedSchedule.time && (
+            <span className="shrink-0 font-semibold tabular-nums text-[var(--color-text-muted)]">
+              {draggedSchedule.time}
+            </span>
+          )}
+          <span className="truncate">{draggedSchedule.title}</span>
+        </div>
+      )}
       <div
         role="grid"
         aria-label={`${month.getFullYear()}년 ${month.getMonth() + 1}월`}

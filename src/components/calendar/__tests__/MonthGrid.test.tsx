@@ -1,4 +1,5 @@
 import {
+  createEvent,
   fireEvent,
   render,
   screen,
@@ -92,10 +93,47 @@ describe("MonthGrid", () => {
     pointerType: "mouse" | "touch" | "pen" = "mouse",
   ) {
     const pointer = { pointerId: 1, pointerType, button: 0, isPrimary: true };
-    fireEvent.pointerDown(source, { ...pointer, clientX: 10, clientY: 10 });
-    fireEvent.pointerEnter(target, { ...pointer, clientX: 120, clientY: 40 });
-    fireEvent.pointerMove(target, { ...pointer, clientX: 120, clientY: 40 });
-    fireEvent.pointerUp(target, { ...pointer, clientX: 120, clientY: 40 });
+    dispatchPointer(source, "pointerdown", {
+      ...pointer,
+      clientX: 10,
+      clientY: 10,
+    });
+    dispatchPointer(target, "pointerenter", {
+      ...pointer,
+      clientX: 120,
+      clientY: 40,
+    });
+    dispatchPointer(target, "pointermove", {
+      ...pointer,
+      clientX: 120,
+      clientY: 40,
+    });
+    dispatchPointer(target, "pointerup", {
+      ...pointer,
+      clientX: 120,
+      clientY: 40,
+    });
+  }
+
+  function dispatchPointer(
+    target: HTMLElement,
+    type: "pointerdown" | "pointerenter" | "pointermove" | "pointerup",
+    init: Record<string, string | number | boolean>,
+  ) {
+    const event =
+      type === "pointerdown"
+        ? createEvent.pointerDown(target, init)
+        : type === "pointerenter"
+          ? createEvent.pointerEnter(target, init)
+          : type === "pointermove"
+            ? createEvent.pointerMove(target, init)
+            : createEvent.pointerUp(target, init);
+    for (const [key, value] of Object.entries(init)) {
+      if ((event as unknown as Record<string, unknown>)[key] !== value) {
+        Object.defineProperty(event, key, { configurable: true, value });
+      }
+    }
+    fireEvent(target, event);
   }
 
   it("renders a Korean seven-column grid with today, weekend, and adjacent-month semantics", () => {
@@ -260,7 +298,7 @@ describe("MonthGrid", () => {
       .getByRole("button", { name: "2026년 7월 2일 목요일" })
       .closest("[role='gridcell']") as HTMLElement;
     const chip = screen.getByRole("button", { name: "팀 미팅 일정 이동" });
-    fireEvent.pointerDown(chip, {
+    dispatchPointer(chip, "pointerdown", {
       pointerId: 1,
       pointerType: "mouse",
       button: 0,
@@ -268,20 +306,25 @@ describe("MonthGrid", () => {
       clientX: 10,
       clientY: 10,
     });
-    fireEvent.pointerEnter(targetCell, {
+    dispatchPointer(targetCell, "pointerenter", {
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: 120,
+      clientY: 40,
+    });
+    dispatchPointer(targetCell, "pointermove", {
       pointerId: 1,
       pointerType: "mouse",
       clientX: 120,
       clientY: 40,
     });
     expect(targetCell.getAttribute("data-drop-target")).toBe("true");
-    fireEvent.pointerMove(targetCell, {
-      pointerId: 1,
-      pointerType: "mouse",
-      clientX: 120,
-      clientY: 40,
-    });
-    fireEvent.pointerUp(targetCell, {
+    const preview = screen.getByTestId("month-grid-drag-preview");
+    expect(preview.textContent).toContain("팀 미팅");
+    expect(preview.style.left).toBe("130px");
+    expect(preview.style.top).toBe("52px");
+    expect(preview.className).not.toContain("transition-transform");
+    dispatchPointer(targetCell, "pointerup", {
       pointerId: 1,
       pointerType: "mouse",
       clientX: 120,
@@ -292,6 +335,7 @@ describe("MonthGrid", () => {
     await waitFor(() =>
       expect(onMoveSchedule).toHaveBeenCalledWith(2, "2026-07-02"),
     );
+    expect(screen.queryByTestId("month-grid-drag-preview")).toBeNull();
     expect(onMoveSchedule).toHaveBeenCalledTimes(1);
     expect(onSelectDate).not.toHaveBeenCalled();
     expect(screen.getByRole("status").textContent).toContain(
@@ -380,7 +424,7 @@ describe("MonthGrid", () => {
     );
 
     const chip = screen.getByRole("button", { name: "팀 미팅 일정 이동" });
-    fireEvent.pointerDown(chip, {
+    dispatchPointer(chip, "pointerdown", {
       pointerId: 1,
       pointerType: "mouse",
       button: 0,
@@ -388,7 +432,7 @@ describe("MonthGrid", () => {
       clientX: 10,
       clientY: 10,
     });
-    fireEvent.pointerUp(chip, {
+    dispatchPointer(chip, "pointerup", {
       pointerId: 1,
       pointerType: "mouse",
       clientX: 10,
