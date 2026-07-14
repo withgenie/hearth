@@ -24,8 +24,159 @@ use tauri::State;
 /// one place and we don't typo the string at a read site.
 const K_OPENAI_KEY: &str = "ai.openai_api_key";
 const K_UI_SCALE: &str = "ui.scale";
+const K_MEMO_VIEW: &str = "ui.memo_view";
+const K_ACTIVE_TAB: &str = "ui.active_tab";
 pub(crate) const K_BACKUP_DIR: &str = "backup.dir";
 pub(crate) const K_THEME: &str = "ui.theme";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MemoView {
+    List,
+    Matrix,
+    Focus,
+    Journal,
+}
+
+impl MemoView {
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::List => "list",
+            Self::Matrix => "matrix",
+            Self::Focus => "focus",
+            Self::Journal => "journal",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ActiveTab {
+    Projects,
+    Calendar,
+    Memos,
+}
+
+impl ActiveTab {
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::Projects => "projects",
+            Self::Calendar => "calendar",
+            Self::Memos => "memos",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiPreferences {
+    pub memo_view: MemoView,
+    pub active_tab: ActiveTab,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum UiPreferencesError {
+    Database { message: String },
+    InvalidStoredValue { key: &'static str, value: String },
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SaveUiPreferencesInput {
+    #[serde(default, deserialize_with = "deserialize_present")]
+    pub memo_view: Option<MemoView>,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    pub active_tab: Option<ActiveTab>,
+}
+
+fn deserialize_present<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    T::deserialize(deserializer).map(Some)
+}
+
+fn read_optional(
+    db: &rusqlite::Connection,
+    key: &'static str,
+) -> Result<Option<String>, UiPreferencesError> {
+    db.query_row("SELECT value FROM settings WHERE key = ?1", [key], |row| {
+        row.get::<_, String>(0)
+    })
+    .map(Some)
+    .or_else(|error| match error {
+        rusqlite::Error::QueryReturnedNoRows => Ok(None),
+        other => Err(UiPreferencesError::Database {
+            message: other.to_string(),
+        }),
+    })
+}
+
+pub(crate) fn load_ui_preferences(
+    db: &rusqlite::Connection,
+) -> Result<UiPreferences, UiPreferencesError> {
+    let memo_view_raw = read_optional(db, K_MEMO_VIEW)?;
+    let memo_view = match memo_view_raw.as_deref() {
+        None | Some("list") => MemoView::List,
+        Some("matrix") => MemoView::Matrix,
+        Some("focus") => MemoView::Focus,
+        Some("journal") => MemoView::Journal,
+        Some(value) => {
+            return Err(UiPreferencesError::InvalidStoredValue {
+                key: K_MEMO_VIEW,
+                value: value.to_owned(),
+            })
+        }
+    };
+
+    let active_tab_raw = read_optional(db, K_ACTIVE_TAB)?;
+    let active_tab = match active_tab_raw.as_deref() {
+        None | Some("projects") => ActiveTab::Projects,
+        Some("calendar") => ActiveTab::Calendar,
+        Some("memos") => ActiveTab::Memos,
+        Some(value) => {
+            return Err(UiPreferencesError::InvalidStoredValue {
+                key: K_ACTIVE_TAB,
+                value: value.to_owned(),
+            })
+        }
+    };
+
+    Ok(UiPreferences {
+        memo_view,
+        active_tab,
+    })
+}
+
+pub(crate) fn persist_ui_preferences(
+    db: &rusqlite::Connection,
+    input: SaveUiPreferencesInput,
+) -> Result<UiPreferences, UiPreferencesError> {
+    let current = load_ui_preferences(db)?;
+    let memo_view = match input.memo_view {
+        Some(value) => {
+            write(db, K_MEMO_VIEW, value.as_str())
+                .map_err(|message| UiPreferencesError::Database { message })?;
+            value
+        }
+        None => current.memo_view,
+    };
+    let active_tab = match input.active_tab {
+        Some(value) => {
+            write(db, K_ACTIVE_TAB, value.as_str())
+                .map_err(|message| UiPreferencesError::Database { message })?;
+            value
+        }
+        None => current.active_tab,
+    };
+
+    Ok(UiPreferences {
+        memo_view,
+        active_tab,
+    })
+}
 
 /// Shape safe to expose over IPC — the raw API key never crosses this
 /// boundary. The UI only needs to know whether one is on file.
@@ -56,11 +207,9 @@ impl AiSettingsFull {
 
 /// Read a single KV entry, returning an owned string (possibly empty).
 pub(crate) fn read(db: &rusqlite::Connection, key: &str) -> Result<String, String> {
-    db.query_row(
-        "SELECT value FROM settings WHERE key = ?1",
-        [key],
-        |row| row.get::<_, String>(0),
-    )
+    db.query_row("SELECT value FROM settings WHERE key = ?1", [key], |row| {
+        row.get::<_, String>(0)
+    })
     .or_else(|e| match e {
         rusqlite::Error::QueryReturnedNoRows => Ok(String::new()),
         other => Err(other.to_string()),
@@ -123,6 +272,31 @@ pub fn save_ai_settings(
 }
 
 #[tauri::command]
+pub fn get_ui_preferences(state: State<'_, AppState>) -> Result<UiPreferences, UiPreferencesError> {
+    let db = state
+        .db
+        .lock()
+        .map_err(|error| UiPreferencesError::Database {
+            message: error.to_string(),
+        })?;
+    load_ui_preferences(&db)
+}
+
+#[tauri::command]
+pub fn save_ui_preferences(
+    state: State<'_, AppState>,
+    input: SaveUiPreferencesInput,
+) -> Result<UiPreferences, UiPreferencesError> {
+    let db = state
+        .db
+        .lock()
+        .map_err(|error| UiPreferencesError::Database {
+            message: error.to_string(),
+        })?;
+    persist_ui_preferences(&db, input)
+}
+
+#[tauri::command]
 pub fn get_ui_scale(state: State<'_, AppState>) -> Result<f64, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let raw = read(&db, K_UI_SCALE)?;
@@ -163,28 +337,5 @@ pub fn set_theme(state: State<'_, AppState>, theme: String) -> Result<(), String
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn redact_hides_the_key_but_reports_presence() {
-        let with_key = AiSettingsFull {
-            openai_api_key: Some("sk-abc".into()),
-        };
-        let v = with_key.redact();
-        assert!(v.has_openai_key);
-    }
-
-    #[test]
-    fn redact_reports_absence_when_key_is_none_or_empty() {
-        let none = AiSettingsFull {
-            openai_api_key: None,
-        };
-        assert!(!none.redact().has_openai_key);
-
-        let empty = AiSettingsFull {
-            openai_api_key: Some(String::new()),
-        };
-        assert!(!empty.redact().has_openai_key);
-    }
-}
+#[path = "cmd_settings_ui_tests.rs"]
+mod ui_tests;
