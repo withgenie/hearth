@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Schedule } from "../../types";
+import type { Memo, Schedule } from "../../types";
 import { CalendarView } from "../CalendarView";
 
 const scheduleHook = vi.hoisted(() => ({
@@ -19,8 +19,16 @@ const scheduleHook = vi.hoisted(() => ({
   remove: vi.fn(),
 }));
 
+const memoHook = vi.hoisted(() => ({
+  memos: [] as Memo[],
+}));
+
 vi.mock("../../hooks/useSchedules", () => ({
   useSchedules: () => scheduleHook,
+}));
+
+vi.mock("../../hooks/useMemos", () => ({
+  useMemos: () => memoHook,
 }));
 
 function schedule(overrides: Partial<Schedule> = {}): Schedule {
@@ -42,11 +50,30 @@ function schedule(overrides: Partial<Schedule> = {}): Schedule {
   };
 }
 
+function memo(overrides: Partial<Memo> = {}): Memo {
+  return {
+    id: 21,
+    content: "CLI에서 적은 새벽 메모",
+    color: "green",
+    project_id: null,
+    sort_order: 0,
+    font_size: "normal",
+    is_bold: false,
+    focus_x: null,
+    focus_y: null,
+    tags: [],
+    created_at: "2026-07-14 16:30:00",
+    updated_at: "2026-07-14 16:30:00",
+    ...overrides,
+  };
+}
+
 describe("CalendarView", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date(2026, 6, 14, 12));
     scheduleHook.schedules = [];
+    memoHook.memos = [];
     scheduleHook.create.mockReset().mockResolvedValue(undefined);
     scheduleHook.update.mockReset().mockResolvedValue(undefined);
     scheduleHook.remove.mockReset().mockResolvedValue(undefined);
@@ -197,5 +224,49 @@ describe("CalendarView", () => {
     expect(
       screen.getByRole("dialog", { name: "2026년 9월 3일 목요일" }),
     ).toHaveTextContent("찾은 일정");
+  });
+
+  it("shows SQLite UTC memos on their matching local journal date", () => {
+    memoHook.memos = [memo()];
+    const createdAt = new Date("2026-07-14T16:30:00Z");
+    const dateLabel = new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+    }).format(createdAt);
+    const timeLabel = new Intl.DateTimeFormat("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(createdAt);
+    const nextDate = new Date(
+      createdAt.getFullYear(),
+      createdAt.getMonth(),
+      createdAt.getDate() + 1,
+    );
+    const nextDateLabel = new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+    }).format(nextDate);
+    render(<CalendarView />);
+
+    fireEvent.click(screen.getByRole("button", { name: dateLabel }));
+    let panel = screen.getByRole("dialog", {
+      name: dateLabel,
+    });
+    const memoContent = within(panel).getByText("CLI에서 적은 새벽 메모");
+    expect(within(panel).getByText(timeLabel)).toBeVisible();
+    expect(memoContent.closest("article")?.querySelector("span")).toHaveStyle({
+      backgroundColor: "var(--color-success)",
+    });
+
+    fireEvent.click(within(panel).getByRole("button", { name: "다음 날짜" }));
+    panel = screen.getByRole("dialog", {
+      name: nextDateLabel,
+    });
+    expect(within(panel).queryByText("CLI에서 적은 새벽 메모")).toBeNull();
   });
 });

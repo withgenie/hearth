@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
+import { useMemos } from "../hooks/useMemos";
 import { useSchedules } from "../hooks/useSchedules";
 import { classifyScheduleStyle } from "../lib/scheduleStyle";
 import type { Schedule } from "../types";
 import { Button } from "../ui/Button";
+import { groupJournalMemos } from "./JournalMemoList";
 import { DayPanel, type DayPanelSchedule } from "./calendar/DayPanel";
 import { MonthGrid, type MonthGridSchedule } from "./calendar/MonthGrid";
 import {
@@ -14,6 +16,14 @@ import {
 import { ScheduleModal } from "./ScheduleModal";
 
 type CalendarScheduleView = MonthGridSchedule & DayPanelSchedule;
+
+const JOURNAL_COLOR_RAIL: Record<string, string> = {
+  yellow: "var(--color-brand-hi)",
+  pink: "var(--color-p0)",
+  blue: "var(--color-p3)",
+  green: "var(--color-success)",
+  purple: "var(--color-cat-lab)",
+};
 
 function firstOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -58,8 +68,17 @@ function scheduleView(schedule: Schedule): CalendarScheduleView {
   };
 }
 
+function journalLocalTime(date: Date): string {
+  return new Intl.DateTimeFormat("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
 export function CalendarView() {
   const { schedules, create, update, remove } = useSchedules();
+  const { memos } = useMemos();
   const today = new Date();
   const [visibleMonth, setVisibleMonth] = useState(() => firstOfMonth(today));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -76,6 +95,20 @@ export function CalendarView() {
   const schedulesById = useMemo(
     () => new Map(schedules.map((schedule) => [schedule.id, schedule])),
     [schedules],
+  );
+  const memoViews = useMemo(
+    () =>
+      groupJournalMemos(memos).flatMap((group) =>
+        group.memos.map(({ memo, createdAt }) => ({
+          id: memo.id,
+          date: group.dateKey,
+          time: journalLocalTime(createdAt),
+          content: memo.content || "(비어 있음)",
+          color:
+            JOURNAL_COLOR_RAIL[memo.color] ?? "var(--color-brand)",
+        })),
+      ),
+    [memos],
   );
 
   const selectDate = (dateKey: string) => {
@@ -203,6 +236,7 @@ export function CalendarView() {
         open={selectedDate !== null}
         date={selectedDate ?? formatLocalDateKey(today)}
         schedules={scheduleViews}
+        memos={memoViews}
         onCreate={(date) => setModal({ initialDate: date })}
         onEdit={editSchedule}
         onDelete={deleteSchedule}
