@@ -296,8 +296,17 @@ export function ProjectList({
         <div className="flex flex-col gap-7 flex-1 min-h-0">
           {PRIORITIES.map((priority) => {
             const items = groups.get(priority) ?? [];
+            const compact = priority === "P3" || priority === "P4";
             return (
-              <div key={priority}>
+              <section
+                key={priority}
+                aria-label={`${priority} ${PRIORITY_LABELS[priority]} 프로젝트`}
+                className={cn(
+                  "rounded-[var(--radius-md)]",
+                  priority === "P0" &&
+                    "bg-[color-mix(in_srgb,var(--color-danger)_8%,transparent)] p-3",
+                )}
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <span
                     className="w-3 h-3 rounded-full"
@@ -326,7 +335,15 @@ export function ProjectList({
                       priority={priority}
                       active={activeId !== null}
                     >
-                      <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3">
+                      <div
+                        role="list"
+                        aria-label={`${priority} 프로젝트 ${compact ? "콤팩트 목록" : "카드"}`}
+                        className={cn(
+                          compact
+                            ? "flex flex-col gap-1"
+                            : "grid grid-cols-[repeat(auto-fill,minmax(min(320px,100%),1fr))] gap-3",
+                        )}
+                      >
                         {items.map((project) => (
                           <ProjectCard
                             key={project.id}
@@ -337,13 +354,14 @@ export function ProjectList({
                             onOpenFinder={(p) => openWithBookmark(p, "finder")}
                             onOpenDetail={onOpenDetail}
                             highlighted={project.id === highlightedId}
+                            compact={compact}
                           />
                         ))}
                       </div>
                     </GroupDropZone>
                   )}
                 </SortableContext>
-              </div>
+              </section>
             );
           })}
         </div>

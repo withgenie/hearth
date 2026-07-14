@@ -34,6 +34,7 @@ export function ProjectCard({
   onOpenFinder,
   onOpenDetail,
   highlighted,
+  compact = false,
 }: {
   project: Project;
   onUpdate: (id: number, fields: Record<string, string>) => void;
@@ -42,6 +43,7 @@ export function ProjectCard({
   onOpenFinder: (project: Project) => void;
   onOpenDetail: (project: Project) => void;
   highlighted?: boolean;
+  compact?: boolean;
 }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -113,7 +115,15 @@ export function ProjectCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    borderLeftColor:
+      PRIORITY_COLORS[project.priority as Priority] ??
+      "var(--color-text-dim)",
   };
+
+  const pathBasename = project.path
+    ?.replace(/[\\/]+$/, "")
+    .split(/[\\/]/)
+    .pop();
 
   const startEdit = (field: string, value: string) => {
     setEditing(field);
@@ -136,18 +146,30 @@ export function ProjectCard({
       ref={setNodeRef}
       style={style}
       data-project-id={project.id}
+      role="listitem"
+      aria-label={project.name}
       onDoubleClick={() => onOpenDetail(project)}
       onContextMenu={openMenu}
       className={cn(
-        "group relative flex flex-col gap-2 p-3 rounded-[var(--radius-md)]",
+        "group relative rounded-[var(--radius-md)]",
+        compact
+          ? "grid grid-cols-[auto_minmax(8rem,0.9fr)_minmax(10rem,1.4fr)_auto_auto] items-center gap-3 px-3 py-2"
+          : "flex flex-col gap-2 p-3",
         "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)]",
-        "border border-transparent hover:border-[var(--color-border)]",
+        "border border-l-[3px] border-transparent hover:border-[var(--color-border)]",
+        project.priority === "P0" &&
+          "bg-[color-mix(in_srgb,var(--color-danger)_8%,var(--color-surface-2))]",
         "transition-colors duration-[120ms] cursor-default select-none",
         highlighted && "find-highlight",
       )}
     >
       <div
-        className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+        className={cn(
+          "flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity",
+          compact
+            ? "static col-start-5 row-start-1"
+            : "absolute top-2 right-2",
+        )}
         onClick={stop}
         onDoubleClick={stop}
       >
@@ -162,17 +184,17 @@ export function ProjectCard({
                 <Icon icon={Play} size={14} />
               </button>
             </Tooltip>
-            <Tooltip label="Finder에서 열기">
-              <button
-                onClick={() => onOpenFinder(project)}
-                className="w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:text-[var(--color-brand-hi)] hover:bg-[var(--color-surface-1)]"
-                aria-label="Finder에서 열기"
-              >
-                <Icon icon={FolderOpen} size={14} />
-              </button>
-            </Tooltip>
           </>
         )}
+        <Tooltip label="프로젝트 설정">
+          <button
+            onClick={() => onOpenDetail(project)}
+            className="w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:text-[var(--color-brand-hi)] hover:bg-[var(--color-surface-1)]"
+            aria-label="프로젝트 설정"
+          >
+            <Icon icon={Settings2} size={14} />
+          </button>
+        </Tooltip>
         <Tooltip label="삭제">
           <button
             onClick={() => onDelete(project.id)}
@@ -184,7 +206,12 @@ export function ProjectCard({
         </Tooltip>
       </div>
 
-      <div className="flex items-start gap-2 pr-20">
+      <div
+        className={cn(
+          "flex items-start gap-2 min-w-0",
+          compact ? "col-start-2 row-start-1" : "pr-20",
+        )}
+      >
         <button
           {...attributes}
           {...listeners}
@@ -217,23 +244,29 @@ export function ProjectCard({
               className="bg-transparent border-b border-[var(--color-brand-hi)] outline-none text-[14px] font-medium w-full text-[var(--color-text)]"
             />
           ) : (
-            <button
-              type="button"
-              onClick={(e) => {
-                stop(e);
-                startEdit("name", project.name);
-              }}
-              onDoubleClick={stop}
-              className="text-[14px] font-semibold text-[var(--color-text-hi)] cursor-text truncate block w-full text-left"
-            >
-              {project.name}
-            </button>
+            <h3 className="text-heading text-[var(--color-text-hi)] truncate">
+              <button
+                type="button"
+                onClick={(e) => {
+                  stop(e);
+                  startEdit("name", project.name);
+                }}
+                onDoubleClick={stop}
+                className="cursor-text truncate block w-full text-left"
+              >
+                {project.name}
+              </button>
+            </h3>
           )}
         </div>
       </div>
 
       <div
-        className="flex items-center gap-1.5 flex-wrap"
+        className={cn(
+          "flex items-center gap-1.5 flex-wrap",
+          compact &&
+            "col-start-1 row-start-1 [&>div:last-child]:hidden",
+        )}
         onClick={stop}
         onDoubleClick={stop}
       >
@@ -246,13 +279,15 @@ export function ProjectCard({
               aria-label={`우선순위 변경 — 현재 ${project.priority}`}
               className="shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] rounded-full"
             >
-              <Badge
-                tone={
-                  PRIORITY_COLORS[project.priority as Priority] ?? "#6b7280"
-                }
-              >
-                {project.priority}
-              </Badge>
+              <span
+                aria-hidden="true"
+                className="block w-2.5 h-2.5 rounded-full"
+                style={{
+                  backgroundColor:
+                    PRIORITY_COLORS[project.priority as Priority] ??
+                    "var(--color-text-dim)",
+                }}
+              />
             </button>
           )}
         >
@@ -336,7 +371,11 @@ export function ProjectCard({
         </Popover>
       </div>
 
-      <div onClick={stop} onDoubleClick={stop}>
+      <div
+        className={cn(compact && "col-start-3 row-start-1 min-w-0")}
+        onClick={stop}
+        onDoubleClick={stop}
+      >
         {editing === "evaluation" ? (
           <textarea
             autoFocus
@@ -362,9 +401,23 @@ export function ProjectCard({
         )}
       </div>
 
-      {project.path && (
-        <div className="text-[11px] font-mono text-[var(--color-text-dim)] truncate">
-          {project.path}
+      {project.path && pathBasename && (
+        <div
+          className={cn(compact && "col-start-4 row-start-1 min-w-0")}
+          onClick={stop}
+          onDoubleClick={stop}
+        >
+          <Tooltip label={project.path} side="bottom">
+            <button
+              type="button"
+              onClick={() => onOpenFinder(project)}
+              aria-label={`Finder에서 ${pathBasename} 열기`}
+              className="inline-flex max-w-full items-center gap-1.5 rounded-[var(--radius-sm)] text-[11px] font-mono text-[var(--color-text-dim)] hover:text-[var(--color-brand-hi)] focus-visible:text-[var(--color-brand-hi)]"
+            >
+              <Icon icon={FolderOpen} size={14} />
+              <span className="truncate">{pathBasename}</span>
+            </button>
+          </Tooltip>
         </div>
       )}
 
