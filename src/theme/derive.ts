@@ -2,7 +2,7 @@
 //
 // - HEX ⇄ RGB ⇄ HSL conversions (integer channels, HSL in percent).
 // - deriveBrand: from one brand HEX, produce brand / brand-hi / brand-soft.
-// - composeCustomTokens: full 13-token set for a custom theme by copying
+// - composeCustomTokens: full 18-token set for a custom theme by copying
 //   the neutral preset (Carbon for dark, Linen for light) and swapping in
 //   the derived brand values.
 
@@ -113,8 +113,8 @@ export function deriveBrand(hex: string): BrandTokens {
 }
 
 /**
- * Build the complete 13-key token map for a custom theme. Copies the neutral
- * preset (Carbon for dark, Linen for light) for the 10 non-brand tokens and
+ * Build the complete 18-key token map for a custom theme. Copies the neutral
+ * preset (Carbon for dark, Linen for light) for the 15 non-brand tokens and
  * overlays the derived brand triplet.
  */
 export function composeCustomTokens(

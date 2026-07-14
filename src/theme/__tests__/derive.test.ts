@@ -96,6 +96,7 @@ describe("composeCustomTokens", () => {
     expect(tokens["--color-text-hi"]).toBe("#f5f5f5"); // Carbon
     expect(tokens["--color-brand"]).toBe("#ff8000");
     expect(tokens["--color-brand-soft"]).toBe("rgba(255, 128, 0, 0.18)");
+    expect(tokens["--color-success"]).toBe("#4ade80");
   });
   it("light base copies Linen neutrals and swaps brand", () => {
     const tokens = composeCustomTokens({
@@ -106,5 +107,6 @@ describe("composeCustomTokens", () => {
     expect(tokens["--color-surface-0"]).toBe("#fafaf7"); // Linen
     expect(tokens["--color-text-hi"]).toBe("#1a1a1a"); // Linen
     expect(tokens["--color-brand"]).toBe("#1d4ed8");
+    expect(tokens["--color-success"]).toBe("#065f46");
   });
 });

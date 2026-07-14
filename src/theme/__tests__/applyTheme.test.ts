@@ -20,7 +20,7 @@ describe("applyTheme", () => {
     expect(document.getElementById(CUSTOM_STYLE_ID)).toBeNull();
   });
 
-  it("injects a custom style tag with the 13 token variables", () => {
+  it("injects a custom style tag with the 18 token variables", () => {
     applyTheme({ kind: "custom", baseMode: "light", brandHex: "#1d4ed8" });
     expect(document.documentElement.getAttribute("data-theme")).toBe("custom");
     const tag = document.getElementById(CUSTOM_STYLE_ID);
@@ -30,6 +30,8 @@ describe("applyTheme", () => {
     expect(css).toContain("--color-brand: #1d4ed8");
     expect(css).toContain("--color-surface-0: #fafaf7"); // Linen neutral
     expect(css).toContain("--color-brand-soft: rgba(29, 78, 216, 0.18)");
+    expect(css).toContain("--color-success: #065f46");
+    expect((css.match(/--color-/g) ?? []).length).toBe(18);
   });
 
   it("upserts (not appends duplicates) when re-applying custom", () => {

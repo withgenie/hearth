@@ -36,9 +36,9 @@ export type ThemeSetting =
 
 export const DEFAULT_THEME: ThemeSetting = { kind: "preset", id: "warm-paper" };
 
-// The 13 CSS custom-property token names that the theme layer owns
-// (4 surface + 2 border + 4 text + 3 brand). Priority, category, semantic,
-// radius, shadow, motion, typography tokens stay global in @theme.
+// The 18 CSS custom-property token names that the theme layer owns
+// (4 surface + 2 border + 4 text + 3 brand + 5 redesign semantics). Other
+// priority/category tokens, radius, shadow, motion, and typography stay global.
 export type ThemeTokens = {
   "--color-surface-0": string;
   "--color-surface-1": string;
@@ -53,4 +53,9 @@ export type ThemeTokens = {
   "--color-brand": string;
   "--color-brand-hi": string;
   "--color-brand-soft": string;
+  "--color-p0": string;
+  "--color-p3": string;
+  "--color-success": string;
+  "--color-danger": string;
+  "--color-cat-lab": string;
 };

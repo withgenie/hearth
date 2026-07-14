@@ -12,7 +12,7 @@ Source basis: the current warm-paper default and surface stack are defined in `s
 
 ### Theme-owned roles
 
-The theme layer owns exactly 13 roles. Components consume the role, never a preset-specific value.
+The theme layer owns exactly 18 roles. Components consume the role, never a preset-specific value.
 
 | Role | Token | Warm Paper default | Usage |
 |---|---|---:|---|
@@ -29,39 +29,43 @@ The theme layer owns exactly 13 roles. Components consume the role, never a pres
 | brand/action | `--color-brand` | `#d97706` | primary action, active semantic rail |
 | brand emphasis | `--color-brand-hi` | `#fbbf24` | hover, focus, current-day ring, high-emphasis brand text |
 | brand tint | `--color-brand-soft` | `rgba(217, 119, 6, 0.18)` | selected and today backgrounds |
+| urgent priority | `--color-p0` | `#ef4444` | P0 rail/dot and urgent markers |
+| low priority / evening shift | `--color-p3` | `#3b82f6` | P3 rail/dot, Saturday, and E shift |
+| success / task | `--color-success` | `#22c55e` | task and confirmation states |
+| danger / deadline | `--color-danger` | `#ef4444` | destructive, deadline, and Sunday states |
+| lab / anniversary | `--color-cat-lab` | `#a855f7` | lab category and anniversary accent |
 
 Source basis: `src/theme/types.ts:39-56`, `src/App.css:4-22`, and `src/theme/presets.ts:8-23`.
 
 ### Ten-preset strategy
 
-Hearth ships five dark and five light presets. `warm-paper` is the no-attribute CSS fallback and default setting; the other nine are `[data-theme]` overrides. Every preset supplies the same 13 roles in the same order. The compact tuples below are `surface-0 / surface-1 / surface-2 / surface-3`, `border / border-strong`, `text-hi / text / text-muted / text-dim`, and `brand / brand-hi / brand-soft`.
+Hearth ships five dark and five light presets. `warm-paper` is the no-attribute CSS fallback and default setting; the other nine are `[data-theme]` overrides. Every preset supplies the same 18 roles in the same order. The compact tuples below are `surface-0 / surface-1 / surface-2 / surface-3`, `border / border-strong`, `text-hi / text / text-muted / text-dim`, `brand / brand-hi / brand-soft`, and `p0 / p3 / success / danger / cat-lab`.
 
-| Preset | Mode | Surface tuple | Border tuple | Text tuple | Brand tuple |
-|---|---|---|---|---|---|
-| Warm Paper | dark | `#141312 / #1a1917 / #221f19 / #2a2721` | `#2e2a23 / #3a362e` | `#f4efcf / #ebeadf / #a7a496 / #7a7668` | `#d97706 / #fbbf24 / rgba(217, 119, 6, 0.18)` |
-| Midnight | dark | `#0f1420 / #141b2c / #1b2439 / #232d46` | `#273352 / #334063` | `#e6ecff / #d8ddef / #8d97b5 / #5e6885` | `#3b82f6 / #60a5fa / rgba(59, 130, 246, 0.18)` |
-| Forest | dark | `#0f1612 / #141e18 / #1b2a20 / #223529` | `#26402f / #30503b` | `#e5f3e8 / #d7e7dc / #8ea89a / #5f786a` | `#10b981 / #34d399 / rgba(16, 185, 129, 0.18)` |
-| Plum | dark | `#1a1320 / #211828 / #2b1f35 / #362843` | `#3a2b49 / #4a3860` | `#f0e9fa / #e1d8ef / #a295b8 / #766888` | `#a855f7 / #c084fc / rgba(168, 85, 247, 0.18)` |
-| Carbon | dark | `#111111 / #181818 / #1f1f1f / #272727` | `#2c2c2c / #3a3a3a` | `#f5f5f5 / #e5e5e5 / #a3a3a3 / #737373` | `#f97316 / #fb923c / rgba(249, 115, 22, 0.18)` |
-| Cream | light | `#fdf8ef / #f6efdf / #ede4cc / #e2d7b8` | `#d5c79c / #b8a775` | `#2a2218 / #3d3325 / #6a5c47 / #94866f` | `#b45309 / #d97706 / rgba(180, 83, 9, 0.18)` |
-| Linen | light | `#fafaf7 / #f3f3ee / #eaeae4 / #dededa` | `#d0d0cc / #b0b0ab` | `#1a1a1a / #2e2e2e / #5f5f5c / #8b8b87` | `#1d4ed8 / #3b82f6 / rgba(29, 78, 216, 0.18)` |
-| Mint | light | `#f4faf6 / #e9f3ec / #ddeae1 / #ceddd3` | `#b9ccbf / #9ab2a2` | `#152419 / #223024 / #4e6455 / #7d9283` | `#059669 / #10b981 / rgba(5, 150, 105, 0.18)` |
-| Blush | light | `#fdf5f6 / #f8e9ec / #efdadd / #e3c7cd` | `#d4b2ba / #b88f99` | `#2a1619 / #3c2429 / #6a4a51 / #947079` | `#be185d / #ec4899 / rgba(190, 24, 93, 0.18)` |
-| Arctic | light | `#f4f7fb / #e8eef5 / #dae4ef / #c8d6e5` | `#b1c3d8 / #8ea7c2` | `#0b1a2a / #1a2838 / #4b5f77 / #7b8ea5` | `#0ea5e9 / #38bdf8 / rgba(14, 165, 233, 0.18)` |
+| Preset | Mode | Surface tuple | Border tuple | Text tuple | Brand tuple | Semantic tuple |
+|---|---|---|---|---|---|---|
+| Warm Paper | dark | `#141312 / #1a1917 / #221f19 / #2a2721` | `#2e2a23 / #3a362e` | `#f4efcf / #ebeadf / #a7a496 / #7a7668` | `#d97706 / #fbbf24 / rgba(217, 119, 6, 0.18)` | `#ef4444 / #3b82f6 / #22c55e / #ef4444 / #a855f7` |
+| Midnight | dark | `#0f1420 / #141b2c / #1b2439 / #232d46` | `#273352 / #334063` | `#e6ecff / #d8ddef / #8d97b5 / #5e6885` | `#3b82f6 / #60a5fa / rgba(59, 130, 246, 0.18)` | `#f87171 / #60a5fa / #4ade80 / #f87171 / #c084fc` |
+| Forest | dark | `#0f1612 / #141e18 / #1b2a20 / #223529` | `#26402f / #30503b` | `#e5f3e8 / #d7e7dc / #8ea89a / #5f786a` | `#10b981 / #34d399 / rgba(16, 185, 129, 0.18)` | `#f87171 / #60a5fa / #4ade80 / #f87171 / #c084fc` |
+| Plum | dark | `#1a1320 / #211828 / #2b1f35 / #362843` | `#3a2b49 / #4a3860` | `#f0e9fa / #e1d8ef / #a295b8 / #766888` | `#a855f7 / #c084fc / rgba(168, 85, 247, 0.18)` | `#f87171 / #60a5fa / #4ade80 / #f87171 / #c084fc` |
+| Carbon | dark | `#111111 / #181818 / #1f1f1f / #272727` | `#2c2c2c / #3a3a3a` | `#f5f5f5 / #e5e5e5 / #a3a3a3 / #737373` | `#f97316 / #fb923c / rgba(249, 115, 22, 0.18)` | `#f87171 / #60a5fa / #4ade80 / #f87171 / #c084fc` |
+| Cream | light | `#fdf8ef / #f6efdf / #ede4cc / #e2d7b8` | `#d5c79c / #b8a775` | `#2a2218 / #3d3325 / #6a5c47 / #94866f` | `#b45309 / #92400e / rgba(180, 83, 9, 0.18)` | `#991b1b / #1e40af / #065f46 / #991b1b / #6b21a8` |
+| Linen | light | `#fafaf7 / #f3f3ee / #eaeae4 / #dededa` | `#d0d0cc / #b0b0ab` | `#1a1a1a / #2e2e2e / #5f5f5c / #8b8b87` | `#1d4ed8 / #1d4ed8 / rgba(29, 78, 216, 0.18)` | `#991b1b / #1e40af / #065f46 / #991b1b / #6b21a8` |
+| Mint | light | `#f4faf6 / #e9f3ec / #ddeae1 / #ceddd3` | `#b9ccbf / #9ab2a2` | `#152419 / #223024 / #4e6455 / #7d9283` | `#059669 / #065f46 / rgba(5, 150, 105, 0.18)` | `#991b1b / #1e40af / #065f46 / #991b1b / #6b21a8` |
+| Blush | light | `#fdf5f6 / #f8e9ec / #efdadd / #e3c7cd` | `#d4b2ba / #b88f99` | `#2a1619 / #3c2429 / #6a4a51 / #947079` | `#be185d / #9d174d / rgba(190, 24, 93, 0.18)` | `#991b1b / #1e40af / #065f46 / #991b1b / #6b21a8` |
+| Arctic | light | `#f4f7fb / #e8eef5 / #dae4ef / #c8d6e5` | `#b1c3d8 / #8ea7c2` | `#0b1a2a / #1a2838 / #485b72 / #7b8ea5` | `#0284c7 / #075985 / rgba(2, 132, 199, 0.18)` | `#991b1b / #1e40af / #065f46 / #991b1b / #6b21a8` |
 
 Source basis: preset values and light/dark metadata are in `src/theme/presets.ts:8-172`; the nine override blocks and warm-paper cascade strategy are in `src/theme/theme.css:1-148`; default selection and preset groups are in `src/theme/types.ts:3-37`.
 
-Custom themes do not create a new neutral palette. They copy Carbon for dark or Linen for light, then derive only `--color-brand`, `--color-brand-hi`, and `--color-brand-soft` from the chosen hex. Brand-high keeps hue/saturation and clamps lightness after a +10 adjustment to 45–75; brand-soft uses alpha 0.18. Source: `src/theme/derive.ts:93-125`.
+Custom themes do not create a new neutral palette. They copy Carbon for dark or Linen for light, including the five contrast-safe semantic roles, then derive only `--color-brand`, `--color-brand-hi`, and `--color-brand-soft` from the chosen hex. Brand-high keeps hue/saturation and clamps lightness after a +10 adjustment to 45–75; brand-soft uses alpha 0.18. Source: `src/theme/derive.ts:93-125`.
 
-### Global semantic roles
+### Remaining global semantic roles
 
-These do not change by preset today.
+The redesign-critical `p0`, `p3`, `success`, `danger`, and `cat-lab` roles are theme-owned above so they retain text and indicator contrast. The remaining roles below do not change by preset today.
 
 | Family | Tokens and current values | Contract |
 |---|---|---|
-| priority | `--color-p0: #ef4444`; `--color-p1: #f97316`; `--color-p2: #eab308`; `--color-p3: #3b82f6`; `--color-p4: #6b7280` | urgency markers and project priority rail/dot |
-| status | `--color-success: #22c55e`; `--color-danger: #ef4444` | confirmation/task and destructive/deadline states |
-| category | `--color-cat-active: #22c55e`; `--color-cat-side: #f97316`; `--color-cat-lab: #a855f7`; `--color-cat-tools: #6b7280`; `--color-cat-lecture: #3b82f6` | existing user-category accents |
+| priority | `--color-p1: #f97316`; `--color-p2: #eab308`; `--color-p4: #6b7280` | P1, P2, and P4 project priority rail/dot |
+| category | `--color-cat-active: #22c55e`; `--color-cat-side: #f97316`; `--color-cat-tools: #6b7280`; `--color-cat-lecture: #3b82f6` | existing user-category accents outside the redesign contract |
 
 Source basis: `src/App.css:24-40`.
 
@@ -73,7 +77,7 @@ Source basis: `src/App.css:24-40`.
 - A caller-provided schedule `color` is data, not a design-system token. Rendering must validate/fallback it and preserve readable foreground contrast in every theme; it does not authorize hard-coded component colors.
 - **No new dependency and no new raw color may be introduced in implementation.** If an existing role cannot express a required meaning, update this file and the theme sources first, then verify all ten presets. Do not copy the current raw white/black shortcuts from legacy buttons/calendar CSS into new work.
 
-Source basis: `docs/superpowers/plans/2026-07-14-ui-redesign.md:61-68,93-96,110-119`; existing global roles in `src/App.css:24-40`.
+Source basis: `docs/superpowers/plans/2026-07-14-ui-redesign.md:61-68,93-96,110-119`; fallback roles in `src/App.css:24-40` and per-preset overrides in `src/theme/presets.ts`.
 
 ## 3. Typography
 
