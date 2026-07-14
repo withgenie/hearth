@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties, type DragEvent } from "react";
 import { cn } from "../../lib/cn";
 import { buildMonthCells } from "./dateUtils";
 
@@ -30,6 +30,10 @@ export interface MonthGridProps {
   today?: Date;
   onSelectDate: (dateKey: string) => void;
   onOverflowDate?: (dateKey: string) => void;
+  onMoveSchedule?: (
+    scheduleId: MonthGridSchedule["id"],
+    targetDate: string,
+  ) => void | Promise<void>;
 }
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
@@ -63,7 +67,24 @@ function scheduleSortValue(schedule: MonthGridSchedule): string {
   return schedule.time ?? "";
 }
 
-function EventChip({ schedule }: { schedule: MonthGridSchedule }) {
+interface DraggableScheduleProps {
+  schedule: MonthGridSchedule;
+  isDragging: boolean;
+  onDragStart: (
+    event: DragEvent<HTMLElement>,
+    schedule: MonthGridSchedule,
+  ) => void;
+  onDragEnd: () => void;
+  onSelectDate: (dateKey: string) => void;
+}
+
+function EventChip({
+  schedule,
+  isDragging,
+  onDragStart,
+  onDragEnd,
+  onSelectDate,
+}: DraggableScheduleProps) {
   const railColor =
     schedule.railColor ??
     DEFAULT_RAIL_COLOR[schedule.kind === "shift" ? "event" : schedule.kind];
@@ -71,13 +92,23 @@ function EventChip({ schedule }: { schedule: MonthGridSchedule }) {
   const isDeadline = schedule.kind === "deadline";
 
   return (
-    <div
+    <button
+      type="button"
+      draggable
+      aria-label={`${schedule.title} 일정 이동`}
       data-testid="month-grid-chip"
+      data-dragging={isDragging ? "true" : undefined}
       className={cn(
-        "relative flex min-w-0 items-center gap-1 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] py-1 pl-2.5 pr-1 text-[12px] leading-4 text-[var(--color-text)]",
+        "pointer-events-auto relative flex min-w-0 cursor-grab items-center gap-1 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] py-1 pl-2.5 pr-1 text-left text-[12px] leading-4 text-[var(--color-text)] outline-none transition-[opacity,box-shadow] duration-[120ms] hover:ring-1 hover:ring-[var(--color-border-strong)] active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[var(--color-brand-hi)]",
         isDeadline && "font-medium text-[var(--color-danger)]",
+        isDragging && "opacity-50",
       )}
-      title={[schedule.time, schedule.title].filter(Boolean).join(" ")}
+      title={[schedule.time, schedule.title, "드래그하여 날짜 변경"]
+        .filter(Boolean)
+        .join(" · ")}
+      onClick={() => onSelectDate(schedule.date)}
+      onDragStart={(event) => onDragStart(event, schedule)}
+      onDragEnd={onDragEnd}
     >
       <span
         aria-hidden="true"
@@ -93,7 +124,7 @@ function EventChip({ schedule }: { schedule: MonthGridSchedule }) {
         </span>
       )}
       <span className="min-w-0 truncate">{schedule.title}</span>
-    </div>
+    </button>
   );
 }
 
@@ -104,9 +135,48 @@ export function MonthGrid({
   today = new Date(),
   onSelectDate,
   onOverflowDate,
+  onMoveSchedule,
 }: MonthGridProps) {
+  const [draggedSchedule, setDraggedSchedule] =
+    useState<MonthGridSchedule | null>(null);
+  const [dropTargetDate, setDropTargetDate] = useState<string | null>(null);
+  const [moveStatus, setMoveStatus] = useState("");
   const cells = buildMonthCells(month, today);
   const schedulesByDate = new Map<string, MonthGridSchedule[]>();
+
+  const beginDrag = (
+    event: DragEvent<HTMLElement>,
+    schedule: MonthGridSchedule,
+  ) => {
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", String(schedule.id));
+    }
+    setMoveStatus("");
+    setDraggedSchedule(schedule);
+  };
+
+  const endDrag = () => {
+    setDraggedSchedule(null);
+    setDropTargetDate(null);
+  };
+
+  const dropSchedule = async (targetDate: string, targetLabel: string) => {
+    const schedule = draggedSchedule;
+    endDrag();
+    if (!schedule || schedule.date === targetDate || !onMoveSchedule) return;
+
+    try {
+      await onMoveSchedule(schedule.id, targetDate);
+      setMoveStatus(
+        `${schedule.title} 일정을 ${targetLabel}로 이동했습니다.`,
+      );
+    } catch {
+      setMoveStatus(
+        `${schedule.title} 일정을 이동하지 못했습니다. 다시 시도해 주세요.`,
+      );
+    }
+  };
 
   for (const schedule of schedules) {
     const current = schedulesByDate.get(schedule.date);
@@ -115,13 +185,22 @@ export function MonthGrid({
   }
 
   return (
-    <div
-      role="grid"
-      aria-label={`${month.getFullYear()}년 ${month.getMonth() + 1}월`}
-      aria-colcount={7}
-      aria-rowcount={7}
-      className="grid h-full min-h-0 grid-cols-7 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-1)]"
-    >
+    <>
+      <span
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {moveStatus}
+      </span>
+      <div
+        role="grid"
+        aria-label={`${month.getFullYear()}년 ${month.getMonth() + 1}월`}
+        aria-colcount={7}
+        aria-rowcount={7}
+        className="grid h-full min-h-0 grid-cols-7 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-1)]"
+      >
       {WEEKDAY_LABELS.map((label, weekday) => (
         <div
           key={label}
@@ -153,7 +232,8 @@ export function MonthGrid({
             scheduleSortValue(left).localeCompare(scheduleSortValue(right)),
           );
         const visibleSchedules = regularSchedules.slice(0, 3);
-        const displayedCount = visibleSchedules.length + (shifts.length > 0 ? 1 : 0);
+        const displayedCount =
+          visibleSchedules.length + (shifts.length > 0 ? 1 : 0);
         const overflowCount = Math.max(0, daySchedules.length - displayedCount);
         const weekend =
           cell.weekday === 0
@@ -170,6 +250,9 @@ export function MonthGrid({
             aria-rowindex={Math.floor(index / 7) + 2}
             data-date={cell.dateKey}
             data-adjacent-month={cell.isCurrentMonth ? undefined : "true"}
+            data-drop-target={
+              dropTargetDate === cell.dateKey ? "true" : undefined
+            }
             className={cn(
               "relative min-h-[112px] min-w-0 border-b border-r border-[var(--color-border)] bg-[var(--color-surface-1)] p-2",
               index % 7 === 6 && "border-r-0",
@@ -178,7 +261,37 @@ export function MonthGrid({
               cell.isToday && "bg-[var(--color-brand-soft)]",
               selectedDate === cell.dateKey &&
                 "ring-1 ring-inset ring-[var(--color-brand-hi)]",
+              dropTargetDate === cell.dateKey &&
+                "bg-[var(--color-brand-soft)] ring-2 ring-inset ring-[var(--color-brand-hi)]",
             )}
+            onDragOver={(event) => {
+              if (
+                !draggedSchedule ||
+                draggedSchedule.date === cell.dateKey ||
+                !onMoveSchedule
+              ) {
+                return;
+              }
+              event.preventDefault();
+              if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+              setDropTargetDate(cell.dateKey);
+            }}
+            onDragLeave={(event) => {
+              if (
+                event.relatedTarget instanceof Node &&
+                event.currentTarget.contains(event.relatedTarget)
+              ) {
+                return;
+              }
+              if (dropTargetDate === cell.dateKey) setDropTargetDate(null);
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              void dropSchedule(
+                cell.dateKey,
+                DATE_LABEL_FORMAT.format(cell.date),
+              );
+            }}
           >
             <button
               type="button"
@@ -207,21 +320,39 @@ export function MonthGrid({
                   {cell.dayNumber}
                 </span>
                 {shifts[0] && (
-                  <span
+                  <button
+                    type="button"
+                    draggable
+                    aria-label={`${shifts[0].title} 일정 이동`}
                     data-shift-code={shifts[0].shiftCode}
+                    data-dragging={
+                      draggedSchedule?.id === shifts[0].id ? "true" : undefined
+                    }
                     className={cn(
-                      "inline-flex h-5 items-center rounded-full border px-1.5 text-[11px] font-semibold leading-none",
+                      "pointer-events-auto inline-flex h-5 cursor-grab items-center rounded-full border px-1.5 text-[11px] font-semibold leading-none outline-none transition-[opacity,box-shadow] duration-[120ms] active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[var(--color-brand-hi)]",
                       shiftBadgeClasses(shifts[0].shiftCode),
+                      draggedSchedule?.id === shifts[0].id && "opacity-50",
                     )}
+                    title={`${shifts[0].title} · 드래그하여 날짜 변경`}
+                    onClick={() => onSelectDate(shifts[0].date)}
+                    onDragStart={(event) => beginDrag(event, shifts[0])}
+                    onDragEnd={endDrag}
                   >
                     {shifts[0].shiftCode}
-                  </span>
+                  </button>
                 )}
               </div>
 
               <div className="flex min-w-0 flex-col gap-1">
                 {visibleSchedules.map((schedule) => (
-                  <EventChip key={schedule.id} schedule={schedule} />
+                  <EventChip
+                    key={schedule.id}
+                    schedule={schedule}
+                    isDragging={draggedSchedule?.id === schedule.id}
+                    onDragStart={beginDrag}
+                    onDragEnd={endDrag}
+                    onSelectDate={onSelectDate}
+                  />
                 ))}
               </div>
             </div>
@@ -241,6 +372,7 @@ export function MonthGrid({
           </div>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 }

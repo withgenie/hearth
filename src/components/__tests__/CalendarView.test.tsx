@@ -269,4 +269,66 @@ describe("CalendarView", () => {
     });
     expect(within(panel).queryByText("CLI에서 적은 새벽 메모")).toBeNull();
   });
+
+  it("moves a schedule to a dropped date while preserving every other field", async () => {
+    scheduleHook.schedules = [
+      schedule({
+        time: "22:30",
+        location: "병동 A",
+        description: "야간 당직 E",
+        notes: "인수인계 확인",
+        kind: "shift",
+        color: "#123456",
+        icon: "🌙",
+        remind_before_5min: true,
+        remind_at_start: true,
+      }),
+    ];
+    render(<CalendarView />);
+
+    fireEvent.dragStart(screen.getByText("E"));
+    fireEvent.drop(
+      screen
+        .getByRole("button", { name: "2026년 7월 16일 목요일" })
+        .closest("[role='gridcell']") as HTMLElement,
+    );
+
+    await waitFor(() =>
+      expect(scheduleHook.update).toHaveBeenCalledWith(7, {
+        date: "2026-07-16",
+        time: "22:30",
+        location: "병동 A",
+        description: "야간 당직 E",
+        notes: "인수인계 확인",
+        kind: "shift",
+        color: "#123456",
+        icon: "🌙",
+        remind_before_5min: true,
+        remind_at_start: true,
+      }),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "야간 당직 E 일정을 2026년 7월 16일 목요일로 이동했습니다.",
+    );
+  });
+
+  it("keeps the current schedule and announces a failed drag update", async () => {
+    scheduleHook.schedules = [schedule()];
+    scheduleHook.update.mockRejectedValueOnce(new Error("database busy"));
+    render(<CalendarView />);
+
+    fireEvent.dragStart(screen.getByText("제품 회의"));
+    fireEvent.drop(
+      screen
+        .getByRole("button", { name: "2026년 7월 15일 수요일" })
+        .closest("[role='gridcell']") as HTMLElement,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "제품 회의 일정을 이동하지 못했습니다. 다시 시도해 주세요.",
+      ),
+    );
+    expect(screen.getByText("제품 회의")).toBeVisible();
+  });
 });

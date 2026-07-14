@@ -167,6 +167,27 @@ export function CalendarView() {
     if (schedule) await remove(schedule.id);
   };
 
+  const moveSchedule = async (
+    scheduleId: MonthGridSchedule["id"],
+    targetDate: string,
+  ) => {
+    const schedule = schedulesById.get(Number(scheduleId));
+    if (!schedule || schedule.date === targetDate) return;
+
+    await update(schedule.id, {
+      date: targetDate,
+      time: schedule.time ?? undefined,
+      location: schedule.location ?? undefined,
+      description: schedule.description ?? undefined,
+      notes: schedule.notes ?? undefined,
+      kind: schedule.kind,
+      color: schedule.color ?? undefined,
+      icon: schedule.icon ?? undefined,
+      remind_before_5min: schedule.remind_before_5min,
+      remind_at_start: schedule.remind_at_start,
+    });
+  };
+
   const goToToday = () => {
     const nextToday = new Date();
     setVisibleMonth(firstOfMonth(nextToday));
@@ -229,6 +250,7 @@ export function CalendarView() {
           today={today}
           onSelectDate={selectDate}
           onOverflowDate={selectDate}
+          onMoveSchedule={moveSchedule}
         />
       </div>
 

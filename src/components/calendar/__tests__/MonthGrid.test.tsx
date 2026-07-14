@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MonthGrid, type MonthGridSchedule } from "../MonthGrid";
 import {
@@ -224,5 +230,120 @@ describe("MonthGrid", () => {
       (chip.querySelector("[data-color-rail]") as HTMLElement).style
         .backgroundColor,
     ).toBe("var(--color-brand)");
+  });
+
+  it("drags both schedule chips and shift capsules onto another date", async () => {
+    const onMoveSchedule = vi.fn().mockResolvedValue(undefined);
+    render(
+      <MonthGrid
+        month={new Date(2026, 6, 1)}
+        schedules={schedules}
+        onSelectDate={vi.fn()}
+        onMoveSchedule={onMoveSchedule}
+      />,
+    );
+
+    const targetCell = screen
+      .getByRole("button", { name: "2026년 7월 2일 목요일" })
+      .closest("[role='gridcell']") as HTMLElement;
+    const chip = screen
+      .getByText("팀 미팅")
+      .closest("[draggable='true']") as HTMLElement;
+    fireEvent.dragStart(chip);
+    fireEvent.dragOver(targetCell);
+    expect(targetCell.getAttribute("data-drop-target")).toBe("true");
+    fireEvent.drop(targetCell);
+
+    await waitFor(() =>
+      expect(onMoveSchedule).toHaveBeenCalledWith(2, "2026-07-02"),
+    );
+    expect(screen.getByRole("status").textContent).toContain(
+      "팀 미팅 일정을 2026년 7월 2일 목요일로 이동했습니다.",
+    );
+
+    const shift = screen.getByText("D");
+    expect(shift.getAttribute("draggable")).toBe("true");
+    fireEvent.dragStart(shift);
+    fireEvent.drop(targetCell);
+
+    await waitFor(() =>
+      expect(onMoveSchedule).toHaveBeenCalledWith(1, "2026-07-02"),
+    );
+    expect(screen.getByRole("status").textContent).toContain(
+      "D 근무 일정을 2026년 7월 2일 목요일로 이동했습니다.",
+    );
+  });
+
+  it.each(["D", "E", "OFF"] as const)(
+    "routes a dragged %s shift capsule to its target date",
+    async (shiftCode) => {
+      const onMoveSchedule = vi.fn().mockResolvedValue(undefined);
+      render(
+        <MonthGrid
+          month={new Date(2026, 6, 1)}
+          schedules={[
+            {
+              id: shiftCode,
+              date: "2026-07-02",
+              title: `${shiftCode} 근무`,
+              kind: "shift",
+              shiftCode,
+            },
+          ]}
+          onSelectDate={vi.fn()}
+          onMoveSchedule={onMoveSchedule}
+        />,
+      );
+
+      fireEvent.dragStart(screen.getByText(shiftCode));
+      fireEvent.drop(
+        screen
+          .getByRole("button", { name: "2026년 7월 3일 금요일" })
+          .closest("[role='gridcell']") as HTMLElement,
+      );
+
+      await waitFor(() =>
+        expect(onMoveSchedule).toHaveBeenCalledWith(shiftCode, "2026-07-03"),
+      );
+    },
+  );
+
+  it("does nothing when dropped on the same date or when no move callback exists", () => {
+    const onMoveSchedule = vi.fn();
+    const { rerender } = render(
+      <MonthGrid
+        month={new Date(2026, 6, 1)}
+        schedules={schedules}
+        onSelectDate={vi.fn()}
+        onMoveSchedule={onMoveSchedule}
+      />,
+    );
+
+    const sourceCell = screen
+      .getByRole("button", { name: "2026년 7월 1일 수요일" })
+      .closest("[role='gridcell']") as HTMLElement;
+    const chip = screen
+      .getByText("팀 미팅")
+      .closest("[draggable='true']") as HTMLElement;
+    fireEvent.dragStart(chip);
+    fireEvent.drop(sourceCell);
+    expect(onMoveSchedule).not.toHaveBeenCalled();
+
+    rerender(
+      <MonthGrid
+        month={new Date(2026, 6, 1)}
+        schedules={schedules}
+        onSelectDate={vi.fn()}
+      />,
+    );
+    fireEvent.dragStart(
+      screen.getByText("팀 미팅").closest("[draggable='true']") as HTMLElement,
+    );
+    fireEvent.drop(
+      screen
+        .getByRole("button", { name: "2026년 7월 2일 목요일" })
+        .closest("[role='gridcell']") as HTMLElement,
+    );
+    expect(onMoveSchedule).not.toHaveBeenCalled();
   });
 });
