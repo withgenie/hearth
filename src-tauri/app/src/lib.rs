@@ -23,6 +23,7 @@ use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
 const SHOW_MAIN_WINDOW_MENU_ID: &str = "show-main-window";
+const SHOW_MAIN_WINDOW_MENU_ACCELERATOR: Option<&str> = None;
 
 pub struct AppState {
     pub db: Mutex<rusqlite::Connection>,
@@ -43,7 +44,7 @@ fn build_menu(app_handle: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> 
         SHOW_MAIN_WINDOW_MENU_ID,
         "Hearth",
         true,
-        Some("CmdOrCtrl+1"),
+        SHOW_MAIN_WINDOW_MENU_ACCELERATOR,
     )?;
 
     if let Some(window_menu) = menu
@@ -294,4 +295,15 @@ pub fn run() {
                 }
             }
         });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn main_window_menu_does_not_claim_frontend_tab_shortcut() {
+        assert_eq!(SHOW_MAIN_WINDOW_MENU_ID, "show-main-window");
+        assert_eq!(SHOW_MAIN_WINDOW_MENU_ACCELERATOR, None);
+    }
 }
