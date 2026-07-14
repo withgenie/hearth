@@ -1,79 +1,201 @@
-import { describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom";
 import {
-  dateKeyFromCalendarValue,
-  dateKeyFromVisibleMonthCell,
-  scheduleStartDate,
-} from "../CalendarView";
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-describe("CalendarView date handling", () => {
-  it("parses date-only schedules as local calendar days", () => {
-    const start = scheduleStartDate({ date: "2026-04-20", time: null });
+import type { Schedule } from "../../types";
+import { CalendarView } from "../CalendarView";
 
-    expect(start.getFullYear()).toBe(2026);
-    expect(start.getMonth()).toBe(3);
-    expect(start.getDate()).toBe(20);
-    expect(start.getHours()).toBe(0);
-    expect(start.getMinutes()).toBe(0);
+const scheduleHook = vi.hoisted(() => ({
+  schedules: [] as Schedule[],
+  create: vi.fn(),
+  update: vi.fn(),
+  remove: vi.fn(),
+}));
+
+vi.mock("../../hooks/useSchedules", () => ({
+  useSchedules: () => scheduleHook,
+}));
+
+function schedule(overrides: Partial<Schedule> = {}): Schedule {
+  return {
+    id: 7,
+    date: "2026-07-14",
+    time: "10:00",
+    location: null,
+    description: "제품 회의",
+    notes: null,
+    kind: "event",
+    color: null,
+    icon: null,
+    remind_before_5min: false,
+    remind_at_start: false,
+    created_at: "2026-07-14T00:00:00Z",
+    updated_at: "2026-07-14T00:00:00Z",
+    ...overrides,
+  };
+}
+
+describe("CalendarView", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date(2026, 6, 14, 12));
+    scheduleHook.schedules = [];
+    scheduleHook.create.mockReset().mockResolvedValue(undefined);
+    scheduleHook.update.mockReset().mockResolvedValue(undefined);
+    scheduleHook.remove.mockReset().mockResolvedValue(undefined);
   });
 
-  it("parses timed schedules at the requested local time", () => {
-    const start = scheduleStartDate({ date: "2026-04-20", time: "09:30" });
-
-    expect(start.getFullYear()).toBe(2026);
-    expect(start.getMonth()).toBe(3);
-    expect(start.getDate()).toBe(20);
-    expect(start.getHours()).toBe(9);
-    expect(start.getMinutes()).toBe(30);
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
-  it("preserves UTC-midnight calendar slot dates", () => {
-    const slotStart = new Date(Date.UTC(2026, 3, 20));
+  it("navigates months with Korean controls and returns to today", () => {
+    render(<CalendarView />);
 
-    expect(dateKeyFromCalendarValue(slotStart)).toBe("2026-04-20");
+    expect(screen.getByRole("heading", { name: "2026년 7월" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "다음 달" }));
+    expect(screen.getByRole("heading", { name: "2026년 8월" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "이전 달" }));
+    expect(screen.getByRole("heading", { name: "2026년 7월" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "다음 달" }));
+    fireEvent.click(screen.getByRole("button", { name: "오늘" }));
+    expect(screen.getByRole("heading", { name: "2026년 7월" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "2026년 7월 14일 화요일" }),
+    ).toHaveAttribute("aria-current", "date");
   });
 
-  it("uses the visible month cell under the click point", () => {
-    const row = document.createElement("div");
-    row.className = "rbc-month-row";
+  it("classifies schedule view models for the month grid and day panel", () => {
+    scheduleHook.schedules = [
+      schedule({
+        id: 1,
+        description: "세금 신고 마감",
+        time: "09:00",
+      }),
+      schedule({
+        id: 2,
+        description: "야간 근무 E",
+        time: null,
+      }),
+      schedule({
+        id: 3,
+        description: "기념일",
+        kind: "anniversary",
+        color: "var(--color-p3)",
+        icon: "🎂",
+        time: "18:00",
+      }),
+    ];
 
-    for (const [index, date] of [
-      "2026-06-11",
-      "2026-06-12",
-      "2026-06-13",
-    ].entries()) {
-      const cell = document.createElement("div");
-      cell.className = "rbc-date-cell";
-      cell.getBoundingClientRect = vi.fn(
-        () =>
-          ({
-            left: index * 100,
-            right: (index + 1) * 100,
-            top: 0,
-            bottom: 20,
-            width: 100,
-            height: 20,
-            x: index * 100,
-            y: 0,
-            toJSON: () => ({}),
-          }) as DOMRect,
+    render(<CalendarView />);
+
+    expect(screen.getByText("⚠")).toBeVisible();
+    expect(screen.getByText("E")).toHaveAttribute("data-shift-code", "E");
+    expect(screen.getByText("🎂")).toBeVisible();
+    const anniversaryChip = screen.getByText("기념일").closest(
+      "[data-testid='month-grid-chip']",
+    );
+    expect(anniversaryChip?.querySelector("[data-color-rail]")).toHaveStyle({
+      backgroundColor: "var(--color-p3)",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "2026년 7월 14일 화요일" }),
+    );
+    const panel = screen.getByRole("dialog", {
+      name: "2026년 7월 14일 화요일",
+    });
+    expect(within(panel).getByText("마감")).toBeVisible();
+    expect(within(panel).getByText("근무")).toBeVisible();
+    expect(
+      within(panel).getByRole("heading", { name: "기념일" }),
+    ).toBeVisible();
+  });
+
+  it("routes cell, panel, modal, and CRUD actions", async () => {
+    scheduleHook.schedules = [schedule()];
+    render(<CalendarView />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "2026년 7월 14일 화요일" }),
+    );
+    let panel = screen.getByRole("dialog", {
+      name: "2026년 7월 14일 화요일",
+    });
+    fireEvent.click(within(panel).getByRole("button", { name: "새 일정 추가" }));
+    expect(screen.getByRole("dialog", { name: "일정 추가" })).toBeVisible();
+    expect(screen.getByDisplayValue("2026-07-14")).toHaveAttribute(
+      "type",
+      "date",
+    );
+    fireEvent.change(screen.getByLabelText("내용"), {
+      target: { value: "새 일정" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(scheduleHook.create).toHaveBeenCalledOnce());
+
+    panel = screen.getByRole("dialog", {
+      name: "2026년 7월 14일 화요일",
+    });
+    fireEvent.click(within(panel).getByRole("button", { name: "제품 회의 수정" }));
+    expect(screen.getByRole("dialog", { name: "일정 수정" })).toBeVisible();
+    fireEvent.change(screen.getByLabelText("내용"), {
+      target: { value: "수정된 회의" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "저장" }));
+    await waitFor(() =>
+      expect(scheduleHook.update).toHaveBeenCalledWith(
+        7,
+        expect.objectContaining({ description: "수정된 회의" }),
+      ),
+    );
+
+    panel = screen.getByRole("dialog", {
+      name: "2026년 7월 14일 화요일",
+    });
+    fireEvent.click(within(panel).getByRole("button", { name: "제품 회의 삭제" }));
+    await waitFor(() => expect(scheduleHook.remove).toHaveBeenCalledWith(7));
+  });
+
+  it("opens the overflow date and focuses a schedule after a cold load", async () => {
+    scheduleHook.schedules = Array.from({ length: 4 }, (_, index) =>
+      schedule({ id: index + 1, date: "2026-07-15", description: `일정 ${index + 1}` }),
+    );
+    const { rerender } = render(<CalendarView />);
+
+    fireEvent.click(screen.getByRole("button", { name: "일정 1개 더 보기" }));
+    expect(
+      screen.getByRole("dialog", { name: "2026년 7월 15일 수요일" }),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "날짜 페이지 닫기" }));
+
+    scheduleHook.schedules = [];
+    rerender(<CalendarView />);
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("schedule:focus", {
+          detail: { scheduleId: 99 },
+        }),
       );
-      const label = document.createElement("span");
-      label.dataset.calendarDate = date;
-      cell.append(label);
-      row.append(cell);
-    }
+    });
+    scheduleHook.schedules = [
+      schedule({ id: 99, date: "2026-09-03", description: "찾은 일정" }),
+    ];
+    rerender(<CalendarView />);
 
-    document.body.append(row);
-    const originalElementFromPoint = document.elementFromPoint;
-    document.elementFromPoint = vi.fn(() => row);
-
-    try {
-      expect(dateKeyFromVisibleMonthCell({ clientX: 150, clientY: 8 })).toBe(
-        "2026-06-12",
-      );
-    } finally {
-      document.elementFromPoint = originalElementFromPoint;
-      row.remove();
-    }
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "2026년 9월" })).toBeVisible(),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "2026년 9월 3일 목요일" }),
+    ).toHaveTextContent("찾은 일정");
   });
 });

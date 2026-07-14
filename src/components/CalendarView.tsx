@@ -1,190 +1,104 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
-import moment from "moment";
-import "moment/locale/ko";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import { CalendarDays, Plus } from "lucide-react";
-import { ScheduleModal } from "./ScheduleModal";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+
 import { useSchedules } from "../hooks/useSchedules";
+import { classifyScheduleStyle } from "../lib/scheduleStyle";
 import type { Schedule } from "../types";
 import { Button } from "../ui/Button";
+import { DayPanel, type DayPanelSchedule } from "./calendar/DayPanel";
+import { MonthGrid, type MonthGridSchedule } from "./calendar/MonthGrid";
+import {
+  formatLocalDateKey,
+  parseLocalDateKey,
+} from "./calendar/dateUtils";
+import { ScheduleModal } from "./ScheduleModal";
 
-moment.locale("ko");
-const localizer = momentLocalizer(moment);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const DnDCalendar = withDragAndDrop<CalendarEvent>(Calendar as any);
+type CalendarScheduleView = MonthGridSchedule & DayPanelSchedule;
 
-interface CalendarEvent {
-  id: number;
-  title: string;
-  start: Date;
-  end: Date;
-  resource: Schedule;
+function firstOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-const messages = {
-  today: "오늘",
-  previous: "이전",
-  next: "다음",
-  month: "월",
-  week: "주",
-  day: "일",
-  agenda: "일정",
-  date: "날짜",
-  time: "시간",
-  event: "일정",
-  noEventsInRange: "이 기간에 일정이 없습니다.",
-  showMore: (total: number) => `+${total}개 더보기`,
-};
+function shiftedMonth(month: Date, offset: -1 | 1): Date {
+  return new Date(month.getFullYear(), month.getMonth() + offset, 1);
+}
 
-const formats = {
-  monthHeaderFormat: (date: Date) => moment(date).format("YYYY년 M월"),
-  weekdayFormat: (date: Date) => moment(date).format("ddd"),
-  dateFormat: (date: Date) => moment(date).format("D"),
-  dayHeaderFormat: (date: Date) => moment(date).format("M월 D일 dddd"),
-  dayRangeHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
-    `${moment(start).format("M월 D일")} – ${moment(end).format("M월 D일")}`,
-  agendaHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
-    `${moment(start).format("YYYY년 M월 D일")} – ${moment(end).format("YYYY년 M월 D일")}`,
-  agendaDateFormat: (date: Date) => moment(date).format("M월 D일 (ddd)"),
-  agendaTimeFormat: (date: Date) => moment(date).format("A h:mm"),
-  agendaTimeRangeFormat: ({ start, end }: { start: Date; end: Date }) =>
-    `${moment(start).format("A h:mm")} – ${moment(end).format("A h:mm")}`,
-  eventTimeRangeFormat: ({ start, end }: { start: Date; end: Date }) =>
-    `${moment(start).format("A h:mm")} – ${moment(end).format("A h:mm")}`,
-  selectRangeFormat: ({ start, end }: { start: Date; end: Date }) =>
-    `${moment(start).format("A h:mm")} – ${moment(end).format("A h:mm")}`,
-  timeGutterFormat: (date: Date) => moment(date).format("A h:mm"),
-};
-const DATE_KEY_FORMAT = "YYYY-MM-DD";
-const DATE_TIME_FORMAT = "YYYY-MM-DD HH:mm";
+function scheduleTitle(schedule: Schedule): string {
+  return schedule.description?.trim() || schedule.location?.trim() || "일정";
+}
 
-type CalendarSlotPoint = {
-  clientX?: number;
-  clientY?: number;
-  x?: number;
-  y?: number;
-};
-
-type CalendarDateHeaderProps = {
-  date: Date;
-  label: ReactNode;
-  drilldownView?: string | null;
-  onDrillDown?: () => void;
-};
-
-export function dateKeyFromCalendarValue(value: Date | string) {
-  if (typeof value === "string") {
-    const parsed = moment(
-      value,
-      [DATE_TIME_FORMAT, DATE_KEY_FORMAT, moment.ISO_8601],
-      true,
-    );
-    return (parsed.isValid() ? parsed : moment(value)).format(DATE_KEY_FORMAT);
+function parsedFocusDate(dateKey: string): Date | null {
+  try {
+    return parseLocalDateKey(dateKey);
+  } catch (error) {
+    if (error instanceof Error) return null;
+    throw error;
   }
-
-  // Month-view slot dates and date-only schedule values are sometimes handed
-  // back as UTC-midnight Date objects. Treat exact UTC midnight as a date-only
-  // sentinel so western time zones don't shift the semantic calendar day back.
-  if (
-    value.getUTCHours() === 0 &&
-    value.getUTCMinutes() === 0 &&
-    value.getUTCSeconds() === 0 &&
-    value.getUTCMilliseconds() === 0 &&
-    value.getHours() !== 0
-  ) {
-    return moment.utc(value).format(DATE_KEY_FORMAT);
-  }
-
-  return moment(value).format(DATE_KEY_FORMAT);
 }
 
-export function dateKeyFromVisibleMonthCell(point?: CalendarSlotPoint) {
-  if (typeof document === "undefined" || !point) return null;
+function scheduleView(schedule: Schedule): CalendarScheduleView {
+  const style = classifyScheduleStyle(schedule);
+  const railColor =
+    style.railColor.kind === "custom"
+      ? style.railColor.value
+      : `var(${style.railColor.value})`;
 
-  const x =
-    typeof point.clientX === "number"
-      ? point.clientX
-      : typeof point.x === "number"
-        ? point.x - window.scrollX
-        : null;
-  const y =
-    typeof point.clientY === "number"
-      ? point.clientY
-      : typeof point.y === "number"
-        ? point.y - window.scrollY
-        : null;
-  if (x === null || y === null) return null;
-
-  const target = document.elementFromPoint(x, y);
-  const row = target?.closest(".rbc-month-row");
-  if (!row) return null;
-
-  const cells = Array.from(
-    row.querySelectorAll<HTMLElement>(".rbc-date-cell"),
-  );
-  const cell = cells.find((candidate) => {
-    const rect = candidate.getBoundingClientRect();
-    return x >= rect.left && x <= rect.right;
-  });
-  return (
-    cell
-      ?.querySelector<HTMLElement>("[data-calendar-date]")
-      ?.dataset.calendarDate ?? null
-  );
-}
-
-function CalendarDateHeader({
-  date,
-  label,
-  drilldownView,
-  onDrillDown,
-}: CalendarDateHeaderProps) {
-  const content = (
-    <span data-calendar-date={dateKeyFromCalendarValue(date)}>{label}</span>
-  );
-
-  if (!drilldownView) return content;
-
-  return (
-    <button type="button" className="rbc-button-link" onClick={onDrillDown}>
-      {content}
-    </button>
-  );
-}
-
-export function scheduleStartDate(schedule: Pick<Schedule, "date" | "time">) {
-  const parsed = schedule.time
-    ? moment(`${schedule.date} ${schedule.time}`, DATE_TIME_FORMAT, true)
-    : moment(schedule.date, DATE_KEY_FORMAT, true);
-  return (parsed.isValid() ? parsed : moment(schedule.date)).toDate();
+  return {
+    id: schedule.id,
+    date: schedule.date,
+    time: schedule.time,
+    title: scheduleTitle(schedule),
+    location: schedule.location,
+    notes: schedule.notes,
+    icon: schedule.icon,
+    kind: style.classification,
+    shiftCode: style.shiftCode,
+    railColor,
+    color: railColor,
+  };
 }
 
 export function CalendarView() {
   const { schedules, create, update, remove } = useSchedules();
+  const today = new Date();
+  const [visibleMonth, setVisibleMonth] = useState(() => firstOfMonth(today));
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [pendingFocusId, setPendingFocusId] = useState<number | null>(null);
   const [modal, setModal] = useState<{
     schedule?: Schedule;
     initialDate?: string;
   } | null>(null);
-  // Controlled so prev/next/today toolbar buttons actually advance the view —
-  // react-big-calendar's uncontrolled mode silently drops navigation events
-  // when you don't pair `date` with `onNavigate`.
-  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
-  const [pendingFocusId, setPendingFocusId] = useState<number | null>(null);
-  const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
-  // FindPalette emits `schedule:focus` with the target schedule id. On a cold
-  // tab switch the `schedules` list hasn't loaded yet, so we just stash the
-  // id here and let a second effect apply it once the data arrives.
+  const scheduleViews = useMemo(
+    () => schedules.map(scheduleView),
+    [schedules],
+  );
+  const schedulesById = useMemo(
+    () => new Map(schedules.map((schedule) => [schedule.id, schedule])),
+    [schedules],
+  );
+
+  const selectDate = (dateKey: string) => {
+    const date = parseLocalDateKey(dateKey);
+    setVisibleMonth(firstOfMonth(date));
+    setSelectedDate(dateKey);
+  };
+
   useEffect(() => {
-    const onFocus = (e: Event) => {
-      const detail = (e as CustomEvent<{ scheduleId?: number; date?: string }>)
-        .detail;
-      const id = detail?.scheduleId;
-      if (typeof id !== "number") return;
-      setPendingFocusId(id);
+    const onFocus = (event: Event) => {
+      const detail = (
+        event as CustomEvent<{ scheduleId?: number; date?: string }>
+      ).detail;
+      if (typeof detail?.scheduleId !== "number") return;
+      setPendingFocusId(detail.scheduleId);
+
+      if (detail.date) {
+        const date = parsedFocusDate(detail.date);
+        if (date) {
+          setVisibleMonth(firstOfMonth(date));
+          setSelectedDate(detail.date);
+        }
+      }
     };
     window.addEventListener("schedule:focus", onFocus);
     return () => window.removeEventListener("schedule:focus", onFocus);
@@ -192,136 +106,116 @@ export function CalendarView() {
 
   useEffect(() => {
     if (pendingFocusId === null) return;
-    const found = schedules.find((s) => s.id === pendingFocusId);
+    const found = schedulesById.get(pendingFocusId);
     if (!found) return;
-    setCurrentDate(scheduleStartDate(found));
-    setHighlightedId(found.id);
+    selectDate(found.date);
     setPendingFocusId(null);
-    const t = window.setTimeout(() => setHighlightedId(null), 2400);
-    return () => window.clearTimeout(t);
-  }, [pendingFocusId, schedules]);
-
-  const events: CalendarEvent[] = useMemo(
-    () =>
-      schedules.map((s) => {
-        const start = scheduleStartDate(s);
-        const end = new Date(start.getTime() + 60 * 60 * 1000);
-        const hasReminder = s.remind_before_5min || s.remind_at_start;
-        return {
-          id: s.id,
-          title:
-            (hasReminder ? "🔔 " : "") +
-            ([s.description, s.location].filter(Boolean).join(" @ ") || "일정"),
-          start,
-          end,
-          resource: s,
-        };
-      }),
-    [schedules]
-  );
-
-  const handleSelectSlot = ({
-    start,
-    box,
-  }: {
-    start: Date;
-    box?: CalendarSlotPoint;
-  }) => {
-    const dateStr =
-      dateKeyFromVisibleMonthCell(box) ?? dateKeyFromCalendarValue(start);
-    setModal({ initialDate: dateStr });
-  };
-
-  const handleSelectEvent = (event: CalendarEvent) => {
-    setModal({ schedule: event.resource });
-  };
+  }, [pendingFocusId, schedulesById]);
 
   const handleSave = async (data: Parameters<typeof create>[0]) => {
-    if (modal?.schedule) {
-      await update(modal.schedule.id, data);
-    } else {
-      await create(data);
-    }
+    if (modal?.schedule) await update(modal.schedule.id, data);
+    else await create(data);
     setModal(null);
   };
 
-  const handleDelete = async () => {
-    if (modal?.schedule) {
-      await remove(modal.schedule.id);
-      setModal(null);
-    }
+  const handleModalDelete = async () => {
+    if (!modal?.schedule) return;
+    await remove(modal.schedule.id);
+    setModal(null);
   };
 
-  const handleEventDrop = async ({
-    event,
-    start,
-  }: {
-    event: CalendarEvent;
-    start: Date | string;
-    end: Date | string;
-  }) => {
-    const s = event.resource;
-    const newDate = dateKeyFromCalendarValue(start);
-    await update(s.id, {
-      date: newDate,
-      time: s.time ?? undefined,
-      location: s.location ?? undefined,
-      description: s.description ?? undefined,
-      notes: s.notes ?? undefined,
-      remind_before_5min: s.remind_before_5min,
-      remind_at_start: s.remind_at_start,
-    });
+  const editSchedule = (view: DayPanelSchedule) => {
+    const schedule = schedulesById.get(Number(view.id));
+    if (schedule) setModal({ schedule });
+  };
+
+  const deleteSchedule = async (view: DayPanelSchedule) => {
+    const schedule = schedulesById.get(Number(view.id));
+    if (schedule) await remove(schedule.id);
+  };
+
+  const goToToday = () => {
+    const nextToday = new Date();
+    setVisibleMonth(firstOfMonth(nextToday));
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="flex justify-between items-center mb-5">
-        <h2 className="text-heading text-[var(--color-text-hi)] flex items-center gap-2">
-          <CalendarDays size={18} />
-          캘린더
-        </h2>
-        <Button
-          variant="primary"
-          size="sm"
-          leftIcon={Plus}
-          onClick={() => setModal({ initialDate: moment().format("YYYY-MM-DD") })}
-        >
-          새 일정
-        </Button>
-      </div>
-      <div className="flex-1 min-h-0">
-        <DnDCalendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          selectable
-          onSelectSlot={handleSelectSlot}
-          onSelectEvent={handleSelectEvent}
-          onEventDrop={handleEventDrop}
-          draggableAccessor={() => true}
-          style={{ height: "100%" }}
-          views={["month"]}
-          defaultView="month"
-          date={currentDate}
-          onNavigate={setCurrentDate}
-          messages={messages}
-          formats={formats}
-          culture="ko"
-          components={{ month: { dateHeader: CalendarDateHeader } }}
-          eventPropGetter={(event) =>
-            event.id === highlightedId
-              ? { className: "rbc-event-find-highlight" }
-              : {}
-          }
+    <div className="flex min-h-0 flex-1 flex-col">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <CalendarDays
+            aria-hidden="true"
+            className="shrink-0 text-[var(--color-brand-hi)]"
+            size={18}
+          />
+          <h2 className="text-heading text-[var(--color-text-hi)]">
+            {visibleMonth.getFullYear()}년 {visibleMonth.getMonth() + 1}월
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            leftIcon={ChevronLeft}
+            aria-label="이전 달"
+            title="이전 달"
+            onClick={() => setVisibleMonth(shiftedMonth(visibleMonth, -1))}
+          />
+          <Button type="button" variant="secondary" size="sm" onClick={goToToday}>
+            오늘
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            leftIcon={ChevronRight}
+            aria-label="다음 달"
+            title="다음 달"
+            onClick={() => setVisibleMonth(shiftedMonth(visibleMonth, 1))}
+          />
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            leftIcon={Plus}
+            onClick={() =>
+              setModal({ initialDate: formatLocalDateKey(new Date()) })
+            }
+          >
+            새 일정
+          </Button>
+        </div>
+      </header>
+
+      <div className="min-h-0 flex-1">
+        <MonthGrid
+          month={visibleMonth}
+          schedules={scheduleViews}
+          selectedDate={selectedDate}
+          today={today}
+          onSelectDate={selectDate}
+          onOverflowDate={selectDate}
         />
       </div>
+
+      <DayPanel
+        open={selectedDate !== null}
+        date={selectedDate ?? formatLocalDateKey(today)}
+        schedules={scheduleViews}
+        onCreate={(date) => setModal({ initialDate: date })}
+        onEdit={editSchedule}
+        onDelete={deleteSchedule}
+        onNavigateDate={selectDate}
+        onClose={() => setSelectedDate(null)}
+      />
+
       {modal && (
         <ScheduleModal
           schedule={modal.schedule}
           initialDate={modal.initialDate}
           onSave={handleSave}
-          onDelete={modal.schedule ? handleDelete : undefined}
+          onDelete={modal.schedule ? handleModalDelete : undefined}
           onClose={() => setModal(null)}
         />
       )}
