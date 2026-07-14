@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type {
   Project,
   Schedule,
+  ScheduleKind,
   Memo,
   MemoFontSize,
   MemoTag,
@@ -70,6 +71,9 @@ export type ScheduleInput = {
   location?: string;
   description?: string;
   notes?: string;
+  kind?: ScheduleKind;
+  color?: string;
+  icon?: string;
   remind_before_5min?: boolean;
   remind_at_start?: boolean;
 };

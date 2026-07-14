@@ -1,22 +1,68 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import type { Schedule } from "../types";
+import type { Schedule, ScheduleKind } from "../types";
+import type { ScheduleInput } from "../api";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
-type SaveData = {
-  date: string;
-  time?: string;
-  location?: string;
-  description?: string;
-  notes?: string;
-  remind_before_5min?: boolean;
-  remind_at_start?: boolean;
+const SCHEDULE_KIND_OPTIONS = [
+  { value: "event", label: "일정" },
+  { value: "task", label: "할 일" },
+  { value: "shift", label: "근무" },
+  { value: "anniversary", label: "기념일" },
+] as const satisfies readonly { value: ScheduleKind; label: string }[];
+
+type GraphemeSegment = {
+  readonly segment: string;
 };
 
+type GraphemeSegmenter = {
+  segment(input: string): Iterable<GraphemeSegment>;
+};
+
+type GraphemeSegmenterConstructor = new (
+  locales?: string | string[],
+  options?: { readonly granularity: "grapheme" },
+) => GraphemeSegmenter;
+
+type IntlWithGraphemeSegmenter = {
+  readonly Segmenter: GraphemeSegmenterConstructor;
+};
+
+const EMOJI_GRAPHEME_PATTERN =
+  /\p{Extended_Pictographic}|\p{Emoji_Presentation}|[0-9#*]\uFE0F?\u20E3/u;
+
+function hasGraphemeSegmenter(value: unknown): value is IntlWithGraphemeSegmenter {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "Segmenter" in value &&
+    typeof value.Segmenter === "function"
+  );
+}
+
+function isSingleEmoji(value: string): boolean {
+  const intl: unknown = Intl;
+  if (!value || !hasGraphemeSegmenter(intl)) return false;
+
+  const segmenter = new intl.Segmenter("ko", { granularity: "grapheme" });
+  let grapheme = "";
+  let count = 0;
+  for (const part of segmenter.segment(value)) {
+    count += 1;
+    if (count > 1) return false;
+    grapheme = part.segment;
+  }
+  return count === 1 && EMOJI_GRAPHEME_PATTERN.test(grapheme);
+}
+
+function isScheduleKind(value: string): value is ScheduleKind {
+  return SCHEDULE_KIND_OPTIONS.some((option) => option.value === value);
+}
+
 function onEnterSubmit(e: React.KeyboardEvent<HTMLInputElement>) {
-  const native = e.nativeEvent as KeyboardEvent & { keyCode?: number };
+  const native = e.nativeEvent;
   if (
     e.key === "Enter" &&
     !native.isComposing &&
@@ -44,7 +90,7 @@ export function ScheduleModal({
   schedule?: Schedule;
   initialDate?: string;
   initialTime?: string;
-  onSave: (data: SaveData) => void;
+  onSave: (data: ScheduleInput) => void;
   onDelete?: () => void;
   onClose: () => void;
 }) {
@@ -70,9 +116,13 @@ export function ScheduleModal({
   const [location, setLocation] = useState(schedule?.location ?? "");
   const [description, setDescription] = useState(schedule?.description ?? "");
   const [notes, setNotes] = useState(schedule?.notes ?? "");
+  const [kind, setKind] = useState<ScheduleKind>(schedule?.kind ?? "event");
+  const [color, setColor] = useState(schedule?.color ?? "");
+  const [icon, setIcon] = useState(schedule?.icon ?? "");
 
   const isEdit = !!schedule;
   const timeMissing = notify && !time;
+  const iconInvalid = icon !== "" && !isSingleEmoji(icon);
 
   function toggleNotify() {
     const next = !notify;
@@ -83,13 +133,16 @@ export function ScheduleModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!date || timeMissing) return;
+    if (!date || timeMissing || iconInvalid) return;
     onSave({
       date,
       time: notify ? time : undefined,
       location: location || undefined,
       description: description || undefined,
       notes: notes || undefined,
+      kind,
+      ...(color ? { color } : {}),
+      ...(icon ? { icon } : {}),
       remind_before_5min: notify ? remindBefore5 : false,
       remind_at_start: notify ? remindAtStart : false,
     });
@@ -171,6 +224,77 @@ export function ScheduleModal({
           )}
 
           <div>
+            <label
+              htmlFor="schedule-kind"
+              className="text-[11px] text-[var(--color-text-muted)] mb-1 block"
+            >
+              일정 종류
+            </label>
+            <select
+              id="schedule-kind"
+              value={kind}
+              onChange={(event) => {
+                if (isScheduleKind(event.target.value)) {
+                  setKind(event.target.value);
+                }
+              }}
+              className="h-9 w-full px-3 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-brand-hi)] transition-colors duration-[120ms]"
+            >
+              {SCHEDULE_KIND_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="schedule-color"
+                className="text-[11px] text-[var(--color-text-muted)] mb-1 block"
+              >
+                일정 색상
+              </label>
+              <Input
+                id="schedule-color"
+                type="text"
+                value={color}
+                onChange={(event) => setColor(event.target.value)}
+                onKeyDown={onEnterSubmit}
+                placeholder="자동 배색"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="schedule-icon"
+                className="text-[11px] text-[var(--color-text-muted)] mb-1 block"
+              >
+                스티커 이모지
+              </label>
+              <Input
+                id="schedule-icon"
+                type="text"
+                value={icon}
+                onChange={(event) => setIcon(event.target.value)}
+                onKeyDown={onEnterSubmit}
+                placeholder="선택 사항"
+                aria-invalid={iconInvalid}
+                aria-describedby={iconInvalid ? "schedule-icon-error" : undefined}
+              />
+              {iconInvalid && (
+                <div
+                  id="schedule-icon-error"
+                  role="alert"
+                  className="mt-1 text-[11px] text-[var(--color-danger)]"
+                >
+                  스티커는 이모지 1개만 입력해 주세요.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
             <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">
               장소
             </label>
@@ -232,7 +356,11 @@ export function ScheduleModal({
             <Button type="button" variant="secondary" onClick={onClose}>
               취소
             </Button>
-            <Button type="submit" variant="primary" disabled={timeMissing}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={timeMissing || iconInvalid}
+            >
               저장
             </Button>
           </div>

@@ -11,6 +11,8 @@ export interface Project {
   updated_at: string;
 }
 
+export type ScheduleKind = "event" | "task" | "shift" | "anniversary";
+
 export interface Schedule {
   id: number;
   date: string;
@@ -18,6 +20,9 @@ export interface Schedule {
   location: string | null;
   description: string | null;
   notes: string | null;
+  kind: ScheduleKind;
+  color: string | null;
+  icon: string | null;
   remind_before_5min: boolean;
   remind_at_start: boolean;
   created_at: string;
