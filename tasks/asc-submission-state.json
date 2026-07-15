@@ -14,21 +14,23 @@
     "temporary_price_krw": 11000,
     "temporary_price_days": 28,
     "restore_price_krw": 22000,
-    "scheduled_in_asc": false
+    "price_points_verified_at": "2026-07-15T19:25:00+09:00",
+    "scheduled_in_asc": false,
+    "user_approval_pending": true
   },
   "preflight": {
-    "checked_at": "2026-07-15T01:21:40+09:00",
+    "checked_at": "2026-07-15T19:25:00+09:00",
     "signing_identities": "pass",
     "provisioning_profile": "pass",
     "asc_api_key": "pass",
     "entitlements": "pass"
   },
   "metadata": {
-    "subtitle": "ai_agent_copy_local_update_pending_asc",
-    "promotional_text": "ai_agent_copy_local_update_pending_asc",
-    "description": "ai_agent_copy_local_update_pending_asc",
-    "keywords": "ai_agent_copy_local_update_pending_asc",
-    "whats_new": "ko_applied_en_blocked",
+    "subtitle": "ko_en_ai_agent_copy_validated_pending_asc",
+    "promotional_text": "ko_en_ai_agent_copy_validated_pending_asc",
+    "description": "ko_en_ai_agent_copy_validated_pending_asc",
+    "keywords": "ko_en_ai_agent_copy_validated_pending_asc",
+    "whats_new": "ko_en_validated_pending_asc",
     "review_notes": "applied"
   },
   "build": {
@@ -43,14 +45,16 @@
     "delivery_uuid": "eab29a55-7d4e-4b8d-b69c-6f68b5e92c13",
     "processing_status": "valid",
     "asc_build_id": "eab29a55-7d4e-4b8d-b69c-6f68b5e92c13",
-    "linked_to_version": true
+    "linked_to_version": true,
+    "next_build_number": 13,
+    "next_build_unused_verified_at": "2026-07-15T19:25:00+09:00"
   },
   "app_store_version": {
     "id": "9b40cfc3-9dbd-4a78-a9cd-7d4b1aa13f6c",
     "state": "PREPARE_FOR_SUBMISSION",
     "release_type": "MANUAL",
     "korean_localization": "applied",
-    "english_localization": "blocked_by_app_name_conflict"
+    "english_localization": "not_created_name_accepted_hearth_local_workspace"
   },
   "screenshots": {
     "required": 10,
@@ -58,7 +62,18 @@
     "path": "docs/superpowers/app-store/screenshots/1.1.0",
     "primary_message": "ai_agent_plus_hearth_skill",
     "asc_korean_existing": 10,
-    "asc_replacement_pending": true
+    "asc_replacement_pending": true,
+    "replacement_authorized": true,
+    "raw_manifest_verified": true,
+    "output_manifest_verified": true
+  },
+  "availability": {
+    "checked_at": "2026-07-15T19:25:00+09:00",
+    "available_territories": [
+      "KOR"
+    ],
+    "available_in_new_territories": false,
+    "change_authorized": false
   },
   "marketing_site": {
     "prepared": true,
@@ -69,9 +84,10 @@
     "cloudflare_pages_deployment_id": "2a3f0d63-6ad2-44c1-b4d2-9a533953dd13"
   },
   "blockers": [
-    "Choose a unique en-US app name because Hearth is already used by another account.",
-    "Approve replacing the 10 inherited draft screenshots with the five new Korean screenshots.",
-    "Apply the AI Agent and Hearth Skill metadata revision in App Store Connect."
+    "Build, validate, upload, and link the unused build 13.",
+    "Create en-US localization and let ASC perform the final uniqueness check for Hearth: Local Workspace.",
+    "Apply the validated AI Agent and Hearth Skill metadata plus five screenshots per locale.",
+    "Decide whether to schedule the 28-day 50% launch price and whether to activate territories outside Korea."
   ],
   "submitted": false
 }
