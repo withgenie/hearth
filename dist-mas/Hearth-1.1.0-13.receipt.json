@@ -1,0 +1,9 @@
+{
+  "version": "1.1.0",
+  "build": 13,
+  "package": "dist-mas/Hearth-1.1.0-13.pkg",
+  "sha256": "db40a8fa497c4d1d7984960820cb2757f70fc90bcc1cbe499869037becc9db49",
+  "commit": "77a88cd3ea2858eed9162e7f9a4d471e293adf37",
+  "tree": "82ca9657fcea112740374e361b41956526885540",
+  "appleValidated": true
+}
