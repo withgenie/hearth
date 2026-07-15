@@ -9,29 +9,35 @@
   "app_store_url": "https://apps.apple.com/kr/app/hearth/id6764480247?mt=12",
   "business_model": "paid_upfront",
   "base_price_krw": 22000,
-  "price_experiment": {
-    "asset_only_days": 14,
-    "temporary_price_krw": 11000,
-    "temporary_price_days": 28,
+  "price_promotion": {
+    "temporary_price_krw": 2000,
+    "start_date": "2026-07-16",
+    "last_promotion_date": "2026-08-15",
+    "restore_date": "2026-08-16",
     "restore_price_krw": 22000,
-    "price_points_verified_at": "2026-07-15T19:25:00+09:00",
-    "scheduled_in_asc": false,
-    "user_approval_pending": true
+    "territory_count": 175,
+    "scheduled_in_asc": true,
+    "verified_at": "2026-07-15T20:01:18+09:00"
   },
   "preflight": {
-    "checked_at": "2026-07-15T19:25:00+09:00",
+    "checked_at": "2026-07-15T20:01:18+09:00",
     "signing_identities": "pass",
     "provisioning_profile": "pass",
     "asc_api_key": "pass",
     "entitlements": "pass"
   },
   "metadata": {
-    "subtitle": "ko_en_ai_agent_copy_validated_pending_asc",
-    "promotional_text": "ko_en_ai_agent_copy_validated_pending_asc",
-    "description": "ko_en_ai_agent_copy_validated_pending_asc",
-    "keywords": "ko_en_ai_agent_copy_validated_pending_asc",
-    "whats_new": "ko_en_validated_pending_asc",
-    "review_notes": "applied"
+    "locales": [
+      "ko",
+      "en-US"
+    ],
+    "subtitle": "applied",
+    "promotional_text": "applied",
+    "description": "applied",
+    "keywords": "applied",
+    "whats_new": "applied",
+    "review_notes": "applied",
+    "primary_message": "ai_agent_plus_hearth_skill"
   },
   "build": {
     "marketing_version": "1.1.0",
@@ -44,39 +50,46 @@
     "codesign_verified": true,
     "installer_signature_verified": true,
     "apple_validation": "passed",
-    "uploaded": false,
-    "uploaded_at": null,
-    "delivery_uuid": null,
-    "processing_status": "not_uploaded",
-    "asc_build_id": null,
-    "linked_to_version": false,
-    "unused_verified_at": "2026-07-15T19:25:00+09:00"
+    "uploaded": true,
+    "uploaded_at": "2026-07-15T03:29:39-07:00",
+    "asc_build_id": "f01917b2-5d8d-49b3-94f4-6081b37f6181",
+    "delivery_identifier_source": "asc_build_id",
+    "processing_status": "VALID",
+    "linked_to_version": true
   },
   "app_store_version": {
     "id": "9b40cfc3-9dbd-4a78-a9cd-7d4b1aa13f6c",
-    "state": "PREPARE_FOR_SUBMISSION",
+    "state": "WAITING_FOR_REVIEW",
     "release_type": "MANUAL",
     "korean_localization": "applied",
-    "english_localization": "not_created_name_accepted_hearth_local_workspace"
+    "english_localization": "applied",
+    "english_name": "Hearth: Local Workspace"
   },
   "screenshots": {
     "required": 10,
     "prepared": 10,
+    "uploaded": 10,
+    "korean_uploaded": 5,
+    "english_uploaded": 5,
+    "display_type": "APP_DESKTOP",
     "path": "docs/superpowers/app-store/screenshots/1.1.0",
     "primary_message": "ai_agent_plus_hearth_skill",
-    "asc_korean_existing": 10,
-    "asc_replacement_pending": true,
-    "replacement_authorized": true,
-    "raw_manifest_verified": true,
-    "output_manifest_verified": true
+    "remote_checksums_match": true,
+    "upload_state": "COMPLETE"
   },
   "availability": {
-    "checked_at": "2026-07-15T19:25:00+09:00",
-    "available_territories": [
-      "KOR"
-    ],
-    "available_in_new_territories": false,
-    "change_authorized": false
+    "checked_at": "2026-07-15T20:01:18+09:00",
+    "territory_count": 175,
+    "available_territory_count": 175,
+    "available_in_new_territories": true,
+    "asc_propagation_window": "up_to_24_hours",
+    "dsa_declaration_changed": false
+  },
+  "review_submission": {
+    "id": "42617e83-af27-4fb6-8bf0-fe42b028e23c",
+    "submitted_at": "2026-07-15T10:56:56.496Z",
+    "state": "WAITING_FOR_REVIEW",
+    "item_state": "READY_FOR_REVIEW"
   },
   "marketing_site": {
     "prepared": true,
@@ -86,11 +99,7 @@
     "ai_agent_copy_deployed": true,
     "cloudflare_pages_deployment_id": "2a3f0d63-6ad2-44c1-b4d2-9a533953dd13"
   },
-  "blockers": [
-    "Build, validate, upload, and link the unused build 13.",
-    "Create en-US localization and let ASC perform the final uniqueness check for Hearth: Local Workspace.",
-    "Apply the validated AI Agent and Hearth Skill metadata plus five screenshots per locale.",
-    "Decide whether to schedule the 28-day 50% launch price and whether to activate territories outside Korea."
-  ],
-  "submitted": false
+  "blockers": [],
+  "next_operator_action": "After Apple approves 1.1.0, manually release it in App Store Connect.",
+  "submitted": true
 }
