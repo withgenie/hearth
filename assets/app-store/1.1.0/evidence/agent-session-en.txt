@@ -1,0 +1,24 @@
+Hearth 1.1.0 store claim evidence — English
+Codex session: 019f6542-8316-7171-938a-248c69acc6bb
+Skill source: skills/hearth/SKILL.md (isolated CODEX_HOME symlink)
+Database: isolated QA database; live database was not opened
+
+Accepted request excerpt:
+Turn today’s PRs into a P1 project named "Hearth 1.1 — New calendar release".
+
+Accepted proposal command excerpts:
+hearth project create
+hearth memo create
+hearth schedule create
+
+Database after proposal:
+total_projects=0 total_memos=0 total_schedules=0
+
+Accepted apply response excerpts:
+Applied 3 changes to Hearth:
+Project `#1`
+Memo `#1`
+Schedule `#1`
+
+Database after apply:
+total_projects=1 total_memos=1 total_schedules=1

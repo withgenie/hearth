@@ -1,0 +1,24 @@
+Hearth 1.1.0 store claim evidence — Korean
+Codex session: 019f653a-ef61-7513-b232-6624a816b66b
+Skill source: skills/hearth/SKILL.md (isolated CODEX_HOME symlink)
+Database: isolated QA database; live database was not opened
+
+Accepted request excerpt:
+오늘 작업한 PR을 "Hearth 1.1 — New calendar release"라는 P1 프로젝트로 정리해줘.
+
+Accepted proposal command excerpts:
+hearth project create
+hearth memo create
+hearth schedule create
+
+Database after proposal:
+total_projects=0 total_memos=0 total_schedules=0
+
+Accepted apply response excerpts:
+승인한 3건을 Hearth에 반영했습니다.
+프로젝트 ID `1`
+메모 ID `1`
+일정 ID `1`
+
+Database after apply:
+total_projects=1 total_memos=1 total_schedules=1

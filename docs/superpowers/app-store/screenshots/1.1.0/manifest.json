@@ -1,0 +1,66 @@
+{
+  "version": "1.1.0",
+  "rawManifestSha256": "8be562524b254f6be11792ddbfa1b4dda6a2fd7d89cbb2bc6b5cf993e651d75e",
+  "items": [
+    {
+      "path": "ko/01-workspace.png",
+      "sha256": "a1a34918fd295865e9a1cc53c4351ca605bf80995cc1400e6f57f29e9f0b5f67",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "ko/02-capture.png",
+      "sha256": "c770190688c48afc27ec61588fdcad04c0bd9375f2ff3bc380d3e4cc7e09b355",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "ko/03-calendar.png",
+      "sha256": "0c7740212ad532922aa122fa47785482bacef25689676bafb0e76d6430c01fcc",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "ko/04-drag.png",
+      "sha256": "7abd047bff30923657f905670d2ce22fa5c3f26d2659a6a5b00cadb1187844a0",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "ko/05-local.png",
+      "sha256": "8be17875f909f558b78e90a670e13a75297bf64eecdd77cf4ee4ec9c624419b8",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "en/01-workspace.png",
+      "sha256": "5d9b7dcab4ed0b8bd224d89e7594cde9671bd8db44d0fe0ebb1589ff3206025b",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "en/02-capture.png",
+      "sha256": "11f5350ad9fd639e865e9600dbee1b45aefaf7012100530c501b32208635fc29",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "en/03-calendar.png",
+      "sha256": "059dbb1b534a056d254942985ecea5460682f9003eae1ec4e036961f85eac433",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "en/04-drag.png",
+      "sha256": "0c0c2b40a3040ec775e24b7336d682d08a41c67acb44315aec727529876fbca4",
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "path": "en/05-local.png",
+      "sha256": "9ab1abfbf72be990c3afb489281c292e60ea6c2d6dffcd679044d5c469a9b263",
+      "width": 2880,
+      "height": 1800
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "ko": {
+    "evidence": "evidence/agent-session-ko.txt",
+    "claims": [
+      "오늘 작업한 PR을",
+      "hearth project create",
+      "hearth memo create",
+      "hearth schedule create",
+      "승인한 3건을 Hearth에 반영했습니다.",
+      "프로젝트 ID `1`",
+      "메모 ID `1`",
+      "일정 ID `1`"
+    ]
+  },
+  "en": {
+    "evidence": "evidence/agent-session-en.txt",
+    "claims": [
+      "Turn today’s PRs into a P1 project",
+      "hearth project create",
+      "hearth memo create",
+      "hearth schedule create",
+      "Applied 3 changes to Hearth:",
+      "Project `#1`",
+      "Memo `#1`",
+      "Schedule `#1`"
+    ]
+  }
+}

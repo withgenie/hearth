@@ -1,0 +1,71 @@
+{
+  "version": "1.1.0",
+  "capturedOn": "2026-07-15",
+  "captureMethod": "Real Tauri app with debug-only HEARTH_QA_APP_DATA_DIR isolation",
+  "items": [
+    {
+      "path": "raw/ko/01-projects.png",
+      "locale": "ko",
+      "surface": "projects",
+      "appData": "/private/tmp/hearth-qa-ko",
+      "sourceCommit": "1d7957b",
+      "sha256": "00f803eb469f259edcc93a2c04a3bca66443b44791e558cb30b45343cffb7d0b"
+    },
+    {
+      "path": "raw/ko/03-calendar.png",
+      "locale": "ko",
+      "surface": "calendar",
+      "appData": "/private/tmp/hearth-qa-ko",
+      "sourceCommit": "1d7957b",
+      "sha256": "d4f4ceacf6fecced38341300c52e53cbc9978a39de8dc5573a6db19268475488"
+    },
+    {
+      "path": "raw/ko/04-memos.png",
+      "locale": "ko",
+      "surface": "memos",
+      "appData": "/private/tmp/hearth-qa-ko",
+      "sourceCommit": "1d7957b",
+      "sha256": "28547bd258d7d954c2f5d0d89ccaed6a00a1a72ee03fe902e145cfb0b5c6e419"
+    },
+    {
+      "path": "raw/ko/05-journal.png",
+      "locale": "ko",
+      "surface": "journal",
+      "appData": "/private/tmp/hearth-qa-ko",
+      "sourceCommit": "1d7957b",
+      "sha256": "22f505f554a7f02fd0cd4e78d9236c11cc67b210e6821a06c11b283d770ef648"
+    },
+    {
+      "path": "raw/en/01-projects.png",
+      "locale": "en",
+      "surface": "projects",
+      "appData": "/private/tmp/hearth-qa-en",
+      "sourceCommit": "1d7957b",
+      "sha256": "817115dc8bea5d4f5e64831fa6c847d7ad1b37bac8f7c7882e2273c7b8def0a5"
+    },
+    {
+      "path": "raw/en/03-calendar.png",
+      "locale": "en",
+      "surface": "calendar",
+      "appData": "/private/tmp/hearth-qa-en",
+      "sourceCommit": "1d7957b",
+      "sha256": "95406a4ea8d35fd0b48121bcf3814f931382d9141447464921fd2ee11b8a4295"
+    },
+    {
+      "path": "raw/en/04-memos.png",
+      "locale": "en",
+      "surface": "memos",
+      "appData": "/private/tmp/hearth-qa-en",
+      "sourceCommit": "1d7957b",
+      "sha256": "ca5da65e1922ef6986f78c922c63995bd46bdeba95d0ac5e1a47c09a14b681fa"
+    },
+    {
+      "path": "raw/en/05-journal.png",
+      "locale": "en",
+      "surface": "journal",
+      "appData": "/private/tmp/hearth-qa-en",
+      "sourceCommit": "210c5b8",
+      "sha256": "96ca97f6be2e6ca60c7654486e41c10e1fb2d46f05688ac197019a94df8b2e74"
+    }
+  ]
+}

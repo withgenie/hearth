@@ -13,6 +13,8 @@ command -v magick >/dev/null || {
   exit 1
 }
 
+node "$ROOT/scripts/validate-store-screenshots.js" --raw
+
 render() {
   local locale="$1" index="$2" source="$3" title="$4" subtitle="$5" mode="$6"
   local font="$FONT_EN" output="$OUT/$locale/$index.png" prepared app_panel terminal_panel
@@ -34,12 +36,12 @@ render() {
         -font "$FONT_EN" -fill '#fffaf1' -pointsize 27 -annotate +112+123 'HEARTH SKILL' \
         -font "$FONT_EN" -fill '#8f877a' -pointsize 24 -annotate +78+205 'CLAUDE CODE  /  CODEX' \
         -font "$FONT_KO" -fill '#f5ecdf' -pointsize 43 -interline-spacing 16 \
-        -annotate +78+302 $'> 오늘 작업한 PR을\n  Hearth 프로젝트로\n  정리하고 내일 리뷰를 잡아줘' \
+        -annotate +78+302 $'> 오늘 작업한 PR을' \
         -stroke '#3a352e' -strokewidth 2 -draw 'line 78,560 842,560' -stroke none \
         -font "$FONT_MONO" -fill '#efb86a' -pointsize 27 -interline-spacing 14 \
         -annotate +78+645 $'hearth project create\nhearth memo create\nhearth schedule create' \
-        -font "$FONT_KO" -fill '#a9d18e' -pointsize 32 -interline-spacing 18 \
-        -annotate +78+910 $'✓ 프로젝트 생성\n✓ 메모 연결\n✓ 일정 등록' \
+        -font "$FONT_KO" -fill '#a9d18e' -pointsize 26 -interline-spacing 18 \
+        -annotate +78+866 $'승인한 3건을 Hearth에 반영했습니다.\n프로젝트 ID `1`\n메모 ID `1`\n일정 ID `1`' \
         -fill '#8f877a' -pointsize 25 -annotate +78+1178 '열려 있는 Hearth에 즉시 반영' \
         "$terminal_panel"
     else
@@ -48,13 +50,13 @@ render() {
         -fill '#e98116' -draw 'roundrectangle 78,82 372,142 30,30' \
         -font "$FONT_EN" -fill '#fffaf1' -pointsize 27 -annotate +112+123 'HEARTH SKILL' \
         -fill '#8f877a' -pointsize 24 -annotate +78+205 'CLAUDE CODE  /  CODEX' \
-        -fill '#f5ecdf' -pointsize 38 -interline-spacing 16 \
-        -annotate +78+302 $'> Turn today\'s PRs into a\n  Hearth project and schedule\n  tomorrow\'s review.' \
+        -fill '#f5ecdf' -pointsize 31 -interline-spacing 16 \
+        -annotate +78+302 $'> Turn today’s PRs into a P1 project' \
         -stroke '#3a352e' -strokewidth 2 -draw 'line 78,560 842,560' -stroke none \
         -font "$FONT_MONO" -fill '#efb86a' -pointsize 27 -interline-spacing 14 \
         -annotate +78+645 $'hearth project create\nhearth memo create\nhearth schedule create' \
-        -font "$FONT_EN" -fill '#a9d18e' -pointsize 32 -interline-spacing 18 \
-        -annotate +78+910 $'✓ Project created\n✓ Memos linked\n✓ Review scheduled' \
+        -font "$FONT_EN" -fill '#a9d18e' -pointsize 27 -interline-spacing 18 \
+        -annotate +78+866 $'Applied 3 changes to Hearth:\nProject `#1`\nMemo `#1`\nSchedule `#1`' \
         -fill '#8f877a' -pointsize 25 -annotate +78+1178 'Instantly reflected in the open app' \
         "$terminal_panel"
     fi
@@ -104,3 +106,4 @@ render en 05-local "$RAW/en/05-journal.png" \
   'No account. No subscription.' 'Your workspace stays in local SQLite on this Mac.' standard
 
 echo "Generated 10 App Store screenshots in $OUT"
+node "$ROOT/scripts/validate-store-screenshots.js" --outputs --write-output-manifest
