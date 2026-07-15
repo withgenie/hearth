@@ -44,6 +44,10 @@ video-intro/
 insane-design/
 .codegraph/
 
+# Local agent and browser QA evidence
+.omo/
+output/
+
 # MAS code-signing material (provisioning profiles, certs)
 certs/*.provisionprofile
 certs/*.cer
