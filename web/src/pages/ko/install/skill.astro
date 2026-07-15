@@ -2,30 +2,36 @@
 import Base from '../../../layouts/Base.astro';
 ---
 <Base
-  title="Hearth skill 개발자 설치"
-  description="Hearth 저장소의 설치 스크립트로 skill을 연결하세요."
+  title="Hearth Skill 설치 · Claude Code와 Codex"
+  description="한 줄로 Hearth CLI와 Skill을 설치하고 AI 에이전트가 프로젝트, 메모, 일정을 직접 다루게 하세요."
   locale="ko"
   path="/install/skill"
 >
   <p class="text-ink/70 text-sm font-medium tracking-wider uppercase">Setup · Skill</p>
-  <h1>Hearth skill을<br/>Claude Code에 추가.</h1>
-  <p>이 기능은 저장소 소스를 사용하는 개발자용 설치 경로입니다.</p>
+  <h1>AI 에이전트가<br/>Hearth를 직접 쓰게 하세요.</h1>
+  <p>Hearth CLI와 통합 Skill을 한 번에 설치합니다. Claude Code와 Codex를 자동 감지해 다음 세션부터 사용할 수 있습니다.</p>
 
   <h2>설치 명령</h2>
-  <pre><code>git clone https://github.com/withgenie/hearth.git
-cd hearth
-./scripts/install-skills.sh --into ~/.claude/skills</code></pre>
+  <pre><code>curl -sSL https://raw.githubusercontent.com/withgenie/hearth/main/scripts/install.sh | bash</code></pre>
 
   <h2>무엇이 일어나나요?</h2>
   <ul>
-    <li><code>~/.claude/skills/hearth/</code> 디렉토리가 생성됩니다.</li>
-    <li>저장소의 skill과 보조 파일이 심링크됩니다.</li>
-    <li>다음 Claude Code 세션부터 자동으로 인식됩니다.</li>
+    <li><code>hearth</code> CLI가 <code>~/.local/bin</code>에 설치됩니다.</li>
+    <li>Claude Code와 Codex의 Skill 디렉토리를 자동 감지합니다.</li>
+    <li>통합 <code>hearth</code> Skill이 연결되고 CLI 동작까지 확인합니다.</li>
   </ul>
 
   <h2>사용 예</h2>
-  <p>Claude Code에서 자연어로 호출하세요. 예: <em>"Hearth에 메모 남겨줘 — 내일 회의 안건 정리"</em>.</p>
+  <p>Claude Code나 Codex에서 자연어로 요청하세요. 예: <em>"오늘 작업한 PR을 Hearth 프로젝트로 정리하고 내일 오후 3시 리뷰 일정을 잡아줘."</em></p>
+
+  <h2>할 수 있는 일</h2>
+  <ul>
+    <li>프로젝트 생성·수정과 우선순위 정리</li>
+    <li>메모 생성·연결·태그 정리</li>
+    <li>일정 등록·변경과 오늘 브리핑</li>
+    <li>열려 있는 Hearth 앱에 변경 사항 즉시 반영</li>
+  </ul>
 
   <h2>제거</h2>
-  <pre><code>./scripts/install-skills.sh --into ~/.claude/skills --remove</code></pre>
+  <pre><code>curl -sSL https://raw.githubusercontent.com/withgenie/hearth/main/scripts/install.sh | bash -s -- --uninstall</code></pre>
 </Base>

@@ -1,20 +1,21 @@
 # Hearth 1.1.0 — App Store Connect 입력 가이드
 
-최종 갱신: 2026-07-15 11:20 KST
+최종 갱신: 2026-07-15 17:10 KST
 
 ## 현재 ASC 상태
 
 - macOS 버전: `1.1.0`
 - 빌드: `12` (`VALID`, 버전 연결 완료)
 - 출시 방식: **수동 출시** (`MANUAL`)
-- 한국어 메타데이터: 반영 완료
+- 한국어 메타데이터: 기존 문구 반영 완료, AI Agent 중심 개정안은 재반영 대기
 - 심사 노트: 반영 완료
 - 영어 현지화: 앱 이름 중복으로 보류
-- 스크린샷: 기존 draft 이미지 10장 → 새 한국어 5장 교체 승인 대기
+- 스크린샷: AI Agent + Hearth Skill을 첫 메시지로 한 새 이미지 10장 준비, 기존 draft 교체 승인 대기
 - 가격: 현재 ₩22,000 유지
 - 심사 제출: 미실행
+- 마케팅 사이트: AI Agent + Hearth Skill 중심 화면 배포 및 공개 URL 검증 완료
 
-## 사용자 결정이 필요한 두 항목
+## 사용자 결정이 필요한 항목
 
 1. en-US 공개 앱 이름
    - 권장: `Hearth: Local Workspace`
@@ -22,6 +23,7 @@
    - `Hearth` 단독 이름은 다른 Apple 개발자 계정이 사용 중이라 등록할 수 없다.
 2. 1.1.0 draft의 기존 데스크톱 스크린샷 10장을 삭제하고 새 한국어 5장으로 교체할지 승인
    - 라이브 `1.0.1`의 스크린샷에는 영향이 없다.
+3. 아래 AI Agent + Hearth Skill 중심 한국어 메타데이터를 ASC에 재반영할지 승인
 
 ## 한국어 입력값
 
@@ -34,19 +36,19 @@ Hearth
 ### 부제
 
 ```text
-가입·구독 없는 로컬 워크스페이스
+AI 에이전트 워크스페이스
 ```
 
 ### 프로모션 텍스트
 
 ```text
-가입도 구독도 없이, 프로젝트·메모·일정을 내 Mac에만. 새 월간 캘린더에서 일정을 드래그하고, 저널로 하루를 기록하세요.
+Claude Code·Codex용 Hearth Skill로 AI 에이전트가 프로젝트·메모·일정을 직접 정리합니다. 열려 있는 Hearth에 즉시 반영되고, 데이터는 내 Mac에 남습니다.
 ```
 
 ### 키워드
 
 ```text
-메모,일정,캘린더,투두,노트,저널,데일리플래너,빠른메모,퀵캡처,프로젝트관리,시간관리,오프라인,프라이버시,생산성
+메모,일정,캘린더,투두,노트,저널,퀵캡처,프로젝트관리,자동화,개발자도구,바이브코딩,로컬,오프라인,프라이버시,생산성
 ```
 
 ### 새로운 기능
@@ -58,8 +60,12 @@ Hearth 1.1에서 월간 캘린더를 새롭게 만들었습니다. 일정을 다
 ### 설명
 
 ```text
-프로젝트·일정·메모를 한곳에. ⌃⇧H로 어떤 앱 위에서도 생각을 바로 기록하고,
-모든 데이터는 내 Mac의 SQLite에만 저장합니다. 가입도 구독도 없습니다.
+AI 에이전트가 직접 조작하는 로컬 워크스페이스.
+Claude Code와 Codex용 Hearth Skill을 연결하면 에이전트가 자연어 요청을 프로젝트·메모·일정으로 정리하고, 열려 있는 Hearth가 변경 사항을 즉시 보여줍니다.
+
+"오늘 작업한 PR을 새 프로젝트로 정리하고 내일 오후 3시 리뷰 일정을 잡아줘"라고 말해보세요. Hearth Skill이 전용 CLI를 통해 실제 워크스페이스를 업데이트합니다.
+
+프로젝트·일정·메모를 한곳에. ⌃⇧H로 어떤 앱 위에서도 생각을 바로 기록하고, 모든 데이터는 내 Mac의 SQLite에 저장합니다. 가입도 구독도 없습니다.
 
 하루를 놓치지 않는 캘린더
 — 7열 월간 보기에서 일정과 교대 근무를 한눈에 확인
@@ -78,10 +84,7 @@ Hearth는 계정, 분석 도구, 자체 서버가 없습니다. 데이터베이�
 Time Machine으로 보관할 수 있습니다. OpenAI 연동은 선택 사항이며, 사용할 때만 자신의
 API 키를 등록합니다.
 
-AI 에이전트와 함께 쓰기
-Claude Code와 Codex용 `hearth` 스킬 및 CLI를 설치하면 에이전트가 프로젝트·메모·일정을
-추가하고, 열려 있는 Hearth가 변경 내용을 즉시 반영합니다. 앱의 기본 기능에는 AI가
-필요하지 않습니다.
+Hearth Skill과 CLI는 선택 기능입니다. 앱의 기본 기능에는 AI가 필요하지 않습니다.
 
 Mac App Store에서 한 번 구매하면 계속 사용할 수 있습니다. 별도 계정과 구독은 없습니다.
 ```
@@ -103,19 +106,19 @@ Mac App Store에서 한 번 구매하면 계속 사용할 수 있습니다. 별�
 ### 부제
 
 ```text
-Private Mac workspace
+AI agent workspace for Mac
 ```
 
 ### 프로모션 텍스트
 
 ```text
-No account. No subscription. Keep projects, memos, and schedules on your Mac. Drag plans across the new calendar and capture each day in Journal.
+Connect the Hearth Skill to Claude Code or Codex. Your AI agent organizes projects, memos, and schedules while your data stays on your Mac.
 ```
 
 ### 키워드
 
 ```text
-todo,notes,memo,tasks,calendar,planner,journal,daily,capture,projects,offline,privacy,productivity
+todo,notes,memo,tasks,calendar,planner,journal,capture,projects,automation,cli,local,offline,privacy
 ```
 
 ### What's New
@@ -127,9 +130,12 @@ Hearth 1.1 brings a redesigned month calendar with drag-to-reschedule, a day pan
 ### Description
 
 ```text
-Projects, schedules, and memos in one place. Press ⌃⇧H over any app to capture
-a thought, while every record stays in a SQLite file on your Mac. No account.
-No subscription.
+THE LOCAL WORKSPACE YOUR AI AGENT CAN ACTUALLY USE
+Connect the Hearth Skill to Claude Code or Codex. Your agent turns natural-language requests into projects, memos, and schedules, and the open Hearth app reflects each change immediately.
+
+Try: "Turn today's PRs into a new project and schedule tomorrow's review for 3 PM." The Hearth Skill uses its dedicated CLI to update your real workspace.
+
+Projects, schedules, and memos stay together. Press ⌃⇧H over any app to capture a thought, while every record stays in a SQLite file on your Mac. No account. No subscription.
 
 A CALENDAR THAT KEEPS THE DAY IN VIEW
 — See events and shifts in a clear seven-column month
@@ -148,10 +154,7 @@ Hearth has no account, analytics, or Hearth-operated server. Back up the
 database yourself or let Time Machine handle it. OpenAI integration is optional
 and uses only the API key you provide.
 
-WORK WITH YOUR AI AGENT
-Install the optional `hearth` skill and CLI for Claude Code or Codex. Your agent
-can add projects, memos, and schedules, and the open app reflects those changes
-immediately. Core app features do not require AI.
+The Hearth Skill and CLI are optional. Core app features do not require AI.
 
 One Mac App Store purchase. No separate account and no recurring subscription.
 ```

@@ -2,30 +2,36 @@
 import Base from '../../../layouts/Base.astro';
 ---
 <Base
-  title="Install the Hearth skill for development"
-  description="Link the Hearth skill with the repository install script."
+  title="Install the Hearth Skill for Claude Code and Codex"
+  description="Install the Hearth CLI and Skill in one command so your AI agent can work directly with projects, memos, and schedules."
   locale="en"
   path="/install/skill"
 >
   <p class="text-ink/70 text-sm font-medium tracking-wider uppercase">Setup · Skill</p>
-  <h1>Add the Hearth skill<br/>to Claude Code.</h1>
-  <p>This is a developer installation path that uses the Hearth repository source.</p>
+  <h1>Let your AI agent<br/>work directly in Hearth.</h1>
+  <p>Install the Hearth CLI and unified Skill together. The installer detects Claude Code and Codex so the next session can use Hearth.</p>
 
   <h2>Install</h2>
-  <pre><code>git clone https://github.com/withgenie/hearth.git
-cd hearth
-./scripts/install-skills.sh --into ~/.claude/skills</code></pre>
+  <pre><code>curl -sSL https://raw.githubusercontent.com/withgenie/hearth/main/scripts/install.sh | bash</code></pre>
 
   <h2>What happens</h2>
   <ul>
-    <li><code>~/.claude/skills/hearth/</code> is created.</li>
-    <li>The repository skill and supporting files are linked there.</li>
-    <li>The next Claude Code session picks it up automatically.</li>
+    <li>The <code>hearth</code> CLI is installed in <code>~/.local/bin</code>.</li>
+    <li>Claude Code and Codex Skill directories are detected automatically.</li>
+    <li>The unified <code>hearth</code> Skill is linked and the CLI is verified.</li>
   </ul>
 
   <h2>Example</h2>
-  <p>Call it in natural language. e.g. <em>"Leave a memo in Hearth — agenda for tomorrow's meeting."</em></p>
+  <p>Ask in natural language from Claude Code or Codex. For example: <em>"Turn today's PRs into a Hearth project and schedule tomorrow's review for 3 PM."</em></p>
+
+  <h2>What it can do</h2>
+  <ul>
+    <li>Create and update projects and priorities</li>
+    <li>Create, connect, and organize memos</li>
+    <li>Schedule work and brief you on today</li>
+    <li>Reflect changes instantly in the open Hearth app</li>
+  </ul>
 
   <h2>Uninstall</h2>
-  <pre><code>./scripts/install-skills.sh --into ~/.claude/skills --remove</code></pre>
+  <pre><code>curl -sSL https://raw.githubusercontent.com/withgenie/hearth/main/scripts/install.sh | bash -s -- --uninstall</code></pre>
 </Base>

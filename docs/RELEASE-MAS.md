@@ -22,7 +22,7 @@ GitHub Release(DMG + 자동 업데이트) 흐름은 별도 문서: [`docs/releas
 | 라이브 URL | https://apps.apple.com/kr/app/hearth/id6764480247 |
 | 제출 PR | #36 (squash → `eac3940`) |
 
-준비 산출물: `dist-mas/Hearth-1.1.0-12.pkg` (서명 및 Apple package validation PASS, ASC 업로드·처리·버전 연결 완료). 한국어 1.1 메타데이터와 심사 노트는 반영했고 출시 방식은 수동으로 고정했다. 영어 앱 이름 결정·스크린샷 교체·가격 예약·심사 제출은 아직 실행하지 않았다.
+준비 산출물: `dist-mas/Hearth-1.1.0-12.pkg` (서명 및 Apple package validation PASS, ASC 업로드·처리·버전 연결 완료). AI Agent + Hearth Skill 중심 마케팅 사이트와 스크린샷 10장은 준비했고 공개 사이트 배포도 검증했다. 심사 노트는 반영했고 출시 방식은 수동으로 고정했다. 한국어 메타데이터 재반영, 영어 앱 이름 결정, 새 스크린샷 교체, 가격 예약, 심사 제출은 아직 실행하지 않았다.
 
 > 이 표는 출시·업로드·핫픽스가 일어날 때마다 갱신한다. 마지막 항목은 항상 진실.
 

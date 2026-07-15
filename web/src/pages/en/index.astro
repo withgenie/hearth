@@ -2,8 +2,8 @@
 import Base from '../../layouts/Base.astro';
 ---
 <Base
-  title="Hearth · A local workspace with no account or subscription"
-  description="Projects, schedule, and notes in one place. A quiet local workspace that stays on your Mac."
+  title="Hearth · The workspace your AI agent can actually use"
+  description="Connect the Hearth Skill to Claude Code or Codex so your AI agent can organize projects, memos, and schedules in a local Mac workspace."
   locale="en"
   path="/"
 >
@@ -12,20 +12,46 @@ import Base from '../../layouts/Base.astro';
       <div class="grid items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
         <div>
           <p class="text-sm font-medium uppercase tracking-[0.16em] text-paper/55">Hearth 1.1 · macOS</p>
-          <h1 class="mt-5 text-[clamp(3.2rem,8vw,6.8rem)] font-extralight leading-[0.94] tracking-[-0.045em]">Keep the flow<br/>in one place.</h1>
-          <p class="mt-8 max-w-xl text-lg leading-relaxed text-paper/72 md:text-xl">Bring projects, schedule, and notes into one quiet workspace. No account. No subscription. Your data stays on your Mac.</p>
+          <h1 class="mt-5 text-[clamp(3.2rem,8vw,6.8rem)] font-extralight leading-[0.94] tracking-[-0.045em]">Your AI agent<br/>works in Hearth.</h1>
+          <p class="mt-8 max-w-xl text-lg leading-relaxed text-paper/72 md:text-xl">Connect the Hearth Skill to Claude Code or Codex. A request becomes projects, memos, and schedules, reflected instantly in the open app.</p>
           <div class="mt-10 flex flex-col gap-3 sm:flex-row">
             <a href="https://apps.apple.com/app/hearth/id6764480247?mt=12" class="rounded-xl bg-paper px-6 py-3.5 text-center font-medium text-ink transition-colors hover:bg-bone">Buy on the Mac App Store</a>
-            <a href="#hearth-11" class="rounded-xl border border-paper/30 px-6 py-3.5 text-center font-medium text-paper transition-colors hover:border-paper">See Hearth 1.1</a>
+            <a href="/en/install/skill" class="rounded-xl border border-paper/30 px-6 py-3.5 text-center font-medium text-paper transition-colors hover:border-paper">Install the Hearth Skill</a>
           </div>
-          <p class="mt-5 text-sm text-paper/50">One-time purchase · no account · local SQLite</p>
+          <p class="mt-5 text-sm text-paper/50">Claude Code · Codex · one-time purchase · local SQLite</p>
         </div>
         <img src="/screenshots/1.1.0/en/01-workspace.webp" alt="Hearth 1.1 Projects view" width="1600" height="1000" class="w-full rounded-2xl shadow-2xl ring-1 ring-paper/10" fetchpriority="high" />
       </div>
     </div>
   </section>
 
-  <section id="hearth-11" data-home class="bg-paper">
+  <section id="agent" data-home class="bg-paper">
+    <div class="mx-auto grid max-w-7xl items-center gap-12 px-6 py-24 md:px-12 md:py-32 lg:grid-cols-[0.88fr_1.12fr]">
+      <div>
+        <p class="text-sm font-medium uppercase tracking-[0.16em] text-ink/55">AI Agent + Hearth Skill</p>
+        <h2 class="mt-4 text-[clamp(2.2rem,5vw,4rem)] font-light leading-[1.04] tracking-[-0.03em]">Ask once.<br/>Your workspace changes.</h2>
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink/65">The Hearth Skill translates natural-language requests into dedicated CLI commands. Your agent creates projects, links memos, and schedules work while the app reflects each change immediately.</p>
+        <a href="/en/install/skill" class="mt-8 inline-block rounded-xl bg-ink px-6 py-3.5 font-medium text-paper transition-colors hover:bg-ink/85">Install the Hearth Skill</a>
+      </div>
+      <div class="overflow-hidden rounded-3xl bg-ink p-6 text-paper shadow-2xl ring-1 ring-ink/10 md:p-9">
+        <div class="flex items-center justify-between border-b border-paper/10 pb-5">
+          <span class="rounded-full bg-ember px-3 py-1 text-xs font-medium text-white">HEARTH SKILL</span>
+          <span class="font-mono text-xs text-paper/40">CLAUDE CODE / CODEX</span>
+        </div>
+        <p class="mt-7 text-xl leading-relaxed">“Turn today's PRs into a new project and schedule tomorrow's review for 3 PM.”</p>
+        <div class="mt-8 space-y-3 font-mono text-sm">
+          <p class="rounded-xl bg-paper/5 px-4 py-3 text-ember">hearth project create</p>
+          <p class="rounded-xl bg-paper/5 px-4 py-3 text-ember">hearth memo create</p>
+          <p class="rounded-xl bg-paper/5 px-4 py-3 text-ember">hearth schedule create</p>
+        </div>
+        <div class="mt-7 grid gap-3 text-sm text-paper/70 sm:grid-cols-3">
+          <p>✓ Project created</p><p>✓ Memos linked</p><p>✓ Review scheduled</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="hearth-11" data-home class="bg-bone">
     <div class="mx-auto max-w-7xl px-6 py-24 md:px-12 md:py-32">
       <p class="text-sm font-medium uppercase tracking-[0.16em] text-ink/55">Built around the real work</p>
       <h2 class="mt-4 max-w-3xl text-[clamp(2.2rem,5vw,4rem)] font-light leading-[1.04] tracking-[-0.03em]">Capture, arrange, and look back.</h2>
@@ -61,15 +87,15 @@ import Base from '../../layouts/Base.astro';
         <h2 class="mt-4 text-[clamp(2.2rem,5vw,4rem)] font-light leading-[1.04] tracking-[-0.03em]">No account.<br/>No subscription.</h2>
         <p class="mt-6 text-lg leading-relaxed text-ink/65">Projects, notes, and schedule live in a SQLite file on your Mac. Back it up and move it yourself.</p>
         <p class="mt-6 break-all rounded-xl bg-ink/5 px-4 py-3 font-mono text-sm text-ink/70">~/Library/Application Support/com.codewithgenie.hearth/data.db</p>
-        <p class="mt-6 text-sm text-ink/55">Optional AI features connect only when you provide your own API key.</p>
+        <p class="mt-6 text-sm text-ink/55">The Hearth Skill runs through Claude Code or Codex. In-app OpenAI integration remains a separate, optional feature.</p>
       </div>
     </div>
   </section>
 
   <section data-home class="bg-ink text-paper">
     <div class="mx-auto max-w-4xl px-6 py-20 md:px-12 md:py-28 text-center">
-      <p class="text-sm font-medium uppercase tracking-[0.16em] text-paper/50">One purchase. Your workspace.</p>
-      <h2 class="mt-4 text-[clamp(2rem,5vw,3.5rem)] font-light leading-tight tracking-[-0.025em]">Keep your workspace on your Mac.</h2>
+      <p class="text-sm font-medium uppercase tracking-[0.16em] text-paper/50">Your agent. Your workspace.</p>
+      <h2 class="mt-4 text-[clamp(2rem,5vw,3.5rem)] font-light leading-tight tracking-[-0.025em]">A workspace your AI agent can actually use.</h2>
       <a href="https://apps.apple.com/app/hearth/id6764480247?mt=12" class="mt-10 inline-block rounded-xl bg-paper px-7 py-4 font-medium text-ink transition-colors hover:bg-bone">Buy on the Mac App Store</a>
     </div>
   </section>

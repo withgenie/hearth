@@ -24,10 +24,10 @@
     "entitlements": "pass"
   },
   "metadata": {
-    "subtitle": "ko_applied_en_blocked",
-    "promotional_text": "ko_applied_en_blocked",
-    "description": "ko_applied_en_blocked",
-    "keywords": "ko_applied_en_blocked",
+    "subtitle": "ai_agent_copy_local_update_pending_asc",
+    "promotional_text": "ai_agent_copy_local_update_pending_asc",
+    "description": "ai_agent_copy_local_update_pending_asc",
+    "keywords": "ai_agent_copy_local_update_pending_asc",
     "whats_new": "ko_applied_en_blocked",
     "review_notes": "applied"
   },
@@ -56,18 +56,22 @@
     "required": 10,
     "prepared": 10,
     "path": "docs/superpowers/app-store/screenshots/1.1.0",
+    "primary_message": "ai_agent_plus_hearth_skill",
     "asc_korean_existing": 10,
     "asc_replacement_pending": true
   },
   "marketing_site": {
     "prepared": true,
     "deployed": true,
-    "deployed_at": "2026-07-15T11:08:00+09:00",
-    "production_url": "https://hearth.codewithgenie.com"
+    "deployed_at": "2026-07-15T17:07:00+09:00",
+    "production_url": "https://hearth.codewithgenie.com",
+    "ai_agent_copy_deployed": true,
+    "cloudflare_pages_deployment_id": "2a3f0d63-6ad2-44c1-b4d2-9a533953dd13"
   },
   "blockers": [
     "Choose a unique en-US app name because Hearth is already used by another account.",
-    "Approve replacing the 10 inherited draft screenshots with the five new Korean screenshots."
+    "Approve replacing the 10 inherited draft screenshots with the five new Korean screenshots.",
+    "Apply the AI Agent and Hearth Skill metadata revision in App Store Connect."
   ],
   "submitted": false
 }

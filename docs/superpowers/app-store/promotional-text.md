@@ -5,14 +5,14 @@ char_limit: 170
 release: 1.1.0
 ---
 
-## en-US (145/170)
+## en-US (139/170)
 
 ```
-No account. No subscription. Keep projects, memos, and schedules on your Mac. Drag plans across the new calendar and capture each day in Journal.
+Connect the Hearth Skill to Claude Code or Codex. Your AI agent organizes projects, memos, and schedules while your data stays on your Mac.
 ```
 
-## ko-KR (69/170)
+## ko-KR (104/170)
 
 ```
-가입도 구독도 없이, 프로젝트·메모·일정을 내 Mac에만. 새 월간 캘린더에서 일정을 드래그하고, 저널로 하루를 기록하세요.
+Claude Code·Codex용 Hearth Skill로 AI 에이전트가 프로젝트·메모·일정을 직접 정리합니다. 열려 있는 Hearth에 즉시 반영되고, 데이터는 내 Mac에 남습니다.
 ```

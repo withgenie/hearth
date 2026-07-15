@@ -5,9 +5,12 @@ char_limit: 4000
 source_spec_section: "§4.1, §4.2 (en-US)"
 ---
 
-Projects, schedules, and memos in one place. Press ⌃⇧H over any app to capture
-a thought, while every record stays in a SQLite file on your Mac. No account.
-No subscription.
+THE LOCAL WORKSPACE YOUR AI AGENT CAN ACTUALLY USE
+Connect the Hearth Skill to Claude Code or Codex. Your agent turns natural-language requests into projects, memos, and schedules, and the open Hearth app reflects each change immediately.
+
+Try: "Turn today's PRs into a new project and schedule tomorrow's review for 3 PM." The Hearth Skill uses its dedicated CLI to update your real workspace.
+
+Projects, schedules, and memos stay together. Press ⌃⇧H over any app to capture a thought, while every record stays in a SQLite file on your Mac. No account. No subscription.
 
 A CALENDAR THAT KEEPS THE DAY IN VIEW
 — See events and shifts in a clear seven-column month
@@ -26,9 +29,6 @@ Hearth has no account, analytics, or Hearth-operated server. Back up the
 database yourself or let Time Machine handle it. OpenAI integration is optional
 and uses only the API key you provide.
 
-WORK WITH YOUR AI AGENT
-Install the optional `hearth` skill and CLI for Claude Code or Codex. Your agent
-can add projects, memos, and schedules, and the open app reflects those changes
-immediately. Core app features do not require AI.
+The Hearth Skill and CLI are optional. Core app features do not require AI.
 
 One Mac App Store purchase. No separate account and no recurring subscription.

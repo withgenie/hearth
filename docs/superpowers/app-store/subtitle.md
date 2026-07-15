@@ -5,14 +5,14 @@ char_limit: 30
 release: 1.1.0
 ---
 
-## en-US (21/30)
+## en-US (26/30)
 
 ```
-Private Mac workspace
+AI agent workspace for Mac
 ```
 
-## ko-KR (18/30)
+## ko-KR (14/30)
 
 ```
-가입·구독 없는 로컬 워크스페이스
+AI 에이전트 워크스페이스
 ```
