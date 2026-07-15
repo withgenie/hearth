@@ -13,8 +13,8 @@ GitHub Release(DMG + 자동 업데이트) 흐름은 별도 문서: [`docs/releas
 | 항목 | 값 |
 | --- | --- |
 | 마케팅 버전 | `1.0.1` (라이브) → `1.1.0` build `12` 준비 완료 |
-| 마지막 업로드 빌드 | `11` (1.1.0 build `12`는 아직 미업로드) |
-| ASC 상태 | `1.0.1` Ready for Sale, `1.1.0` 패키지 Apple 검증 완료·로컬 대기 |
+| 마지막 업로드 빌드 | `12` (1.1.0, 2026-07-15 11:10 KST 업로드 승인) |
+| ASC 상태 | `1.0.1` Ready for Sale, `1.1.0` build `12` VALID·연결 완료·Prepare for Submission |
 | 출시 모드 | 수동 출시 (ASC에서 `출시` 버튼 눌러야 라이브) |
 | 가격 | ₩22,000 (한국만 판매, 1회 구매·구독 없음) |
 | Bundle ID | `com.codewithgenie.hearth` |
@@ -22,7 +22,7 @@ GitHub Release(DMG + 자동 업데이트) 흐름은 별도 문서: [`docs/releas
 | 라이브 URL | https://apps.apple.com/kr/app/hearth/id6764480247 |
 | 제출 PR | #36 (squash → `eac3940`) |
 
-준비 산출물: `dist-mas/Hearth-1.1.0-12.pkg` (서명 및 Apple package validation PASS). 업로드·버전 생성·가격 예약·심사 제출은 아직 실행하지 않았다.
+준비 산출물: `dist-mas/Hearth-1.1.0-12.pkg` (서명 및 Apple package validation PASS, ASC 업로드·처리·버전 연결 완료). 한국어 1.1 메타데이터와 심사 노트는 반영했고 출시 방식은 수동으로 고정했다. 영어 앱 이름 결정·스크린샷 교체·가격 예약·심사 제출은 아직 실행하지 않았다.
 
 > 이 표는 출시·업로드·핫픽스가 일어날 때마다 갱신한다. 마지막 항목은 항상 진실.
 

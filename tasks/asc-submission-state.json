@@ -24,12 +24,12 @@
     "entitlements": "pass"
   },
   "metadata": {
-    "subtitle": "prepared",
-    "promotional_text": "prepared",
-    "description": "prepared",
-    "keywords": "prepared",
-    "whats_new": "prepared",
-    "review_notes": "prepared"
+    "subtitle": "ko_applied_en_blocked",
+    "promotional_text": "ko_applied_en_blocked",
+    "description": "ko_applied_en_blocked",
+    "keywords": "ko_applied_en_blocked",
+    "whats_new": "ko_applied_en_blocked",
+    "review_notes": "applied"
   },
   "build": {
     "marketing_version": "1.1.0",
@@ -38,16 +38,36 @@
     "codesign_verified": true,
     "installer_signature_verified": true,
     "apple_validation": "passed",
-    "uploaded": false
+    "uploaded": true,
+    "uploaded_at": "2026-07-15T11:10:33+09:00",
+    "delivery_uuid": "eab29a55-7d4e-4b8d-b69c-6f68b5e92c13",
+    "processing_status": "valid",
+    "asc_build_id": "eab29a55-7d4e-4b8d-b69c-6f68b5e92c13",
+    "linked_to_version": true
+  },
+  "app_store_version": {
+    "id": "9b40cfc3-9dbd-4a78-a9cd-7d4b1aa13f6c",
+    "state": "PREPARE_FOR_SUBMISSION",
+    "release_type": "MANUAL",
+    "korean_localization": "applied",
+    "english_localization": "blocked_by_app_name_conflict"
   },
   "screenshots": {
     "required": 10,
     "prepared": 10,
-    "path": "docs/superpowers/app-store/screenshots/1.1.0"
+    "path": "docs/superpowers/app-store/screenshots/1.1.0",
+    "asc_korean_existing": 10,
+    "asc_replacement_pending": true
   },
   "marketing_site": {
     "prepared": true,
-    "deployed": false
+    "deployed": true,
+    "deployed_at": "2026-07-15T11:08:00+09:00",
+    "production_url": "https://hearth.codewithgenie.com"
   },
+  "blockers": [
+    "Choose a unique en-US app name because Hearth is already used by another account.",
+    "Approve replacing the 10 inherited draft screenshots with the five new Korean screenshots."
+  ],
   "submitted": false
 }

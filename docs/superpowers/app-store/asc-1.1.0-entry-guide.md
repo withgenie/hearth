@@ -1,0 +1,203 @@
+# Hearth 1.1.0 — App Store Connect 입력 가이드
+
+최종 갱신: 2026-07-15 11:20 KST
+
+## 현재 ASC 상태
+
+- macOS 버전: `1.1.0`
+- 빌드: `12` (`VALID`, 버전 연결 완료)
+- 출시 방식: **수동 출시** (`MANUAL`)
+- 한국어 메타데이터: 반영 완료
+- 심사 노트: 반영 완료
+- 영어 현지화: 앱 이름 중복으로 보류
+- 스크린샷: 기존 draft 이미지 10장 → 새 한국어 5장 교체 승인 대기
+- 가격: 현재 ₩22,000 유지
+- 심사 제출: 미실행
+
+## 사용자 결정이 필요한 두 항목
+
+1. en-US 공개 앱 이름
+   - 권장: `Hearth: Local Workspace`
+   - 대안: `Hearth Workspace`, `Hearth for Mac`
+   - `Hearth` 단독 이름은 다른 Apple 개발자 계정이 사용 중이라 등록할 수 없다.
+2. 1.1.0 draft의 기존 데스크톱 스크린샷 10장을 삭제하고 새 한국어 5장으로 교체할지 승인
+   - 라이브 `1.0.1`의 스크린샷에는 영향이 없다.
+
+## 한국어 입력값
+
+### 앱 이름
+
+```text
+Hearth
+```
+
+### 부제
+
+```text
+가입·구독 없는 로컬 워크스페이스
+```
+
+### 프로모션 텍스트
+
+```text
+가입도 구독도 없이, 프로젝트·메모·일정을 내 Mac에만. 새 월간 캘린더에서 일정을 드래그하고, 저널로 하루를 기록하세요.
+```
+
+### 키워드
+
+```text
+메모,일정,캘린더,투두,노트,저널,데일리플래너,빠른메모,퀵캡처,프로젝트관리,시간관리,오프라인,프라이버시,생산성
+```
+
+### 새로운 기능
+
+```text
+Hearth 1.1에서 월간 캘린더를 새롭게 만들었습니다. 일정을 다른 날짜로 드래그해 이동하고, 날짜 패널에서 일정과 메모를 함께 확인하세요. 날짜별 저널과 빠른 기록, 더 선명한 프로젝트 우선순위, 부드러운 화면 전환, 다듬어진 10개 테마도 추가했습니다.
+```
+
+### 설명
+
+```text
+프로젝트·일정·메모를 한곳에. ⌃⇧H로 어떤 앱 위에서도 생각을 바로 기록하고,
+모든 데이터는 내 Mac의 SQLite에만 저장합니다. 가입도 구독도 없습니다.
+
+하루를 놓치지 않는 캘린더
+— 7열 월간 보기에서 일정과 교대 근무를 한눈에 확인
+— 일정 칩을 다른 날짜로 드래그해 바로 변경
+— 날짜를 누르면 그날의 일정과 메모를 한 패널에서 편집
+— 이벤트·할 일·교대·기념일별 색상과 아이콘
+
+기록이 이어지는 워크스페이스
+— 프로젝트 우선순위와 메모를 한 화면에서 정리
+— 날짜별 저널과 "갑자기 메모" 빠른 입력
+— ⌘F로 프로젝트·메모·일정 전체 검색
+— 10개 테마와 사용자 지정 강조색
+
+내 데이터는 내 Mac에
+Hearth는 계정, 분석 도구, 자체 서버가 없습니다. 데이터베이스 파일을 직접 백업하거나
+Time Machine으로 보관할 수 있습니다. OpenAI 연동은 선택 사항이며, 사용할 때만 자신의
+API 키를 등록합니다.
+
+AI 에이전트와 함께 쓰기
+Claude Code와 Codex용 `hearth` 스킬 및 CLI를 설치하면 에이전트가 프로젝트·메모·일정을
+추가하고, 열려 있는 Hearth가 변경 내용을 즉시 반영합니다. 앱의 기본 기능에는 AI가
+필요하지 않습니다.
+
+Mac App Store에서 한 번 구매하면 계속 사용할 수 있습니다. 별도 계정과 구독은 없습니다.
+```
+
+### URL
+
+```text
+마케팅 URL: https://hearth.codewithgenie.com/ko
+지원 URL: https://hearth.codewithgenie.com/ko/support
+개인정보처리방침 URL: https://hearth.codewithgenie.com/ko/privacy
+```
+
+## 영어 입력값
+
+### 앱 이름
+
+사용자 결정 후 입력한다. `Hearth` 단독 이름은 사용할 수 없다.
+
+### 부제
+
+```text
+Private Mac workspace
+```
+
+### 프로모션 텍스트
+
+```text
+No account. No subscription. Keep projects, memos, and schedules on your Mac. Drag plans across the new calendar and capture each day in Journal.
+```
+
+### 키워드
+
+```text
+todo,notes,memo,tasks,calendar,planner,journal,daily,capture,projects,offline,privacy,productivity
+```
+
+### What's New
+
+```text
+Hearth 1.1 brings a redesigned month calendar with drag-to-reschedule, a day panel that keeps schedules and memos together, Journal view with instant capture, clearer project priorities, smoother navigation, and ten refined themes.
+```
+
+### Description
+
+```text
+Projects, schedules, and memos in one place. Press ⌃⇧H over any app to capture
+a thought, while every record stays in a SQLite file on your Mac. No account.
+No subscription.
+
+A CALENDAR THAT KEEPS THE DAY IN VIEW
+— See events and shifts in a clear seven-column month
+— Drag a schedule chip to another date to reschedule it
+— Open a day to edit its schedules and memos together
+— Give events, tasks, shifts, and anniversaries their own colors and icons
+
+A WORKSPACE WHERE NOTES KEEP THEIR CONTEXT
+— Organize projects by priority without losing the details
+— Review memos by date in Journal and capture today's note instantly
+— Search projects, memos, and schedules with ⌘F
+— Choose from ten themes or set a custom accent
+
+YOUR DATA STAYS ON YOUR MAC
+Hearth has no account, analytics, or Hearth-operated server. Back up the
+database yourself or let Time Machine handle it. OpenAI integration is optional
+and uses only the API key you provide.
+
+WORK WITH YOUR AI AGENT
+Install the optional `hearth` skill and CLI for Claude Code or Codex. Your agent
+can add projects, memos, and schedules, and the open app reflects those changes
+immediately. Core app features do not require AI.
+
+One Mac App Store purchase. No separate account and no recurring subscription.
+```
+
+### URLs
+
+```text
+Marketing URL: https://hearth.codewithgenie.com/en
+Support URL: https://hearth.codewithgenie.com/en/support
+Privacy Policy URL: https://hearth.codewithgenie.com/en/privacy
+```
+
+## 심사 설정
+
+```text
+로그인 필요: 아니요
+데모 계정 필요: 아니요
+앱 내 구입: 없음
+구독: 없음
+IDFA 사용: 아니요
+수출 규정 비면제 암호화 사용: 아니요
+개인정보 수집: 데이터 수집 안 함
+출시 방식: 수동 출시
+```
+
+심사 노트 원문은 [`review-notes.md`](./review-notes.md)를 사용한다.
+
+## 스크린샷 업로드 순서
+
+한국어:
+
+1. `screenshots/1.1.0/ko/01-workspace.png`
+2. `screenshots/1.1.0/ko/02-capture.png`
+3. `screenshots/1.1.0/ko/03-calendar.png`
+4. `screenshots/1.1.0/ko/04-drag.png`
+5. `screenshots/1.1.0/ko/05-local.png`
+
+영어는 en-US 앱 이름 확정 후 같은 순서의 `en/` 파일을 사용한다.
+
+## 최종 제출 직전 확인
+
+- build `12` 선택됨
+- 한국어/영어 문구 길이 제한 통과
+- 새 스크린샷 5장씩 순서 확인
+- 가격 ₩22,000 유지
+- 수동 출시 선택
+- Export Compliance: 비면제 암호화 없음
+- IDFA: 사용 안 함
+- `심사를 위해 제출`은 사용자가 최종 화면을 확인한 뒤 실행
