@@ -1,72 +1,72 @@
 {
   "locale": "ko",
-  "today": "2026-04-26",
+  "today": "2026-07-15",
   "categories": [
-    { "name": "Active",  "color": "#22c55e" },
-    { "name": "Side",    "color": "#f97316" },
-    { "name": "Lab",     "color": "#a855f7" },
-    { "name": "Tools",   "color": "#6b7280" },
-    { "name": "Lecture", "color": "#3b82f6" }
+    { "name": "Active", "color": "#22c55e" },
+    { "name": "Side", "color": "#f97316" },
+    { "name": "Lab", "color": "#a855f7" },
+    { "name": "Tools", "color": "#6b7280" },
+    { "name": "Study", "color": "#3b82f6" }
   ],
   "projects": [
     {
       "priority": "P1",
       "number": 1,
-      "name": "Hearth 1.0 — Mac App Store 출시",
+      "name": "Hearth 1.1 — 새 캘린더 출시",
       "category": "Active",
-      "evaluation": "Sprint Day 0/21. Day 14-15 제출, Day 21(5월 17일) 수동 릴리스."
+      "evaluation": "월간 보기, 일정 드래그, 날짜 패널과 저널까지 최종 점검 중."
     },
     {
       "priority": "P2",
       "number": 2,
-      "name": "Claude Code가 skills/hearth로 만든 프로젝트",
+      "name": "조용한 개인 작업실 만들기",
       "category": "Lab",
-      "evaluation": "AI 에이전트가 터미널에서 자동 생성. 열려 있는 Hearth 탭이 실시간 새로고침."
+      "evaluation": "가입과 구독 없이 프로젝트·메모·일정을 내 Mac에만."
     },
     {
       "priority": "P2",
       "number": 3,
-      "name": "랜딩 페이지 — hearth.codewithgenie.com",
+      "name": "7월 제품 이야기 정리",
       "category": "Side",
-      "evaluation": "Day 14 메타데이터 입력 전까지 Privacy/Support 200 OK 필수."
+      "evaluation": "실제 화면 중심으로 App Store와 마케팅 페이지를 새로 구성."
     },
     {
       "priority": "P3",
       "number": 4,
-      "name": "주간 리뷰 & 인박스 정리",
+      "name": "주간 리뷰와 인박스 정리",
       "category": "Tools",
-      "evaluation": "매주 금요일 오후 4시. 메모 정리, 완료 프로젝트 아카이브, 다음 주 계획."
+      "evaluation": "금요일 오후, 지난 메모를 프로젝트와 다음 일정으로 연결."
     },
     {
-      "priority": "P3",
+      "priority": "P4",
       "number": 5,
-      "name": "리딩 리스트 — 로컬 퍼스트 소프트웨어",
-      "category": "Lecture",
-      "evaluation": "Ink & Switch 에세이, Martin Kleppmann 강연, CRDT 입문서."
+      "name": "로컬 퍼스트 읽기 목록",
+      "category": "Study",
+      "evaluation": "SQLite, 백업, 개인 데이터 소유권에 관한 글 모음."
     }
   ],
   "memos": [
-    { "project": 1, "color": "amber",  "content": "스크린샷 5컷: 2880x1800, 다크 테마, 액센트 컬러 #d97706." },
-    { "project": 1, "color": "yellow", "content": "Subtitle 확정: '로컬 AI 에이전트 워크스페이스' (14자)." },
-    { "project": 1, "color": "pink",   "content": "Review Notes: 'free trial' 대신 '14일 사용 기간' 문구 유지." },
-    { "project": 2, "color": "amber",  "content": "skills/hearth 통해 Claude Code가 생성 — DB 변경 시 모든 탭 자동 새로고침." },
-    { "project": 2, "color": "blue",   "content": "예시: '오늘 작업한 PR 새 프로젝트로 정리하고 내일 오후 3시 리뷰 회의 잡아줘'." },
-    { "project": 3, "color": "green",  "content": "개인정보처리방침: 수집 항목 없음. SQLite는 사용자 Mac에만 저장." },
-    { "project": 3, "color": "yellow", "content": "Marketing URL hearth.codewithgenie.com — 다크 테마 단일 페이지, 앰버 CTA." },
-    { "project": 4, "color": "pink",   "content": "인박스 제로 의식: Cmd+F로 'todo' 검색 → 프로젝트로 묶기 → 14일 지난 항목 아카이브." },
-    { "project": 4, "color": "blue",   "content": "Quick Capture (Ctrl+Shift+H)가 떠오른 생각의 단일 진입점." },
-    { "project": 5, "color": "purple", "content": "'Local-first software' (Ink & Switch, 2019) — 7개 이상 체크리스트 정독." },
-    { "project": 5, "color": "purple", "content": "화요일 리딩 그룹 전 Martin Kleppmann CRDT 강연 시청." },
-    { "project": null, "color": "amber", "content": "인박스: App Preview 히어로 컷에서 CC ↔ Hearth 분할을 7초 정도 유지." }
+    { "project": 1, "color": "amber", "content": "첫 화면은 실제 Hearth가 주인공. 프로젝트·일정·메모를 한눈에 보여준다." },
+    { "project": 1, "color": "yellow", "content": "월간 캘린더에서 일정 칩을 잡아 목요일로 옮겨보기." },
+    { "project": 1, "color": "pink", "content": "날짜 패널에는 오늘 일정과 저널 메모가 함께 보여야 한다." },
+    { "project": 2, "color": "amber", "content": "가입 없음. 구독 없음. 데이터는 한 개의 로컬 SQLite 파일에." },
+    { "project": 2, "color": "blue", "content": "⌃⇧H로 어떤 앱 위에서도 떠오른 생각을 바로 기록한다." },
+    { "project": 3, "color": "green", "content": "새 스크린샷은 따뜻한 종이 테마와 충분한 대비를 유지한다." },
+    { "project": 3, "color": "yellow", "content": "첫 세 장에서 통합 화면, Quick Capture, 캘린더 드래그를 설명한다." },
+    { "project": 4, "color": "pink", "content": "저널에서 오늘의 결정과 다음 행동을 시간순으로 돌아보기." },
+    { "project": 4, "color": "blue", "content": "금요일 리뷰 전에 P1과 P2 프로젝트만 먼저 확인한다." },
+    { "project": 5, "color": "purple", "content": "Time Machine 백업과 직접 복사, 둘 다 가능한 데이터 구조." },
+    { "project": 5, "color": "purple", "content": "도구가 내 데이터를 소유하지 않게 만드는 로컬 퍼스트 원칙." },
+    { "project": null, "color": "amber", "content": "갑자기 메모: 내일 오전에 1.1 릴리스 노트 마지막으로 읽기." }
   ],
   "schedules": [
-    { "date": "2026-04-26", "time": "10:00", "description": "Sprint Day 0 — 제출 스펙 확정",         "location": "홈 오피스",       "notes": "Subtitle, 키워드, 스크린샷 카피 락인." },
-    { "date": "2026-04-26", "time": "15:00", "description": "App Store 스크린샷 캡처 (en + ko)",     "location": "스튜디오",        "notes": "더미 DB만 사용. 실 DB는 ~/.hearth-backup-pre-screenshots-20260426/ 에 백업됨." },
-    { "date": "2026-04-26", "time": "20:00", "description": "리딩 그룹 — 로컬 퍼스트 소프트웨어",   "location": "Discord #hearth", "notes": "CRDT 입문 노트 챙기기." },
-    { "date": "2026-04-27", "time": "09:30", "description": "Claude Code와 skills/hearth 페어 작업", "location": "터미널",          "notes": "'오늘 PR 정리' 데모 end-to-end 확인." },
-    { "date": "2026-04-27", "time": "14:00", "description": "랜딩 페이지 점검 — hearth.codewithgenie.com", "location": "브라우저",  "notes": "/privacy, /support 200 OK 필수." },
-    { "date": "2026-04-28", "time": "11:00", "description": "HyperFrames로 App Preview 렌더",        "location": "스튜디오",        "notes": "30초, 1920x1080, 히어로 컷 0:18~0:25." },
-    { "date": "2026-04-29", "time": "16:00", "description": "주간 리뷰",                              "location": "카페",            "notes": "메모 정리하고 Day 5-7 계획." },
-    { "date": "2026-05-17", "time": "09:00", "description": "Hearth 1.0 — App Store 수동 릴리스",     "location": "전 세계",         "notes": "App Store Connect에서 'Release this version' 클릭." }
+    { "date": "2026-07-14", "time": "16:00", "description": "1.1 릴리스 체크", "location": "작업실", "notes": "메타데이터와 버전 확인", "kind": "task", "color": "#b45309", "icon": "✓" },
+    { "date": "2026-07-15", "time": "09:30", "description": "제품 주간 회의", "location": "스튜디오", "notes": "첫 세 장의 메시지 결정", "kind": "event", "color": "#2563eb", "icon": "◫" },
+    { "date": "2026-07-15", "time": "12:30", "description": "점심 산책", "location": "공원", "notes": "휴대폰 없이 30분", "kind": "event", "color": "#059669", "icon": "☀" },
+    { "date": "2026-07-15", "time": "15:00", "description": "오후 교대", "location": "집중실", "notes": "캘린더 배지 확인", "kind": "shift", "color": "#7c3aed", "icon": "S" },
+    { "date": "2026-07-15", "time": "18:00", "description": "스크린샷 검토", "location": "작업실", "notes": "ko/en 5장씩", "kind": "task", "color": "#dc2626", "icon": "📌" },
+    { "date": "2026-07-16", "time": "10:00", "description": "마케팅 페이지 공개", "location": "브라우저", "notes": "CTA와 실제 이미지 확인", "kind": "event", "color": "#d97706", "icon": "↗" },
+    { "date": "2026-07-18", "time": null, "description": "Hearth 출시 기념일", "location": null, "notes": "작은 성취도 기록하기", "kind": "anniversary", "color": "#db2777", "icon": "★" },
+    { "date": "2026-07-22", "time": "14:00", "description": "가격 실험 중간 점검", "location": "App Store Connect", "notes": "노출과 전환을 분리해 보기", "kind": "task", "color": "#0f766e", "icon": "⌁" }
   ]
 }

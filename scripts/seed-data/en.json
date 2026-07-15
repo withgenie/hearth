@@ -1,72 +1,72 @@
 {
   "locale": "en",
-  "today": "2026-04-26",
+  "today": "2026-07-15",
   "categories": [
-    { "name": "Active",  "color": "#22c55e" },
-    { "name": "Side",    "color": "#f97316" },
-    { "name": "Lab",     "color": "#a855f7" },
-    { "name": "Tools",   "color": "#6b7280" },
-    { "name": "Lecture", "color": "#3b82f6" }
+    { "name": "Active", "color": "#22c55e" },
+    { "name": "Side", "color": "#f97316" },
+    { "name": "Lab", "color": "#a855f7" },
+    { "name": "Tools", "color": "#6b7280" },
+    { "name": "Study", "color": "#3b82f6" }
   ],
   "projects": [
     {
       "priority": "P1",
       "number": 1,
-      "name": "Hearth 1.0 — Mac App Store launch",
+      "name": "Hearth 1.1 — New calendar release",
       "category": "Active",
-      "evaluation": "Sprint Day 0 of 21. Submit Day 14-15, manual release Day 21 (May 17)."
+      "evaluation": "Final pass on the month view, drag rescheduling, day panel, and Journal."
     },
     {
       "priority": "P2",
       "number": 2,
-      "name": "Driven by Claude Code via skills/hearth",
+      "name": "Build a quiet personal workspace",
       "category": "Lab",
-      "evaluation": "Auto-created by an AI agent from the CC terminal. Refreshes Hearth tabs in real time."
+      "evaluation": "Projects, memos, and schedules on this Mac. No account or subscription."
     },
     {
       "priority": "P2",
       "number": 3,
-      "name": "Landing site — hearth.codewithgenie.com",
+      "name": "Tell the July product story",
       "category": "Side",
-      "evaluation": "Privacy + Support pages must return 200 before Day 14 metadata input."
+      "evaluation": "Rebuild the App Store and marketing page around the real product UI."
     },
     {
       "priority": "P3",
       "number": 4,
-      "name": "Weekly review & inbox triage",
+      "name": "Weekly review and inbox reset",
       "category": "Tools",
-      "evaluation": "Friday 4pm cadence. Skim memos, archive done projects, replan next week."
+      "evaluation": "Friday afternoon: connect last week's memos to projects and next steps."
     },
     {
-      "priority": "P3",
+      "priority": "P4",
       "number": 5,
-      "name": "Reading list — local-first software",
-      "category": "Lecture",
-      "evaluation": "Ink & Switch essay, Martin Kleppmann talks, CRDT primers."
+      "name": "Local-first reading list",
+      "category": "Study",
+      "evaluation": "SQLite, backups, and owning the coordinates of personal data."
     }
   ],
   "memos": [
-    { "project": 1, "color": "amber",  "content": "App Store screenshots — 5 cuts, 2880x1800, dark theme, amber accent #d97706." },
-    { "project": 1, "color": "yellow", "content": "Subtitle locked: 'Local-first AI agent workspace' (30 chars)." },
-    { "project": 1, "color": "pink",   "content": "Review Notes: keep 'evaluation period' wording, never 'free trial'." },
-    { "project": 2, "color": "amber",  "content": "Created by Claude Code via skills/hearth — DB write auto-refreshed every open tab." },
-    { "project": 2, "color": "blue",   "content": "Try: 'Summarize today's PR work into a new project with a review meeting tomorrow at 3pm.'" },
-    { "project": 3, "color": "green",  "content": "Privacy policy: Data Not Collected. SQLite stays on the user's Mac, no remote server." },
-    { "project": 3, "color": "yellow", "content": "Marketing URL hearth.codewithgenie.com — single-page, dark theme, amber CTA." },
-    { "project": 4, "color": "pink",   "content": "Inbox zero ritual: Cmd+F 'todo', batch into projects, archive everything older than 14 days." },
-    { "project": 4, "color": "blue",   "content": "Quick Capture (Ctrl+Shift+H) is the single source of truth for fleeting thoughts." },
-    { "project": 5, "color": "purple", "content": "Read 'Local-first software' (Ink & Switch, 2019) — seven ideals checklist." },
-    { "project": 5, "color": "purple", "content": "Watch Martin Kleppmann's CRDT talk before Tuesday's reading group." },
-    { "project": null, "color": "amber", "content": "Inbox: hero shot for App Preview should hold the CC -> Hearth split for ~7s." }
+    { "project": 1, "color": "amber", "content": "Lead with the real Hearth workspace: projects, schedule, and memos in context." },
+    { "project": 1, "color": "yellow", "content": "Drag a schedule chip from Wednesday to Thursday in the new month view." },
+    { "project": 1, "color": "pink", "content": "The day panel should keep today's schedule and journal memos together." },
+    { "project": 2, "color": "amber", "content": "No account. No subscription. One local SQLite file you can back up." },
+    { "project": 2, "color": "blue", "content": "Press Control-Shift-H over any app to catch a passing thought." },
+    { "project": 3, "color": "green", "content": "Use the warm paper theme and keep the real UI large enough to read." },
+    { "project": 3, "color": "yellow", "content": "The first three frames explain the workspace, capture, and calendar drag." },
+    { "project": 4, "color": "pink", "content": "Review today's decisions and next actions in the chronological Journal." },
+    { "project": 4, "color": "blue", "content": "Start Friday review with the P1 and P2 projects only." },
+    { "project": 5, "color": "purple", "content": "Time Machine backup and direct file copies both work with local data." },
+    { "project": 5, "color": "purple", "content": "Local-first software keeps the user's data independent of the tool." },
+    { "project": null, "color": "amber", "content": "Quick note: read the 1.1 release notes once more tomorrow morning." }
   ],
   "schedules": [
-    { "date": "2026-04-26", "time": "10:00", "description": "Sprint Day 0 — finalize submission spec",   "location": "Home office",      "notes": "Lock subtitle, keywords, screenshot copy." },
-    { "date": "2026-04-26", "time": "15:00", "description": "Capture App Store screenshots (en + ko)", "location": "Studio",           "notes": "Dummy DB only. Live DB is backed up at ~/.hearth-backup-pre-screenshots-20260426/." },
-    { "date": "2026-04-26", "time": "20:00", "description": "Reading group — local-first software",   "location": "Discord #hearth",  "notes": "Bring CRDT primer notes." },
-    { "date": "2026-04-27", "time": "09:30", "description": "Pair with Claude Code on skills/hearth",  "location": "Terminal",         "notes": "Try the 'summarize today's PRs' demo end-to-end." },
-    { "date": "2026-04-27", "time": "14:00", "description": "Landing page review — hearth.codewithgenie.com", "location": "Browser",   "notes": "/privacy and /support must respond 200." },
-    { "date": "2026-04-28", "time": "11:00", "description": "App Preview render in HyperFrames",       "location": "Studio",           "notes": "30s, 1920x1080, hero moment 0:18-0:25." },
-    { "date": "2026-04-29", "time": "16:00", "description": "Weekly review",                           "location": "Cafe",             "notes": "Skim memos, plan Day 5-7." },
-    { "date": "2026-05-17", "time": "09:00", "description": "Hearth 1.0 — Manual Release on App Store", "location": "Worldwide",       "notes": "Click 'Release this version' on App Store Connect." }
+    { "date": "2026-07-14", "time": "16:00", "description": "Hearth 1.1 release check", "location": "Studio", "notes": "Confirm metadata and versions", "kind": "task", "color": "#b45309", "icon": "✓" },
+    { "date": "2026-07-15", "time": "09:30", "description": "Product weekly", "location": "Studio", "notes": "Decide the first three frames", "kind": "event", "color": "#2563eb", "icon": "◫" },
+    { "date": "2026-07-15", "time": "12:30", "description": "Lunch walk", "location": "Park", "notes": "Thirty minutes without a phone", "kind": "event", "color": "#059669", "icon": "☀" },
+    { "date": "2026-07-15", "time": "15:00", "description": "Afternoon shift", "location": "Focus room", "notes": "Check the calendar badge", "kind": "shift", "color": "#7c3aed", "icon": "S" },
+    { "date": "2026-07-15", "time": "18:00", "description": "Screenshot review", "location": "Studio", "notes": "Five frames per locale", "kind": "task", "color": "#dc2626", "icon": "📌" },
+    { "date": "2026-07-16", "time": "10:00", "description": "Publish marketing page", "location": "Browser", "notes": "Verify CTA and real imagery", "kind": "event", "color": "#d97706", "icon": "↗" },
+    { "date": "2026-07-18", "time": null, "description": "Hearth launch anniversary", "location": null, "notes": "Record the small wins", "kind": "anniversary", "color": "#db2777", "icon": "★" },
+    { "date": "2026-07-22", "time": "14:00", "description": "Price experiment check-in", "location": "App Store Connect", "notes": "Separate reach from conversion", "kind": "task", "color": "#0f766e", "icon": "⌁" }
   ]
 }

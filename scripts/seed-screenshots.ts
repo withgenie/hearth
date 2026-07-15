@@ -67,6 +67,9 @@ interface SeedSchedule {
   description: string;
   location: string | null;
   notes: string | null;
+  kind: "event" | "task" | "shift" | "anniversary";
+  color: string | null;
+  icon: string | null;
 }
 interface SeedFile {
   locale: Locale;
@@ -221,6 +224,9 @@ CREATE TABLE IF NOT EXISTS schedules (
     notes TEXT,
     remind_before_5min INTEGER NOT NULL DEFAULT 0,
     remind_at_start INTEGER NOT NULL DEFAULT 0,
+    kind TEXT NOT NULL DEFAULT 'event',
+    color TEXT,
+    icon TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -386,11 +392,20 @@ function applySeed(db: Database, seed: SeedFile): void {
     // Schedules
     const insertSched = db.prepare(
       `INSERT INTO schedules (date, time, location, description, notes,
-                              remind_before_5min, remind_at_start)
-       VALUES (?, ?, ?, ?, ?, 0, 0)`,
+                              remind_before_5min, remind_at_start, kind, color, icon)
+       VALUES (?, ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
     );
     seed.schedules.forEach((s) =>
-      insertSched.run(s.date, s.time, s.location, s.description, s.notes),
+      insertSched.run(
+        s.date,
+        s.time,
+        s.location,
+        s.description,
+        s.notes,
+        s.kind,
+        s.color,
+        s.icon,
+      ),
     );
 
     db.exec("COMMIT");
@@ -418,7 +433,9 @@ function summarize(seed: SeedFile, target: string): string {
   }
   lines.push(`schedules (${seed.schedules.length}):`);
   for (const s of seed.schedules)
-    lines.push(`  ${s.date} ${s.time ?? "--:--"}  ${s.description}  @${s.location ?? "-"}`);
+    lines.push(
+      `  ${s.date} ${s.time ?? "--:--"}  [${s.kind}] ${s.icon ?? ""} ${s.description}  @${s.location ?? "-"}`,
+    );
   return lines.join("\n");
 }
 
