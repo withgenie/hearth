@@ -5,13 +5,6 @@ char_limit: 100
 source_spec_section: "§4.3 (en-US)"
 ---
 
-<!-- Hybrid strategy: subtitle "Local-first AI agent workspace" already indexes
-     local / first / ai / agent / workspace, so those tokens are deliberately
-     omitted to maximize the 100-char budget. The freed space carries
-     differentiator keywords cli / automation that map to the Q6 AI agent
-     control surface positioning. Tokenization (e.g. "brain") matches
-     "second brain" search queries. -->
+<!-- Does not repeat subtitle tokens "Private Mac workspace". 98 / 100. -->
 
-<!-- Char count verified: 96 / 100 (printf '%s' '<line>' | wc -c) -->
-
-todo,notes,memo,tasks,calendar,planner,brain,palette,capture,sticky,unified,daily,cli,automation
+todo,notes,memo,tasks,calendar,planner,journal,daily,capture,projects,offline,privacy,productivity

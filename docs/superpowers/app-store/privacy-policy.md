@@ -11,7 +11,7 @@ source_spec_section: "§6.2, §6.4"
 
 # Privacy Policy
 
-Last updated: 2026-05-17
+Last updated: 2026-07-15
 
 ## 1. Summary
 
@@ -33,34 +33,28 @@ All app data is stored at:
 
 You can inspect, back up, copy, or delete this file at any time.
 
-## 4. Optional integrations
+## 4. Optional OpenAI integration
 
-If you choose to enable optional integrations, those services receive data
-according to their own privacy policies. Hearth never reads or stores the
-data exchanged with these services beyond what is required to display the
-result back to you.
+AI commands are disabled unless you provide your own OpenAI API key in
+Settings → AI. The key is stored as plain text in Hearth's local SQLite file;
+it is not sent to a Hearth server or returned to the app's web interface.
 
-- **OpenAI** (when you provide your own API key in Settings):
-  Hearth sends your command palette prompts to OpenAI's API.
-  See https://openai.com/policies/privacy-policy
-- **External calendar providers** (Google Calendar, etc., if you connect):
-  Hearth reads/writes events via OAuth. Tokens are stored in macOS Keychain.
+When you invoke an AI command, Hearth sends the command text and the tool
+context required to answer it to OpenAI's API. OpenAI processes that data
+under its own privacy policy: https://openai.com/policies/privacy-policy
 
-You can disconnect these integrations at any time in Settings → Integrations.
-Disconnecting works even after your trial period ends.
+You can remove the stored key at any time in Settings → AI.
 
 ## 5. Payments
 
-Purchases are processed by Apple via the Mac App Store. Hearth never sees
-your payment information. License verification happens entirely on your
-device using Apple StoreKit 2; no purchase data is transmitted to a Hearth
-server.
+The paid app purchase is processed by Apple via the Mac App Store. Hearth
+never sees or stores your payment information, and no purchase data is sent
+to a Hearth server.
 
-## 6. Family Sharing
+## 6. Purchase management
 
-If you purchase Hearth Pro, your purchase is shared with members of your
-Family Sharing group, per Apple's standard policy. Hearth does not see who
-those members are.
+Redownloads and refunds are managed by Apple through the Mac App Store and
+reportaproblem.apple.com. Hearth receives no purchaser identity.
 
 ## 7. Children
 
@@ -80,7 +74,7 @@ Questions about this policy: genie@codewithgenie.com
 
 # 개인정보처리방침
 
-최종 업데이트: 2026-05-17
+최종 업데이트: 2026-07-15
 
 ## 1. 요약
 
@@ -103,31 +97,27 @@ Hearth 서버로 전송되는 정보는 없으며, Hearth는 자체 서버를 �
 
 이 파일은 언제든지 직접 확인, 백업, 복사, 삭제할 수 있습니다.
 
-## 4. 선택적 외부 통합
+## 4. 선택적 OpenAI 연동
 
-사용자가 선택적 통합 기능을 활성화하면, 해당 서비스는 자체 개인정보처리방침에
-따라 데이터를 수신합니다. Hearth는 결과 표시에 필요한 범위를 넘어서 외부
-서비스와 주고받은 데이터를 읽거나 저장하지 않습니다.
+Settings → AI에 사용자의 OpenAI API 키를 입력하기 전에는 AI 명령이 비활성화되어
+있습니다. 입력한 키는 Hearth의 로컬 SQLite 파일에 평문으로 저장되며, Hearth
+서버로 전송되거나 앱의 웹 인터페이스로 다시 반환되지 않습니다.
 
-- **OpenAI** (사용자가 Settings에 자신의 API 키를 입력한 경우):
-  Hearth는 커맨드 팔레트 프롬프트를 OpenAI API로 전송합니다.
-  https://openai.com/policies/privacy-policy 참고.
-- **외부 캘린더 서비스** (Google Calendar 등, 연결한 경우):
-  OAuth를 통해 일정을 읽고 씁니다. 토큰은 macOS Keychain에 저장됩니다.
+AI 명령을 실행하면 명령문과 답변에 필요한 도구 컨텍스트가 OpenAI API로
+전송됩니다. OpenAI는 자체 개인정보처리방침에 따라 이를 처리합니다:
+https://openai.com/policies/privacy-policy
 
-Settings → Integrations에서 언제든지 연결을 해제할 수 있으며, 트라이얼이
-만료된 후에도 연결 해제는 정상 동작합니다.
+저장된 키는 Settings → AI에서 언제든지 삭제할 수 있습니다.
 
 ## 5. 결제
 
-결제는 Mac App Store를 통해 Apple이 처리합니다. Hearth는 결제 정보를 절대
-보지 않습니다. 라이선스 검증은 Apple StoreKit 2로 사용자의 기기 안에서만
-이루어지며, 결제 관련 데이터가 Hearth 서버로 전송되지 않습니다.
+유료 앱 구매는 Mac App Store를 통해 Apple이 처리합니다. Hearth는 결제 정보를
+보거나 저장하지 않으며, 구매 관련 데이터가 Hearth 서버로 전송되지 않습니다.
 
-## 6. 가족 공유
+## 6. 구매 관리
 
-Hearth Pro를 구매하면 Apple의 표준 정책에 따라 해당 구매가 가족 공유 그룹
-구성원에게 공유됩니다. Hearth는 가족 구성원이 누구인지 알 수 없습니다.
+재다운로드와 환불은 Mac App Store 및 reportaproblem.apple.com에서 Apple이
+관리합니다. Hearth는 구매자의 신원을 전달받지 않습니다.
 
 ## 7. 아동
 

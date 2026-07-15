@@ -8,21 +8,32 @@ GitHub Release(DMG + 자동 업데이트) 흐름은 별도 문서: [`docs/releas
 
 ## 1. 현재 상태 스냅샷
 
-**최종 갱신: 2026-05-01**
+**최종 갱신: 2026-07-15**
 
 | 항목 | 값 |
 | --- | --- |
-| 마케팅 버전 | `1.0.0` |
-| 마지막 업로드 빌드 | `7` |
-| ASC 상태 | **심사 중** (Waiting for Review / In Review) |
+| 마케팅 버전 | `1.0.1` (라이브) → `1.1.0` build `12` 준비 완료 |
+| 마지막 업로드 빌드 | `11` (1.1.0 build `12`는 아직 미업로드) |
+| ASC 상태 | `1.0.1` Ready for Sale, `1.1.0` 패키지 Apple 검증 완료·로컬 대기 |
 | 출시 모드 | 수동 출시 (ASC에서 `출시` 버튼 눌러야 라이브) |
-| 가격 | ₩22,000 (한국만 판매) |
+| 가격 | ₩22,000 (한국만 판매, 1회 구매·구독 없음) |
 | Bundle ID | `com.codewithgenie.hearth` |
 | Team | `2UANJX7ATM` (jaehyun jang) |
-| 라이브 URL (예정) | https://apps.apple.com/kr/app/hearth/id6764480247 |
+| 라이브 URL | https://apps.apple.com/kr/app/hearth/id6764480247 |
 | 제출 PR | #36 (squash → `eac3940`) |
 
+준비 산출물: `dist-mas/Hearth-1.1.0-12.pkg` (서명 및 Apple package validation PASS). 업로드·버전 생성·가격 예약·심사 제출은 아직 실행하지 않았다.
+
 > 이 표는 출시·업로드·핫픽스가 일어날 때마다 갱신한다. 마지막 항목은 항상 진실.
+
+### 1.1.0 가격 실험
+
+1. 새 카피·스크린샷을 적용한 뒤 기존 ₩22,000으로 14일 측정
+2. 같은 자산을 유지한 채 ₩11,000 임시 가격을 28일 예약
+3. 종료일에 ₩22,000 자동 복귀
+
+가격과 자산을 동시에 바꾸지 않는다. 자세한 지표와 실패 해석은
+[`release-1.1.0.md`](./superpowers/app-store/release-1.1.0.md)를 따른다.
 
 ---
 
@@ -230,3 +241,4 @@ node -p "require('./build-number.json').build"
 이 문서를 수정할 때마다 한 줄 추가.
 
 - 2026-05-01: 초판. 1.0.0 build 7 심사 중 상태 반영, 4-A 핫픽스 흐름 정리, FB-001 follow-up 등록.
+- 2026-07-15: 1.1.0 build 12 패키지와 Apple 검증 상태, paid-upfront 가격 실험, 실제 App Store ID를 반영.
