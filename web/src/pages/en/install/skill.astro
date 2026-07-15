@@ -2,22 +2,24 @@
 import Base from '../../../layouts/Base.astro';
 ---
 <Base
-  title="Add the Hearth skill to Claude Code"
-  description="One command: hearth-cli install-skill."
+  title="Install the Hearth skill for development"
+  description="Link the Hearth skill with the repository install script."
   locale="en"
   path="/install/skill"
 >
   <p class="text-ink/70 text-sm font-medium tracking-wider uppercase">Setup · Skill</p>
   <h1>Add the Hearth skill<br/>to Claude Code.</h1>
-  <p>Make sure <a href="/en/install/cli">hearth-cli</a> is installed first.</p>
+  <p>This is a developer installation path that uses the Hearth repository source.</p>
 
-  <h2>One command</h2>
-  <pre><code>hearth-cli install-skill</code></pre>
+  <h2>Install</h2>
+  <pre><code>git clone https://github.com/withgenie/hearth.git
+cd hearth
+./scripts/install-skills.sh --into ~/.claude/skills</code></pre>
 
   <h2>What happens</h2>
   <ul>
     <li><code>~/.claude/skills/hearth/</code> is created.</li>
-    <li>skill.md and supporting files are unpacked there.</li>
+    <li>The repository skill and supporting files are linked there.</li>
     <li>The next Claude Code session picks it up automatically.</li>
   </ul>
 
@@ -25,7 +27,5 @@ import Base from '../../../layouts/Base.astro';
   <p>Call it in natural language. e.g. <em>"Leave a memo in Hearth — agenda for tomorrow's meeting."</em></p>
 
   <h2>Uninstall</h2>
-  <pre><code>hearth-cli uninstall-skill
-# or manually
-rm -rf ~/.claude/skills/hearth</code></pre>
+  <pre><code>./scripts/install-skills.sh --into ~/.claude/skills --remove</code></pre>
 </Base>

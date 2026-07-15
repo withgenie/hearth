@@ -13,8 +13,8 @@ import Base from '../../layouts/Base.astro';
   <h3>1. 설치 후 첫 실행에서 NSOpenPanel이 나타나는데 왜요?</h3>
   <p>Hearth와 hearth-cli가 같은 SQLite 파일(<code>~/Library/Application Support/com.codewithgenie.hearth/data.db</code>)을 공유하기 위해 macOS 샌드박스가 한 번의 사용자 동의를 요구합니다. "Application Support" 폴더를 한 번만 선택하면 security-scoped bookmark가 저장되어 다음부터는 자동으로 접근합니다.</p>
 
-  <h3>2. 구매 영수증 복원은 어떻게 하나요?</h3>
-  <p>Hearth 앱 → 설정 → License → "Restore Purchase". 같은 Apple ID로 결제한 적이 있다면 즉시 복원됩니다.</p>
+  <h3>2. 구매한 앱을 다시 설치하려면 어떻게 하나요?</h3>
+  <p>구매에 사용한 Apple ID로 Mac App Store에 로그인한 뒤 구입 항목에서 Hearth를 다시 다운로드하세요. Hearth는 별도의 계정이나 앱 내 구매를 사용하지 않습니다.</p>
 
   <h3>3. DB 파일은 어디에 있나요? 백업 가능한가요?</h3>
   <p>경로: <code>~/Library/Application Support/com.codewithgenie.hearth/data.db</code>. Time Machine 백업 대상에 자동 포함됩니다. 별도 복사도 자유롭게 하세요.</p>
@@ -22,7 +22,7 @@ import Base from '../../layouts/Base.astro';
   <h3>4. CLI 또는 skill이 작동하지 않을 때 체크리스트</h3>
   <ol>
     <li>Hearth 앱이 실행 중인지 확인</li>
-    <li><code>hearth-cli --version</code>이 1.0과 호환되는지 확인</li>
+    <li><code>hearth --version</code>이 1.1과 호환되는지 확인</li>
     <li>Application Support 접근 권한 동의 여부 (Settings → Privacy)</li>
   </ol>
 

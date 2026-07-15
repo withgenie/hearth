@@ -13,8 +13,8 @@ import Base from '../../layouts/Base.astro';
   <h3>1. Why does macOS show an NSOpenPanel on first launch?</h3>
   <p>Hearth and hearth-cli share a single SQLite file at <code>~/Library/Application Support/com.codewithgenie.hearth/data.db</code>. macOS sandboxing asks for one-time user consent. Pick the "Application Support" folder once; a security-scoped bookmark is saved and access becomes automatic afterwards.</p>
 
-  <h3>2. How do I restore my purchase?</h3>
-  <p>In Hearth: Settings → License → "Restore Purchase". If the same Apple ID purchased before, it restores immediately.</p>
+  <h3>2. How do I reinstall a purchased copy?</h3>
+  <p>Sign in to the Mac App Store with the Apple ID used for the purchase, then redownload Hearth from Purchased. Hearth has no separate account or in-app purchase.</p>
 
   <h3>3. Where is the database file? Can I back it up?</h3>
   <p>Path: <code>~/Library/Application Support/com.codewithgenie.hearth/data.db</code>. Time Machine includes it automatically. Feel free to copy it elsewhere too.</p>
@@ -22,7 +22,7 @@ import Base from '../../layouts/Base.astro';
   <h3>4. CLI or skill not working — checklist</h3>
   <ol>
     <li>Make sure the Hearth app is running.</li>
-    <li>Confirm <code>hearth-cli --version</code> is Hearth 1.0–compatible.</li>
+    <li>Confirm <code>hearth --version</code> is Hearth 1.1–compatible.</li>
     <li>Check macOS Privacy settings for Application Support access consent.</li>
   </ol>
 

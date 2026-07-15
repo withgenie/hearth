@@ -2,34 +2,33 @@
 import Base from '../../../layouts/Base.astro';
 ---
 <Base
-  title="Install hearth-cli · Hearth"
-  description="Install hearth-cli via Homebrew."
+  title="Install Hearth CLI · Hearth"
+  description="Install the Hearth CLI from source."
   locale="en"
   path="/install/cli"
 >
   <p class="text-ink/70 text-sm font-medium tracking-wider uppercase">Setup · CLI</p>
-  <h1>Install<br/>hearth-cli.</h1>
-  <p>Install the <a href="https://apps.apple.com/app/hearth/id0000000000">Hearth app</a> from the Mac App Store first.</p>
+  <h1>Install<br/>Hearth CLI.</h1>
+  <p>Install the <a href="https://apps.apple.com/app/hearth/id6764480247?mt=12">Hearth app</a> from the Mac App Store first. The CLI is an optional developer feature.</p>
 
-  <h2>Step 1 — Tap and install</h2>
-  <pre><code>brew tap codewithgenie/hearth
-brew install hearth-cli</code></pre>
+  <h2>Step 1 — Install from source</h2>
+  <pre><code>git clone https://github.com/withgenie/hearth.git
+cd hearth
+cargo install --path src-tauri/cli</code></pre>
 
   <h2>Step 2 — Verify</h2>
-  <pre><code>hearth-cli --version</code></pre>
-  <p>If it prints a Hearth 1.0–compatible version, you're done.</p>
+  <pre><code>hearth --version</code></pre>
+  <p>If it prints a Hearth 1.1–compatible version, you're done.</p>
 
   <h2>Requirements</h2>
   <ul>
-    <li>macOS 11 or later</li>
-    <li>Apple Silicon and Intel both supported</li>
-    <li>Binaries are Developer ID–signed and Apple-notarized — Gatekeeper lets them run without prompts.</li>
+    <li>macOS 12 or later</li>
+    <li>Rust 1.75 or later</li>
   </ul>
 
   <h2>Uninstall</h2>
-  <pre><code>brew uninstall hearth-cli
-brew untap codewithgenie/hearth</code></pre>
+  <pre><code>cargo uninstall hearth-cli</code></pre>
 
   <h2>Next step</h2>
-  <p>To call Hearth from Claude Code in natural language, continue to <a href="/en/install/skill">Install the Hearth skill</a>.</p>
+  <p>Run <code>hearth --help</code> to see the available commands.</p>
 </Base>
