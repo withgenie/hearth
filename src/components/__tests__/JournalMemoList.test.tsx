@@ -58,6 +58,17 @@ describe("JournalMemoList", () => {
     expect(groups[1].memos.map((item) => item.memo.content)).toEqual(["early"]);
   });
 
+  it("formats journal date headings in English when English is effective", () => {
+    const [group] = groupJournalMemos(
+      [memo({ created_at: "2026-07-14 12:05:00Z" })],
+      "Asia/Seoul",
+      "en",
+    );
+
+    expect(group.label).toMatch(/Jul/);
+    expect(group.label).not.toContain("월");
+  });
+
   it("renders sticky Korean date headers, local times, calm color rails, and metadata", () => {
     render(
       <JournalMemoList

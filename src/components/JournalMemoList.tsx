@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { Memo, Project } from "../types";
-import { useT } from "../i18n/LocaleContext";
+import { useLocale, useT } from "../i18n/LocaleContext";
+import type { AppLocale } from "../i18n/locale";
 import { cn } from "../lib/cn";
 
 type JournalMemo = {
@@ -47,8 +48,12 @@ function localDateKey(date: Date, timeZone?: string): string {
   return `${read("year")}-${read("month")}-${read("day")}`;
 }
 
-function koreanDateLabel(date: Date, timeZone?: string): string {
-  return new Intl.DateTimeFormat("ko-KR", {
+function dateLabel(
+  date: Date,
+  locale: AppLocale,
+  timeZone?: string,
+): string {
+  return new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
     timeZone,
     month: "long",
     day: "numeric",
@@ -59,6 +64,7 @@ function koreanDateLabel(date: Date, timeZone?: string): string {
 export function groupJournalMemos(
   memos: Memo[],
   timeZone?: string,
+  locale: AppLocale = "ko",
 ): JournalMemoGroup[] {
   const grouped = new Map<string, JournalMemoGroup>();
 
@@ -68,7 +74,7 @@ export function groupJournalMemos(
     const dateKey = localDateKey(createdAt, timeZone);
     const group = grouped.get(dateKey) ?? {
       dateKey,
-      label: koreanDateLabel(createdAt, timeZone),
+      label: dateLabel(createdAt, locale, timeZone),
       memos: [],
     };
     group.memos.push({ memo, createdAt });
@@ -87,8 +93,12 @@ export function groupJournalMemos(
     }));
 }
 
-function localTime(date: Date, timeZone?: string): string {
-  return new Intl.DateTimeFormat("ko-KR", {
+function localTime(
+  date: Date,
+  locale: AppLocale,
+  timeZone?: string,
+): string {
+  return new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
     timeZone,
     hour: "2-digit",
     minute: "2-digit",
@@ -106,9 +116,10 @@ export function JournalMemoList({
   timeZone?: string;
 }) {
   const t = useT();
+  const { effective } = useLocale();
   const groups = useMemo(
-    () => groupJournalMemos(memos, timeZone),
-    [memos, timeZone],
+    () => groupJournalMemos(memos, timeZone, effective),
+    [effective, memos, timeZone],
   );
   const projectNames = useMemo(
     () => new Map(projects.map((project) => [project.id, project.name])),
@@ -165,7 +176,7 @@ export function JournalMemoList({
                     </p>
                     <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--color-text-dim)]">
                       <time dateTime={memo.created_at}>
-                        {localTime(createdAt, timeZone)}
+                        {localTime(createdAt, effective, timeZone)}
                       </time>
                       {projectName ? (
                         <span className="truncate text-[var(--color-text-muted)]">
