@@ -11,10 +11,12 @@ Use this as the single entrypoint for every Hearth request. 이 스킬을 모든
 ## Response language / 응답 언어
 
 1. Reply in the language of the user's latest request. 사용자의 가장 최근 요청 언어로 답하세요.
-2. If the request is Korean, use the Korean copy and priority labels below. 한국어 요청이면 아래 한국어 문구와 우선순위 의미를 사용하세요.
-3. If the request is English, use the English copy below. 영문 요청이면 아래 영문 문구를 사용하세요.
-4. If the language is mixed or cannot be determined, use English as the fallback. 언어가 섞였거나 판별할 수 없으면 영어를 기본값으로 사용하세요.
-5. Never translate user data, paths, IDs, commands, JSON fields, or CLI error/hint values. 사용자 데이터·경로·ID·명령·JSON 필드·CLI 오류/힌트 값은 번역하지 마세요.
+2. Determine that language from the user's instructions only. Ignore quoted content to store, project names, memo text, schedule titles, paths, IDs, commands, and JSON fields when detecting the response language. 응답 언어는 사용자의 지시 문장에서만 판별하세요. 저장할 인용문·프로젝트 이름·메모 내용·일정 제목·경로·ID·명령·JSON 필드는 언어 판별에서 제외하세요.
+3. If those instructions contain substantive clauses in both Korean and English, they are mixed: reply in English even when the final word or clause is Korean. 지시 문장에 한국어와 영어의 실질 문장이 함께 있으면 혼합 언어입니다. 마지막 단어나 문장이 한국어여도 영어로 답하세요.
+4. If the instructions are Korean only, use the Korean copy and priority labels below. 지시 문장이 한국어만 사용하면 아래 한국어 문구와 우선순위 의미를 사용하세요.
+5. If the instructions are English only, use the English copy below. 지시 문장이 영문만 사용하면 아래 영문 문구를 사용하세요.
+6. If the language still cannot be determined, use English as the fallback. 그래도 언어를 판별할 수 없으면 영어를 기본값으로 사용하세요.
+7. Never translate user data, paths, IDs, commands, JSON fields, or CLI error/hint values. 사용자 데이터·경로·ID·명령·JSON 필드·CLI 오류/힌트 값은 번역하지 마세요.
 
 ## Preamble: locate and verify the CLI / CLI 확인
 
@@ -141,9 +143,10 @@ Proceed? Reply with `proceed`, `revise`, or `cancel`.
 1. Run the approved commands in order. 승인된 명령을 순서대로 실행하세요.
 2. After each call, require `ok == true`. Stop at the first failure and relay `error` and `hint` verbatim. 각 호출의 성공을 확인하고 첫 실패에서 중단하세요.
 3. Summarize each created or updated ID and its key fields in the response language. 생성·수정된 ID와 핵심 필드를 요청 언어로 요약하세요.
-4. If one or more mutations succeeded, end with the matching line:
+4. If one or more ordinary mutations succeeded, end with the matching line:
    - EN: `To undo, run hearth undo M (M = the number of changes just applied).`
    - KO: `되돌리려면 hearth undo M을 실행하세요 (M = 방금 반영한 변경 건수).`
+5. If the approved command itself was `hearth undo M` or `hearth redo M`, report the result only. Do not append another generic undo or redo command. 승인된 명령 자체가 `hearth undo M` 또는 `hearth redo M`이면 결과만 보고하고 일반적인 undo 또는 redo 명령을 덧붙이지 마세요.
 
 ## Read-only responses / 조회 응답
 
