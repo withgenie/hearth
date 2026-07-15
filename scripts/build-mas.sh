@@ -4,12 +4,13 @@
 # Pipeline:
 #   1. check-signing.sh   — fail fast if any cert/profile/API key is missing
 #   2. sync-version.js    — package.json → tauri.conf + Cargo manifests
-#   3. bump-build-number  — increment CFBundleVersion (build-number.json)
+#   3. derive candidate   — do not consume CFBundleVersion yet
 #   4. tauri build        — Tauri's first-pass codesign with Apple Distribution
 #   5. patch CFBundleVersion + embed provisioning profile
 #   6. re-sign .app with entitlements.mas.plist (provisioning profile baked in)
 #   7. productbuild .pkg with 3rd Party Mac Developer Installer
 #   8. altool --validate-app — Apple-side metadata sanity check
+#   9. write hash receipt, then atomically finalize build-number.json
 #
 # Spec: docs/superpowers/specs/2026-04-26-mas-readiness-design.md §5
 #
@@ -32,11 +33,33 @@ bash scripts/check-signing.sh
 # 2. Version sync -------------------------------------------------------------
 node scripts/sync-version.js
 
-# 3. Bump CFBundleVersion -----------------------------------------------------
-node scripts/bump-build-number.js
-BUILD_NUMBER="$(node -p "require('./build-number.json').build")"
+# 3. Recover finalized or pre-finalized candidate before deriving another ---
+CURRENT_BUILD="$(node -p "require('./build-number.json').build")"
 VERSION="$(node -p "require('./package.json').version")"
+CURRENT_PKG_PATH="dist-mas/Hearth-${VERSION}-${CURRENT_BUILD}.pkg"
+CURRENT_RECEIPT_PATH="dist-mas/Hearth-${VERSION}-${CURRENT_BUILD}.receipt.json"
+if [[ -f "$CURRENT_PKG_PATH" && -f "$CURRENT_RECEIPT_PATH" ]]; then
+  if node scripts/verify-mas-receipt.js \
+    "$CURRENT_RECEIPT_PATH" "$CURRENT_PKG_PATH" "$VERSION" "$CURRENT_BUILD" --finalized; then
+    echo "==> Build ${CURRENT_BUILD} is already Apple-validated and finalized"
+    exit 0
+  fi
+fi
+
+BUILD_NUMBER="$(node scripts/bump-build-number.js --candidate)"
+PKG_PATH="dist-mas/Hearth-${VERSION}-${BUILD_NUMBER}.pkg"
+RECEIPT_PATH="dist-mas/Hearth-${VERSION}-${BUILD_NUMBER}.receipt.json"
 echo "==> Building Hearth ${VERSION} (build ${BUILD_NUMBER})"
+
+if [[ -f "$PKG_PATH" && -f "$RECEIPT_PATH" ]]; then
+  if node scripts/verify-mas-receipt.js \
+    "$RECEIPT_PATH" "$PKG_PATH" "$VERSION" "$BUILD_NUMBER"; then
+    node scripts/bump-build-number.js --finalize "$BUILD_NUMBER"
+    echo "==> Recovered Apple-validated build ${BUILD_NUMBER} from $RECEIPT_PATH"
+    exit 0
+  fi
+  echo "build-mas: stale or invalid recovery receipt; rebuilding candidate ${BUILD_NUMBER}" >&2
+fi
 
 # 4. Clean + build ------------------------------------------------------------
 rm -rf src-tauri/target/aarch64-apple-darwin/release/bundle/macos
@@ -49,7 +72,6 @@ mkdir -p dist-mas
 npx tauri build --bundles app --target aarch64-apple-darwin
 
 APP_PATH="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Hearth.app"
-PKG_PATH="dist-mas/Hearth-${VERSION}-${BUILD_NUMBER}.pkg"
 INFO_PLIST="$APP_PATH/Contents/Info.plist"
 
 [[ -d "$APP_PATH" ]] || { echo "build-mas: tauri build did not produce $APP_PATH" >&2; exit 1; }
@@ -95,9 +117,17 @@ xcrun altool --validate-app -f "$PKG_PATH" -t macos \
   --apiKey "$APP_STORE_API_KEY_ID" \
   --apiIssuer "$APP_STORE_API_ISSUER_ID"
 
+# 9. Bind validation to the exact package, then consume the counter ---------
+PKG_SHA256="$(shasum -a 256 "$PKG_PATH" | awk '{print $1}')"
+node scripts/write-mas-receipt.js \
+  "$RECEIPT_PATH" "$PKG_PATH" "$PKG_SHA256" "$VERSION" "$BUILD_NUMBER"
+node scripts/bump-build-number.js --finalize "$BUILD_NUMBER"
+
 echo
 echo "✅ Build OK: $PKG_PATH"
 echo "   Version:      $VERSION"
 echo "   Build number: $BUILD_NUMBER"
+echo "   SHA-256:      $PKG_SHA256"
+echo "   Receipt:      $RECEIPT_PATH"
 echo
-echo "Next: bash scripts/upload-mas.sh"
+echo "Next: bash scripts/upload-mas.sh '$PKG_PATH' '$PKG_SHA256'"
