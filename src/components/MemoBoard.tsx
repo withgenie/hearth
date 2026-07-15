@@ -43,6 +43,7 @@ import { useToast } from "../ui/Toast";
 import { globalSequence, groupMemosByProject } from "../lib/memoSequence";
 import * as api from "../api";
 import type { MemoUpdateInput, MemoView } from "../api";
+import { useT } from "../i18n/LocaleContext";
 
 // Stable Set reference so `useProjects`'s effect deps don't churn every
 // render (useProjects useCallback-s `load` on [priorities, category], and
@@ -51,6 +52,7 @@ import type { MemoUpdateInput, MemoView } from "../api";
 const ALL_PRIORITIES = new Set(PRIORITIES);
 
 export function MemoBoard() {
+  const t = useT();
   const { memos, create, update, remove, reload } = useMemos();
   // MemoBoard wants every project for the grouping + picker; `null` means
   // "no category filter" (전체 보기) so NULL-category rows are also included.
@@ -97,7 +99,7 @@ export function MemoBoard() {
     viewSelectedByUser.current = true;
     setView(nextView);
     void api.saveUiPreferences({ memoView: nextView }).catch((error) => {
-      toast.error(`뷰 설정 저장 실패: ${error}`);
+      toast.error(t(`뷰 설정 저장 실패: ${error}`, `View setting save failed: ${error}`));
     });
   };
 
@@ -109,7 +111,7 @@ export function MemoBoard() {
       await create({ content });
       setQuickMemo("");
     } catch (error) {
-      toast.error(`메모 저장 실패: ${error}`);
+      toast.error(t(`메모 저장 실패: ${error}`, `Memo save failed: ${error}`));
     } finally {
       setSavingQuickMemo(false);
     }
@@ -205,7 +207,7 @@ export function MemoBoard() {
       await api.reorderMemos(fullIds);
       await reload();
     } catch (err) {
-      toast.error(`메모 이동 실패: ${err}`);
+      toast.error(t(`메모 이동 실패: ${err}`, `Memo move failed: ${err}`));
     }
   };
 
@@ -224,36 +226,36 @@ export function MemoBoard() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex justify-between items-center mb-5">
-        <h2 className="text-heading text-[var(--color-text-hi)]">메모보드</h2>
+        <h2 className="text-heading text-[var(--color-text-hi)]">{t("메모보드", "Memos")}</h2>
         <div className="flex items-center gap-2">
           <div
             role="tablist"
-            aria-label="뷰 전환"
+            aria-label={t("뷰 전환", "Switch view")}
             className="inline-flex rounded-md border border-[var(--color-border)] bg-[var(--color-surface-1)] p-0.5"
           >
             <ViewTab
               active={view === "list"}
               onClick={() => selectView("list")}
               icon={LayoutList}
-              label="리스트"
+              label={t("리스트", "List")}
             />
             <ViewTab
               active={view === "matrix"}
               onClick={() => selectView("matrix")}
               icon={LayoutGrid}
-              label="매트릭스"
+              label={t("매트릭스", "Matrix")}
             />
             <ViewTab
               active={view === "focus"}
               onClick={() => selectView("focus")}
               icon={Monitor}
-              label="포커스"
+              label={t("포커스", "Focus")}
             />
             <ViewTab
               active={view === "journal"}
               onClick={() => selectView("journal")}
               icon={NotebookText}
-              label="저널"
+              label={t("저널", "Journal")}
             />
           </div>
           <Button
@@ -262,14 +264,14 @@ export function MemoBoard() {
             leftIcon={Plus}
             onClick={handleCreate}
           >
-            메모 추가
+            {t("메모 추가", "Add memo")}
           </Button>
         </div>
       </div>
       <div className="relative mb-4">
         <Input
-          aria-label="갑자기 메모"
-          placeholder="갑자기 메모"
+          aria-label={t("갑자기 메모", "Quick memo")}
+          placeholder={t("갑자기 메모", "Quick memo")}
           value={quickMemo}
           disabled={savingQuickMemo}
           onChange={(event) => setQuickMemo(event.target.value)}
@@ -289,15 +291,15 @@ export function MemoBoard() {
           aria-live="polite"
           className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] text-[var(--color-text-dim)]"
         >
-          {savingQuickMemo ? "저장 중" : "Enter로 저장"}
+          {savingQuickMemo ? t("저장 중", "Saving") : t("Enter로 저장", "Press Enter to save")}
         </span>
       </div>
       {memos.length === 0 ? (
         <EmptyState
           className="flex-1"
           icon={StickyNote}
-          title="메모가 없습니다"
-          description="⌘K 또는 메모 추가 버튼으로 시작하세요"
+          title={t("메모가 없습니다", "No memos yet")}
+          description={t("⌘K 또는 메모 추가 버튼으로 시작하세요", "Start with ⌘K or the Add memo button")}
         />
       ) : view === "journal" ? (
         <JournalMemoList memos={memos} projects={projects} />
@@ -339,7 +341,7 @@ export function MemoBoard() {
               const title =
                 g.kind === "project"
                   ? `${g.project.name} · ${g.project.priority}`
-                  : "기타 · 프로젝트 미연결";
+                  : t("기타 · 프로젝트 미연결", "Other · No project");
               return (
                 <section
                   key={key}
@@ -350,7 +352,7 @@ export function MemoBoard() {
                       {title}
                     </span>
                     <span className="ml-auto text-[var(--color-text-dim)]">
-                      {g.memos.length}개
+                      {t(`${g.memos.length}개`, `${g.memos.length}`)}
                     </span>
                   </header>
                   <SortableContext
@@ -381,7 +383,7 @@ export function MemoBoard() {
           <DragOverlay>
             {activeMemo ? (
               <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-brand)] px-3 py-2 text-[12px] text-[var(--color-text-hi)] shadow-lg max-w-[260px]">
-                {activeMemo.content.slice(0, 80) || "(비어 있음)"}
+                {activeMemo.content.slice(0, 80) || t("(비어 있음)", "(Empty)")}
               </div>
             ) : null}
           </DragOverlay>
@@ -409,6 +411,7 @@ function SortableMemoRow({
   sequenceNumber: number;
   highlighted?: boolean;
 }) {
+  const t = useT();
   const {
     attributes,
     listeners,
@@ -440,7 +443,7 @@ function SortableMemoRow({
         type="button"
         {...attributes}
         {...listeners}
-        aria-label={`메모 #${sequenceNumber} 순서 이동`}
+        aria-label={t(`메모 #${sequenceNumber} 순서 이동`, `Move memo #${sequenceNumber}`)}
         className="mt-1.5 shrink-0 cursor-grab rounded p-1 text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] active:cursor-grabbing"
       >
         <Icon icon={GripVertical} size={14} />

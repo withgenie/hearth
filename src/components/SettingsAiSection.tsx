@@ -9,8 +9,10 @@ import { Icon } from "../ui/Icon";
 import { useToast } from "../ui/Toast";
 import { cn } from "../lib/cn";
 import * as api from "../api";
+import { useT } from "../i18n/LocaleContext";
 
 export function SettingsAiSection({ active }: { active: boolean }) {
+  const t = useT();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -24,9 +26,9 @@ export function SettingsAiSection({ active }: { active: boolean }) {
     api
       .getAiSettings()
       .then((s) => setHasStoredKey(s.has_openai_key))
-      .catch((e) => toast.error(`설정 불러오기 실패: ${e}`))
+      .catch((e) => toast.error(t(`설정 불러오기 실패: ${e}`, `Could not load settings: ${e}`)))
       .finally(() => setLoading(false));
-  }, [active, toast]);
+  }, [active, t, toast]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -36,10 +38,10 @@ export function SettingsAiSection({ active }: { active: boolean }) {
       });
       setHasStoredKey(result.has_openai_key);
       setApiKeyInput("");
-      toast.success("AI 설정 저장됨");
+      toast.success(t("AI 설정 저장됨", "AI settings saved"));
       window.dispatchEvent(new CustomEvent("ai-settings:changed"));
     } catch (e) {
-      toast.error(`저장 실패: ${e}`);
+      toast.error(t(`저장 실패: ${e}`, `Save failed: ${e}`));
     } finally {
       setSaving(false);
     }
@@ -51,10 +53,10 @@ export function SettingsAiSection({ active }: { active: boolean }) {
       const result = await api.saveAiSettings({ openai_api_key: "" });
       setHasStoredKey(result.has_openai_key);
       setApiKeyInput("");
-      toast.success("저장된 API 키 삭제됨");
+      toast.success(t("저장된 API 키 삭제됨", "Saved API key removed"));
       window.dispatchEvent(new CustomEvent("ai-settings:changed"));
     } catch (e) {
-      toast.error(`삭제 실패: ${e}`);
+      toast.error(t(`삭제 실패: ${e}`, `Delete failed: ${e}`));
     } finally {
       setSaving(false);
     }
@@ -64,7 +66,7 @@ export function SettingsAiSection({ active }: { active: boolean }) {
     return (
       <div className="flex items-center gap-2 text-[13px] text-[var(--color-text-muted)] py-6">
         <Loader2 size={14} className="animate-spin" aria-hidden />
-        <span>불러오는 중…</span>
+        <span>{t("불러오는 중…", "Loading…")}</span>
       </div>
     );
   }
@@ -72,21 +74,23 @@ export function SettingsAiSection({ active }: { active: boolean }) {
   return (
     <div className="flex flex-col gap-5">
       <p className="text-[12px] text-[var(--color-text-muted)]">
-        AI 명령 팔레트(⌘K → 자연어)는 OpenAI 를 사용합니다. 키는 선택 사항이며
-        입력하지 않아도 Hearth 의 나머지 기능은 정상 동작합니다.
+        {t(
+          "AI 명령 팔레트(⌘K → 자연어)는 OpenAI를 사용합니다. 키는 선택 사항이며 입력하지 않아도 Hearth의 나머지 기능은 정상 동작합니다.",
+          "The AI command palette (⌘K → natural language) uses OpenAI. The key is optional; the rest of Hearth works without it.",
+        )}
       </p>
 
       <Field
-        label="OpenAI API 키"
+        label={t("OpenAI API 키", "OpenAI API key")}
         hint={
           hasStoredKey
-            ? "저장된 키가 있습니다. 새 키를 입력하면 덮어씁니다."
-            : "sk-로 시작하는 키. 로컬 DB에 평문으로 저장됩니다."
+            ? t("저장된 키가 있습니다. 새 키를 입력하면 덮어씁니다.", "A key is saved. Enter a new key to replace it.")
+            : t("sk-로 시작하는 키. 로컬 DB에 평문으로 저장됩니다.", "A key beginning with sk-. It is stored as plaintext in the local database.")
         }
         right={
           hasStoredKey ? (
             <span className="text-[11px] text-[var(--color-success)] font-medium">
-              저장됨
+              {t("저장됨", "Saved")}
             </span>
           ) : null
         }
@@ -111,7 +115,7 @@ export function SettingsAiSection({ active }: { active: boolean }) {
               type="button"
               onClick={handleClearKey}
               disabled={saving}
-              title="저장된 API 키 삭제"
+              title={t("저장된 API 키 삭제", "Delete saved API key")}
               className={cn(
                 "shrink-0 w-9 h-9 inline-flex items-center justify-center",
                 "rounded-[var(--radius-md)] border border-[var(--color-border)]",
@@ -119,7 +123,7 @@ export function SettingsAiSection({ active }: { active: boolean }) {
                 "transition-colors duration-[120ms]",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
-              aria-label="저장된 API 키 삭제"
+              aria-label={t("저장된 API 키 삭제", "Delete saved API key")}
             >
               <Icon icon={Trash2} size={14} />
             </button>
@@ -129,7 +133,7 @@ export function SettingsAiSection({ active }: { active: boolean }) {
 
       <div className="flex justify-end">
         <Button variant="primary" onClick={handleSave} disabled={saving}>
-          {saving ? "저장 중…" : "저장"}
+          {saving ? t("저장 중…", "Saving…") : t("저장", "Save")}
         </Button>
       </div>
     </div>

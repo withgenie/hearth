@@ -19,6 +19,7 @@ import {
 } from "../lib/focusMemoLayout";
 import { useToast } from "../ui/Toast";
 import { FocusMemoNote } from "./FocusMemoNote";
+import { useT } from "../i18n/LocaleContext";
 
 const QUICK_FILTERS: { value: FocusQuickFilter; label: string }[] = [
   { value: "all", label: "전체" },
@@ -54,6 +55,7 @@ export function FocusMemoBoard({
   onReload: () => void | Promise<unknown>;
   onCreateTag: (name: string) => Promise<MemoTag>;
 }) {
+  const t = useT();
   const [filters, setFilters] = useState<FocusFilters>({
     quick: "all",
     category: null,
@@ -155,7 +157,7 @@ export function FocusMemoBoard({
     try {
       await onUpdate(memo.id, { focus_x, focus_y });
     } catch (error) {
-      toast.error(`포커스 위치 저장 실패: ${error}`);
+      toast.error(t(`포커스 위치 저장 실패: ${error}`, `Focus position save failed: ${error}`));
       await onReload();
     }
   };
@@ -163,7 +165,7 @@ export function FocusMemoBoard({
   return (
     <div className="flex flex-1 min-h-0 gap-4">
       <aside className="w-[180px] shrink-0 overflow-y-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3">
-        <RailSection title="빠른 필터">
+        <RailSection title={t("빠른 필터", "Quick filters")}>
           {QUICK_FILTERS.map((quick) => (
             <RailButton
               key={quick.value}
@@ -172,17 +174,21 @@ export function FocusMemoBoard({
                 setFilters((prev) => ({ ...prev, quick: quick.value }))
               }
             >
-              {quick.label}
+              {quick.value === "all"
+                ? t("전체", "All")
+                : quick.value === "important"
+                  ? t("중요", "Important")
+                  : t("미연결", "Unlinked")}
             </RailButton>
           ))}
         </RailSection>
 
-        <RailSection title="카테고리">
+        <RailSection title={t("카테고리", "Categories")}>
           <RailButton
             active={filters.category === null}
             onClick={() => setFilters((prev) => ({ ...prev, category: null }))}
           >
-            전체
+            {t("전체", "All")}
           </RailButton>
           {categories.map((category) => (
             <RailButton
@@ -197,12 +203,12 @@ export function FocusMemoBoard({
           ))}
         </RailSection>
 
-        <RailSection title="메모 태그">
+        <RailSection title={t("메모 태그", "Memo tags")}>
           <RailButton
             active={filters.tag === null}
             onClick={() => setFilters((prev) => ({ ...prev, tag: null }))}
           >
-            전체
+            {t("전체", "All")}
           </RailButton>
           {tags.map((tag) => (
             <RailButton

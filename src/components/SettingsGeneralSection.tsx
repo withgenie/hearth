@@ -4,7 +4,7 @@ import * as api from "../api";
 import type { DataFolderStatus, NotificationPermission } from "../api";
 import { useQuickCaptureShortcut } from "../hooks/useQuickCaptureShortcut";
 import { ShortcutRecorder } from "./settings/ShortcutRecorder";
-import { useLocale } from "../i18n/LocaleContext";
+import { useLocale, useT } from "../i18n/LocaleContext";
 import type { LocalePreference } from "../i18n/locale";
 
 export function SettingsGeneralSection({
@@ -13,6 +13,7 @@ export function SettingsGeneralSection({
   active: boolean;
 }) {
   const locale = useLocale();
+  const t = useT();
   const [perm, setPerm] = useState<NotificationPermission>("unknown");
   const [busy, setBusy] = useState(false);
   const [folderStatus, setFolderStatus] = useState<DataFolderStatus | null>(
@@ -87,9 +88,9 @@ export function SettingsGeneralSection({
   }
 
   const permLabel = {
-    granted: "허용됨",
-    denied: "차단됨",
-    unknown: "미요청",
+    granted: t("허용됨", "Allowed"),
+    denied: t("차단됨", "Blocked"),
+    unknown: t("미요청", "Not requested"),
   }[perm];
 
   return (
@@ -124,55 +125,62 @@ export function SettingsGeneralSection({
 
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          로그인 시 자동 실행
+          {t("로그인 시 자동 실행", "Open at login")}
         </h3>
         <div className="rounded-md border border-[var(--color-border)] p-3 text-[12px] text-[var(--color-text-muted)] leading-relaxed">
-          Mac App Store 정책 호환을 위해 1.1에서 지원될 예정입니다.
+          {t(
+            "Mac App Store 정책 호환을 위해 1.1에서 지원될 예정입니다.",
+            "This will be supported in 1.1 with Mac App Store policy compatibility.",
+          )}
           <br />
-          그동안은 macOS 시스템 설정 → 일반 → 로그인 항목에 Hearth를 추가해
-          주세요.
+          {t(
+            "그동안은 macOS 시스템 설정 → 일반 → 로그인 항목에 Hearth를 추가해 주세요.",
+            "Until then, add Hearth in macOS System Settings → General → Login Items.",
+          )}
         </div>
       </section>
 
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          데이터 폴더
+          {t("데이터 폴더", "Data folder")}
         </h3>
         <div className="rounded-md border border-[var(--color-border)] p-3 text-[12px] text-[var(--color-text-muted)] leading-relaxed">
           {folderStatus?.hasBookmark && folderStatus.resolvedPath ? (
             <>
-              <span className="text-[var(--color-text)]">현재 위치:</span>{" "}
+              <span className="text-[var(--color-text)]">{t("현재 위치:", "Current location:")}</span>{" "}
               <code className="font-mono break-all">
                 {folderStatus.resolvedPath}
               </code>
               {folderStatus.stale && (
                 <p className="mt-1 text-[11px]">
-                  폴더가 이동된 것을 감지했어요. 자동으로 재연결되었습니다.
+                  {t("폴더가 이동된 것을 감지했어요. 자동으로 재연결되었습니다.", "The folder moved and was reconnected automatically.")}
                 </p>
               )}
             </>
           ) : (
             <>
-              현재 기본 위치(샌드박스 컨테이너)에서 동작 중입니다. CLI · AI
-              agent와 데이터를 공유하려면 폴더를 연결해 주세요.
+              {t(
+                "현재 기본 위치(샌드박스 컨테이너)에서 동작 중입니다. CLI · AI agent와 데이터를 공유하려면 폴더를 연결해 주세요.",
+                "Hearth is using its default sandbox container. Connect a folder to share data with the CLI and AI agent.",
+              )}
             </>
           )}
         </div>
         <div className="mt-3 flex items-center gap-2">
           <Button size="sm" onClick={onPickFolder} disabled={folderBusy}>
             {folderStatus?.hasBookmark
-              ? "다른 폴더 연결"
-              : "데이터 폴더 연결"}
+              ? t("다른 폴더 연결", "Connect another folder")
+              : t("데이터 폴더 연결", "Connect data folder")}
           </Button>
           {folderJustChanged && (
             <Button size="sm" variant="secondary" onClick={onRestart}>
-              지금 재시작
+              {t("지금 재시작", "Restart now")}
             </Button>
           )}
         </div>
         {folderJustChanged && (
           <p className="mt-2 text-[11px] text-[var(--color-text-muted)]">
-            새 위치를 적용하려면 Hearth를 재시작해 주세요.
+            {t("새 위치를 적용하려면 Hearth를 재시작해 주세요.", "Restart Hearth to apply the new location.")}
           </p>
         )}
         {folderError && (
@@ -183,9 +191,9 @@ export function SettingsGeneralSection({
       </section>
 
       <section>
-        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">알림</h3>
+        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">{t("알림", "Notifications")}</h3>
         <div className="flex items-center gap-3 text-[13px]">
-          <span>상태: {permLabel}</span>
+          <span>{t("상태:", "Status:")} {permLabel}</span>
           {perm !== "granted" && (
             <Button
               size="sm"
@@ -193,13 +201,13 @@ export function SettingsGeneralSection({
               onClick={requestPerm}
               disabled={busy}
             >
-              권한 요청
+              {t("권한 요청", "Request permission")}
             </Button>
           )}
         </div>
         {perm === "denied" && (
           <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
-            macOS 시스템 설정 → 알림 → Hearth 에서 허용으로 변경해 주세요.
+            {t("macOS 시스템 설정 → 알림 → Hearth에서 허용으로 변경해 주세요.", "Allow Hearth in macOS System Settings → Notifications.")}
           </p>
         )}
       </section>
@@ -214,7 +222,7 @@ export function SettingsGeneralSection({
           </span>
           {!recording && (
             <Button size="sm" onClick={() => setRecording(true)}>
-              변경
+              {t("변경", "Change")}
             </Button>
           )}
         </div>
@@ -239,13 +247,14 @@ export function SettingsGeneralSection({
         )}
         {(shortcutError || rebindError) && (
           <p className="mt-2 text-xs text-red-400">
-            {rebindError ?? `단축키 등록 실패: ${shortcutError}`}
+            {rebindError ?? t(`단축키 등록 실패: ${shortcutError}`, `Shortcut registration failed: ${shortcutError}`)}
           </p>
         )}
         <p className="mt-2 text-[11px] text-[var(--color-text-muted)]">
-          어느 앱에서든 이 단축키로 한 줄 메모를 남길 수 있어요. Hearth가 완전히
-          종료되면 작동하지 않습니다. 저장된 메모는 기본 노란색으로 메모 탭
-          상단에 쌓입니다. (combo: <code>{combo}</code>)
+          {t(
+            "어느 앱에서든 이 단축키로 한 줄 메모를 남길 수 있어요. Hearth가 완전히 종료되면 작동하지 않습니다. 저장된 메모는 기본 노란색으로 메모 탭 상단에 쌓입니다.",
+            "Use this shortcut from any app to capture a one-line memo. It does not work when Hearth is fully quit. Captured memos appear in yellow at the top of the Memos tab.",
+          )}{" "}(combo: <code>{combo}</code>)
         </p>
       </section>
     </div>

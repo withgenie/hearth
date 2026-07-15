@@ -13,6 +13,7 @@ import { ContextMenu } from "../ui/ContextMenu";
 import { MemoProjectPickerDialog } from "./MemoProjectPickerDialog";
 import { MemoTagPickerDialog } from "./MemoTagPickerDialog";
 import { buildMemoActionItems, memoFontSizeClass } from "./memoActions";
+import { useLocale, useT } from "../i18n/LocaleContext";
 
 export function MemoCard({
   memo,
@@ -33,6 +34,8 @@ export function MemoCard({
   sequenceNumber: number;
   highlighted?: boolean;
 }) {
+  const t = useT();
+  const { effective } = useLocale();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(memo.content);
   const { menu, open: openMenu, close: closeMenu } = useContextMenu();
@@ -67,6 +70,7 @@ export function MemoCard({
   };
 
   const menuItems = buildMemoActionItems({
+    locale: effective,
     memo,
     onEdit: () => setEditing(true),
     onUpdate,
@@ -93,12 +97,12 @@ export function MemoCard({
     >
       <span
         className="absolute top-1.5 right-2 rounded-full bg-black/25 text-white px-1.5 py-[1px] text-[10px] font-semibold leading-none"
-        aria-label={`메모 번호 ${sequenceNumber}`}
+        aria-label={t(`메모 번호 ${sequenceNumber}`, `Memo number ${sequenceNumber}`)}
       >
         #{sequenceNumber}
       </span>
 
-      <Tooltip label="드래그하여 이동" side="top">
+      <Tooltip label={t("드래그하여 이동", "Drag to move")} side="top">
         <div
           {...attributes}
           {...listeners}
@@ -130,7 +134,7 @@ export function MemoCard({
               memo.is_bold && "font-semibold",
             )}
           >
-            {memo.content || "클릭하여 메모 작성..."}
+            {memo.content || t("클릭하여 메모 작성...", "Click to write a memo...")}
           </p>
         )}
       </div>
@@ -150,11 +154,11 @@ export function MemoCard({
 
       <div className="flex justify-between items-center mt-2 text-xs opacity-60">
         <span>{linkedProject?.name ?? ""}</span>
-        <Tooltip label="삭제" side="top">
+        <Tooltip label={t("삭제", "Delete")} side="top">
           <button
             onClick={() => onDelete(memo.id)}
             className="opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity"
-            aria-label="삭제"
+            aria-label={t("삭제", "Delete")}
           >
             <Icon icon={X} size={14} />
           </button>

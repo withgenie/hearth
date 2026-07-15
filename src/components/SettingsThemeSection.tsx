@@ -9,6 +9,7 @@ import { useTheme } from "../theme/ThemeContext";
 import { DARK_PRESETS, LIGHT_PRESETS, type PresetId } from "../theme/types";
 import { PRESETS, PRESET_META } from "../theme/presets";
 import { applyTheme } from "../theme/applyTheme";
+import { useT } from "../i18n/LocaleContext";
 
 const HEX_RE = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -72,6 +73,7 @@ function PresetCard({
 
 export function SettingsThemeSection() {
   const { theme, setTheme } = useTheme();
+  const t = useT();
 
   const activePresetId: PresetId | null =
     theme.kind === "preset" ? theme.id : null;
@@ -132,7 +134,7 @@ export function SettingsThemeSection() {
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">다크</h3>
+        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">{t("다크", "Dark")}</h3>
         <div className="grid grid-cols-3 gap-2">
           {DARK_PRESETS.map((id) => (
             <PresetCard
@@ -146,7 +148,7 @@ export function SettingsThemeSection() {
       </section>
 
       <section>
-        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">라이트</h3>
+        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">{t("라이트", "Light")}</h3>
         <div className="grid grid-cols-3 gap-2">
           {LIGHT_PRESETS.map((id) => (
             <PresetCard
@@ -167,7 +169,7 @@ export function SettingsThemeSection() {
             : "border-[var(--color-border)]",
         )}
       >
-        <h3 className="text-[13px] text-[var(--color-text-hi)]">커스텀</h3>
+        <h3 className="text-[13px] text-[var(--color-text-hi)]">{t("커스텀", "Custom")}</h3>
 
         <div className="flex items-center gap-4 text-[13px]">
           <label className="flex items-center gap-1.5">
@@ -180,7 +182,7 @@ export function SettingsThemeSection() {
                 setBaseMode("dark");
               }}
             />
-            다크
+            {t("다크", "Dark")}
           </label>
           <label className="flex items-center gap-1.5">
             <input
@@ -192,14 +194,14 @@ export function SettingsThemeSection() {
                 setBaseMode("light");
               }}
             />
-            라이트
+            {t("라이트", "Light")}
           </label>
         </div>
 
         <div className="flex items-center gap-2">
           <input
             type="color"
-            aria-label="강조색 색상 선택"
+            aria-label={t("강조색 색상 선택", "Choose accent color")}
             value={normalizedHex ?? "#d97706"}
             onChange={(e) => {
               setCustomPreviewDirty(true);
@@ -209,7 +211,7 @@ export function SettingsThemeSection() {
           />
           <input
             type="text"
-            aria-label="강조색 HEX"
+            aria-label={t("강조색 HEX", "Accent color HEX")}
             value={hexInput}
             onChange={(e) => {
               setCustomPreviewDirty(true);
@@ -223,13 +225,13 @@ export function SettingsThemeSection() {
             onClick={() => void onSaveCustom()}
             disabled={!normalizedHex}
           >
-            저장
+            {t("저장", "Save")}
           </Button>
         </div>
 
         {!normalizedHex && (
           <p className="text-[11px] text-red-400">
-            올바른 HEX 값을 입력하세요 (예: #ff8000)
+            {t("올바른 HEX 값을 입력하세요 (예: #ff8000)", "Enter a valid HEX value (example: #ff8000)")}
           </p>
         )}
 
@@ -238,7 +240,7 @@ export function SettingsThemeSection() {
           onClick={() => void onRevert()}
           className="self-start text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] underline"
         >
-          프리셋으로 되돌리기
+          {t("프리셋으로 되돌리기", "Revert to preset")}
         </button>
       </section>
     </div>

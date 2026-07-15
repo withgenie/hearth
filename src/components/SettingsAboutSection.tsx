@@ -8,10 +8,12 @@ import { getVersion, getTauriVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLink } from "lucide-react";
 import { Button } from "../ui/Button";
+import { useT } from "../i18n/LocaleContext";
 
 const APP_STORE_UPDATES_URL = "macappstore://showUpdatesPage";
 
 export function SettingsAboutSection({ active }: { active: boolean }) {
+  const t = useT();
   const [version, setVersion] = useState<string>("");
   const [tauri, setTauri] = useState<string>("");
 
@@ -41,7 +43,7 @@ export function SettingsAboutSection({ active }: { active: boolean }) {
     <div className="flex flex-col gap-6">
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          버전 정보
+          {t("버전 정보", "Version information")}
         </h3>
         <div className="rounded-md border border-[var(--color-border)] p-4 text-[12px]">
           <div className="flex items-center justify-between py-1">
@@ -51,7 +53,7 @@ export function SettingsAboutSection({ active }: { active: boolean }) {
             </span>
           </div>
           <div className="flex items-center justify-between py-1">
-            <span className="text-[var(--color-text-muted)]">번들 ID</span>
+            <span className="text-[var(--color-text-muted)]">{t("번들 ID", "Bundle ID")}</span>
             <span className="font-mono text-[var(--color-text)]">
               com.codewithgenie.hearth
             </span>
@@ -69,11 +71,13 @@ export function SettingsAboutSection({ active }: { active: boolean }) {
 
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          업데이트
+          {t("업데이트", "Updates")}
         </h3>
         <p className="text-[12px] text-[var(--color-text-muted)] mb-3">
-          Hearth 업데이트는 Mac App Store가 자동으로 처리합니다. 직접
-          확인하려면 App Store의 업데이트 페이지를 여세요.
+          {t(
+            "Hearth 업데이트는 Mac App Store가 자동으로 처리합니다. 직접 확인하려면 App Store의 업데이트 페이지를 여세요.",
+            "The Mac App Store handles Hearth updates automatically. Open the Updates page to check manually.",
+          )}
         </p>
         <Button
           size="sm"
@@ -85,14 +89,14 @@ export function SettingsAboutSection({ active }: { active: boolean }) {
             )
           }
         >
-          App Store에서 업데이트 확인
+          {t("App Store에서 업데이트 확인", "Check for updates in the App Store")}
         </Button>
       </section>
 
       <section>
-        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">제작</h3>
+        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">{t("제작", "Made by")}</h3>
         <p className="text-[12px] text-[var(--color-text-muted)]">
-          © 2026 위드지니 · 장재현
+          {t("© 2026 위드지니 · 장재현", "© 2026 WithGenie · Jaehyun Jang")}
           <br />
           문의: genie@codewithgenie.com
         </p>

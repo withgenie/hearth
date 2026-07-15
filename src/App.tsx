@@ -21,6 +21,7 @@ import { useMemos } from "./hooks/useMemos";
 import { useUiScale } from "./hooks/useUiScale";
 import { useTauriDbChangeBridge } from "./lib/dbChangeBridge";
 import type { Priority, Tab } from "./types";
+import { useT } from "./i18n/LocaleContext";
 
 type ViewPhase = "idle" | "exiting" | "entering";
 
@@ -57,6 +58,7 @@ export function TabViewTransition({
   activeTab: Tab;
   children: (tab: Tab) => ReactNode;
 }) {
+  const t = useT();
   const [displayedTab, setDisplayedTab] = useState(activeTab);
   const [phase, setPhase] = useState<ViewPhase>("idle");
   const reducedMotion = usePrefersReducedMotion();
@@ -125,7 +127,7 @@ export function TabViewTransition({
 
   return (
     <div
-      aria-label="선택한 화면"
+      aria-label={t("선택한 화면", "Selected view")}
       className={`tab-view ${phaseClass[phase]}`}
       onAnimationEnd={finishPhase}
       role="tabpanel"
@@ -144,6 +146,7 @@ function ProjectsTab({
   category: string | null;
   onAdd: () => void;
 }) {
+  const t = useT();
   const { projects, loading, update, remove, reorder } = useProjects(
     priorities,
     category
@@ -169,7 +172,7 @@ function ProjectsTab({
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center text-[var(--color-text-muted)] text-sm">
-        로딩 중...
+        {t("로딩 중...", "Loading...")}
       </div>
     );
   }

@@ -8,6 +8,7 @@ import { ContextMenu } from "../ui/ContextMenu";
 import { MemoProjectPickerDialog } from "./MemoProjectPickerDialog";
 import { MemoTagPickerDialog } from "./MemoTagPickerDialog";
 import { buildMemoActionItems, memoFontSizeClass } from "./memoActions";
+import { useLocale, useT } from "../i18n/LocaleContext";
 
 export function MemoRow({
   memo,
@@ -28,6 +29,8 @@ export function MemoRow({
   sequenceNumber: number;
   highlighted?: boolean;
 }) {
+  const t = useT();
+  const { effective } = useLocale();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(memo.content);
   const { menu, open: openMenu, close: closeMenu } = useContextMenu();
@@ -45,6 +48,7 @@ export function MemoRow({
   };
 
   const menuItems = buildMemoActionItems({
+    locale: effective,
     memo,
     onEdit: () => setEditing(true),
     onUpdate,
@@ -54,7 +58,7 @@ export function MemoRow({
     onCloseMenu: closeMenu,
   });
 
-  const preview = memo.content || "(비어 있음)";
+  const preview = memo.content || t("(비어 있음)", "(Empty)");
 
   return (
     <div
@@ -68,7 +72,7 @@ export function MemoRow({
       <span
         className="mt-[2px] shrink-0 inline-flex items-center justify-center min-w-[22px] h-[16px] rounded-sm px-1 text-[10px] font-semibold leading-none"
         style={{ backgroundColor: colorDef.bg, color: colorDef.text }}
-        aria-label={`메모 번호 ${sequenceNumber}`}
+        aria-label={t(`메모 번호 ${sequenceNumber}`, `Memo number ${sequenceNumber}`)}
       >
         #{sequenceNumber}
       </span>

@@ -7,6 +7,7 @@ import {
 } from "react";
 import { cn } from "../../lib/cn";
 import { buildMonthCells } from "./dateUtils";
+import { useLocale, useT } from "../../i18n/LocaleContext";
 
 export type MonthGridKind =
   | "event"
@@ -43,13 +44,6 @@ export interface MonthGridProps {
 }
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
-
-const DATE_LABEL_FORMAT = new Intl.DateTimeFormat("ko-KR", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  weekday: "long",
-});
 
 function pointerCoordinate(value: number): number {
   return Number.isFinite(value) ? value : 0;
@@ -96,6 +90,7 @@ function EventChip({
   onPointerDown,
   onClick,
 }: DraggableScheduleProps) {
+  const t = useT();
   const railColor =
     schedule.railColor ??
     DEFAULT_RAIL_COLOR[schedule.kind === "shift" ? "event" : schedule.kind];
@@ -105,7 +100,7 @@ function EventChip({
   return (
     <button
       type="button"
-      aria-label={`${schedule.title} 일정 이동`}
+      aria-label={t(`${schedule.title} 일정 이동`, `Move ${schedule.title}`)}
       aria-grabbed={isDragging}
       data-testid="month-grid-chip"
       data-dragging={isDragging ? "true" : undefined}
@@ -114,7 +109,7 @@ function EventChip({
         isDeadline && "font-medium text-[var(--color-danger)]",
         isDragging && "opacity-50",
       )}
-      title={[schedule.time, schedule.title, "드래그하여 날짜 변경"]
+      title={[schedule.time, schedule.title, t("드래그하여 날짜 변경", "Drag to change date")]
         .filter(Boolean)
         .join(" · ")}
       onClick={(event) => onClick(event, schedule)}
@@ -147,6 +142,17 @@ export function MonthGrid({
   onOverflowDate,
   onMoveSchedule,
 }: MonthGridProps) {
+  const t = useT();
+  const { effective } = useLocale();
+  const weekdayLabels = effective === "ko"
+    ? WEEKDAY_LABELS
+    : (["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const);
+  const dateLabelFormat = new Intl.DateTimeFormat(effective === "ko" ? "ko-KR" : "en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
   const [draggedSchedule, setDraggedSchedule] =
     useState<MonthGridSchedule | null>(null);
   const [dropTargetDate, setDropTargetDate] = useState<string | null>(null);
@@ -201,11 +207,11 @@ export function MonthGrid({
     try {
       await onMoveSchedule(schedule.id, targetDate);
       setMoveStatus(
-        `${schedule.title} 일정을 ${targetLabel}로 이동했습니다.`,
+        t(`${schedule.title} 일정을 ${targetLabel}로 이동했습니다.`, `${schedule.title} moved to ${targetLabel}.`),
       );
     } catch {
       setMoveStatus(
-        `${schedule.title} 일정을 이동하지 못했습니다. 다시 시도해 주세요.`,
+        t(`${schedule.title} 일정을 이동하지 못했습니다. 다시 시도해 주세요.`, `Could not move ${schedule.title}. Try again.`),
       );
     }
   };
@@ -309,7 +315,7 @@ export function MonthGrid({
       )}
       <div
         role="grid"
-        aria-label={`${month.getFullYear()}년 ${month.getMonth() + 1}월`}
+        aria-label={new Intl.DateTimeFormat(effective === "ko" ? "ko-KR" : "en-US", { year: "numeric", month: "long" }).format(month)}
         aria-colcount={7}
         aria-rowcount={7}
         className="grid h-full min-h-0 grid-cols-7 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-1)]"
@@ -324,7 +330,7 @@ export function MonthGrid({
           clearPointerDrag();
         }}
       >
-      {WEEKDAY_LABELS.map((label, weekday) => (
+      {weekdayLabels.map((label, weekday) => (
         <div
           key={label}
           role="columnheader"
@@ -397,13 +403,13 @@ export function MonthGrid({
               finishPointerDrag(
                 event,
                 cell.dateKey,
-                DATE_LABEL_FORMAT.format(cell.date),
+                dateLabelFormat.format(cell.date),
               )
             }
           >
             <button
               type="button"
-              aria-label={DATE_LABEL_FORMAT.format(cell.date)}
+              aria-label={dateLabelFormat.format(cell.date)}
               aria-current={cell.isToday ? "date" : undefined}
               aria-pressed={selectedDate === cell.dateKey}
               data-weekend={weekend}
@@ -430,7 +436,7 @@ export function MonthGrid({
                 {shifts[0] && (
                   <button
                     type="button"
-                    aria-label={`${shifts[0].title} 일정 이동`}
+                    aria-label={t(`${shifts[0].title} 일정 이동`, `Move ${shifts[0].title}`)}
                     aria-grabbed={draggedSchedule?.id === shifts[0].id}
                     data-shift-code={shifts[0].shiftCode}
                     data-dragging={
@@ -441,7 +447,7 @@ export function MonthGrid({
                       shiftBadgeClasses(shifts[0].shiftCode),
                       draggedSchedule?.id === shifts[0].id && "opacity-50",
                     )}
-                    title={`${shifts[0].title} · 드래그하여 날짜 변경`}
+                    title={t(`${shifts[0].title} · 드래그하여 날짜 변경`, `${shifts[0].title} · drag to change date`)}
                     onClick={(event) =>
                       selectScheduleDate(event, shifts[0])
                     }
@@ -470,7 +476,7 @@ export function MonthGrid({
             {overflowCount > 0 && (
               <button
                 type="button"
-                aria-label={`일정 ${overflowCount}개 더 보기`}
+                aria-label={t(`일정 ${overflowCount}개 더 보기`, `View ${overflowCount} more schedules`)}
                 className="relative z-[2] mt-1 rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[12px] font-semibold text-[var(--color-brand-hi)] outline-none transition-colors duration-[120ms] hover:bg-[var(--color-surface-2)] active:bg-[var(--color-surface-3)] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-hi)]"
                 onClick={() =>
                   (onOverflowDate ?? onSelectDate)(cell.dateKey)

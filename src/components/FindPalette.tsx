@@ -16,19 +16,15 @@ import { Kbd } from "../ui/Kbd";
 import { cn } from "../lib/cn";
 import type { Project, Memo, Schedule, Tab } from "../types";
 import { PRIORITY_LABELS, type Priority } from "../types";
+import { useLocale, useT } from "../i18n/LocaleContext";
+import type { AppLocale } from "../i18n/locale";
 
 type FindItem =
   | { kind: "project"; id: number; title: string; subtitle: string; raw: Project }
   | { kind: "memo"; id: number; title: string; subtitle: string; raw: Memo }
   | { kind: "schedule"; id: number; title: string; subtitle: string; raw: Schedule };
 
-const KIND_META: Record<FindItem["kind"], { label: string; icon: typeof Search }> = {
-  project: { label: "프로젝트", icon: FolderKanban },
-  memo: { label: "메모", icon: StickyNote },
-  schedule: { label: "일정", icon: CalendarIcon },
-};
-
-function buildItems(projects: Project[], memos: Memo[], schedules: Schedule[]): FindItem[] {
+function buildItems(projects: Project[], memos: Memo[], schedules: Schedule[], locale: AppLocale): FindItem[] {
   const items: FindItem[] = [];
   for (const p of projects) {
     const priLabel = PRIORITY_LABELS[p.priority as Priority] ?? p.priority;
@@ -46,13 +42,13 @@ function buildItems(projects: Project[], memos: Memo[], schedules: Schedule[]): 
     items.push({
       kind: "memo",
       id: m.id,
-      title: firstLine || "(빈 메모)",
+      title: firstLine || (locale === "ko" ? "(빈 메모)" : "(Empty memo)"),
       subtitle: m.content.length > firstLine.length ? m.content.slice(0, 120) : "",
       raw: m,
     });
   }
   for (const s of schedules) {
-    const title = s.description ?? "(제목 없음)";
+    const title = s.description ?? (locale === "ko" ? "(제목 없음)" : "(Untitled)");
     const when = [s.date, s.time].filter(Boolean).join(" ");
     const sub = [when, s.location ?? "", s.notes ?? ""].filter(Boolean).join(" · ");
     items.push({
@@ -81,6 +77,8 @@ export function FindPalette({
   onClose: () => void;
   onNavigate: (tab: Tab) => void;
 }) {
+  const t = useT();
+  const { effective } = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -94,7 +92,7 @@ export function FindPalette({
     let cancelled = false;
     void Promise.all([api.getProjects(), api.getMemos(), api.getSchedules()])
       .then(([projects, memos, schedules]) => {
-        if (!cancelled) setItems(buildItems(projects, memos, schedules));
+        if (!cancelled) setItems(buildItems(projects, memos, schedules, effective));
       })
       .catch(() => {
         if (!cancelled) setItems([]);
@@ -103,7 +101,13 @@ export function FindPalette({
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [effective, open]);
+
+  const kindMeta: Record<FindItem["kind"], { label: string; icon: typeof Search }> = {
+    project: { label: t("프로젝트", "Project"), icon: FolderKanban },
+    memo: { label: t("메모", "Memo"), icon: StickyNote },
+    schedule: { label: t("일정", "Schedule"), icon: CalendarIcon },
+  };
 
   useEffect(() => {
     if (!open) {
@@ -208,12 +212,12 @@ export function FindPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="프로젝트·메모·일정에서 검색…"
+            placeholder={t("프로젝트·메모·일정에서 검색…", "Search projects, memos, and schedules…")}
             className="flex-1 bg-transparent outline-none text-[14px] text-[var(--color-text-hi)] placeholder:text-[var(--color-text-dim)]"
             autoFocus
           />
           <span className="text-[11px] text-[var(--color-text-muted)]">
-            {results.length}건
+            {t(`${results.length}건`, `${results.length} results`)}
           </span>
           <Kbd>ESC</Kbd>
           <Kbd>⌘F</Kbd>
@@ -221,12 +225,14 @@ export function FindPalette({
         <div className="max-h-[50vh] overflow-y-auto">
           {results.length === 0 ? (
             <div className="px-4 py-8 text-center text-[13px] text-[var(--color-text-muted)]">
-              {query.trim() ? "일치하는 항목이 없습니다." : "검색어를 입력하세요."}
+              {query.trim()
+                ? t("일치하는 항목이 없습니다.", "No matching items.")
+                : t("검색어를 입력하세요.", "Enter a search term.")}
             </div>
           ) : (
             <ul role="listbox">
               {results.map((item, i) => {
-                const meta = KIND_META[item.kind];
+                const meta = kindMeta[item.kind];
                 const active = i === activeIndex;
                 return (
                   <li

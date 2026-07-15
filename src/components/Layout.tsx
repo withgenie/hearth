@@ -15,6 +15,7 @@ import { useDbRecoveryNotice } from "../hooks/useDbRecoveryNotice";
 import { useCmdF } from "../lib/shortcuts";
 import { useToast } from "../ui/Toast";
 import * as api from "../api";
+import { useLocale, useT } from "../i18n/LocaleContext";
 
 export function Layout({
   children,
@@ -26,6 +27,8 @@ export function Layout({
     openNewProject: () => void;
   }) => React.ReactNode;
 }) {
+  const t = useT();
+  const { effective } = useLocale();
   useDbRecoveryNotice();
   const toast = useToast();
   const [version, setVersion] = useState<string>("");
@@ -49,10 +52,10 @@ export function Layout({
       userSelectedTabRef.current = true;
       setActiveTab(tab);
       void api.saveUiPreferences({ activeTab: tab }).catch(() => {
-        toast.error("탭 설정을 저장하지 못했습니다");
+        toast.error(t("탭 설정을 저장하지 못했습니다", "Could not save the selected tab"));
       });
     },
-    [toast],
+    [t, toast],
   );
 
   useEffect(() => {
@@ -65,12 +68,12 @@ export function Layout({
         }
       })
       .catch(() => {
-        if (!cancelled) toast.error("탭 설정을 불러오지 못했습니다");
+        if (!cancelled) toast.error(t("탭 설정을 불러오지 못했습니다", "Could not load the selected tab"));
       });
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -147,7 +150,7 @@ export function Layout({
     let unlisten: UnlistenFn | undefined;
     listen<{ memoId: number }>("memo:quick-captured", (e) => {
       const { memoId } = e.payload;
-      toast.success("메모 추가됨");
+      toast.success(t("메모 추가됨", "Memo added"));
       window.dispatchEvent(
         new CustomEvent("memo:focus", { detail: { memoId } }),
       );
@@ -160,7 +163,7 @@ export function Layout({
       cancelled = true;
       unlisten?.();
     };
-  }, [toast]);
+  }, [t, toast]);
 
   const openNewMemo = useCallback(() => {
     changeActiveTab("memos");
@@ -171,7 +174,7 @@ export function Layout({
     openNewProject,
     openNewSchedule: () => changeActiveTab("calendar"),
     openNewMemo,
-  });
+  }, effective);
 
   // Dispatch navigation/UI tool calls returned by the agent. `switch_tab` and
   // `set_filter` map directly to our own state setters. Priorities are

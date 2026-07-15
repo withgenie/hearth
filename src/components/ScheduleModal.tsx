@@ -5,6 +5,7 @@ import type { ScheduleInput } from "../api";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import { useT } from "../i18n/LocaleContext";
 
 const SCHEDULE_KIND_OPTIONS = [
   { value: "event", label: "일정" },
@@ -94,6 +95,7 @@ export function ScheduleModal({
   onDelete?: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const initialNotify =
     !!schedule && (
       !!schedule.time ||
@@ -155,13 +157,13 @@ export function ScheduleModal({
           id="schedule-title"
           className="text-heading text-[var(--color-text-hi)] mb-4"
         >
-          일정 {isEdit ? "수정" : "추가"}
+          {t("일정", "Schedule")} {isEdit ? t("수정", "Edit") : t("추가", "Add")}
         </h2>
 
         <div className="flex flex-col gap-3">
           <div>
             <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">
-              날짜
+              {t("날짜", "Date")}
             </label>
             <Input
               type="date"
@@ -177,9 +179,9 @@ export function ScheduleModal({
               type="checkbox"
               checked={notify}
               onChange={toggleNotify}
-              aria-label="알림 받기"
+              aria-label={t("알림 받기", "Enable reminders")}
             />
-            <span>알림 받기</span>
+            <span>{t("알림 받기", "Enable reminders")}</span>
           </label>
 
           {notify && (
@@ -189,7 +191,7 @@ export function ScheduleModal({
                   htmlFor="schedule-time"
                   className="text-[11px] text-[var(--color-text-muted)] mb-1 block"
                 >
-                  시간
+                  {t("시간", "Time")}
                 </label>
                 <Input
                   id="schedule-time"
@@ -197,7 +199,7 @@ export function ScheduleModal({
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                   onKeyDown={onEnterSubmit}
-                  aria-label="시간"
+                  aria-label={t("시간", "Time")}
                 />
               </div>
               <div className="flex gap-4 text-[13px]">
@@ -206,18 +208,18 @@ export function ScheduleModal({
                     type="checkbox"
                     checked={remindBefore5}
                     onChange={(e) => setRemindBefore5(e.target.checked)}
-                    aria-label="5분 전"
+                    aria-label={t("5분 전", "5 minutes before")}
                   />
-                  <span>5분 전</span>
+                  <span>{t("5분 전", "5 minutes before")}</span>
                 </label>
                 <label className="flex items-center gap-1.5 select-none">
                   <input
                     type="checkbox"
                     checked={remindAtStart}
                     onChange={(e) => setRemindAtStart(e.target.checked)}
-                    aria-label="정각"
+                    aria-label={t("정각", "At start")}
                   />
-                  <span>정각</span>
+                  <span>{t("정각", "At start")}</span>
                 </label>
               </div>
             </>
@@ -228,7 +230,7 @@ export function ScheduleModal({
               htmlFor="schedule-kind"
               className="text-[11px] text-[var(--color-text-muted)] mb-1 block"
             >
-              일정 종류
+              {t("일정 종류", "Schedule type")}
             </label>
             <select
               id="schedule-kind"
@@ -242,7 +244,13 @@ export function ScheduleModal({
             >
               {SCHEDULE_KIND_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {option.value === "event"
+                    ? t("일정", "Event")
+                    : option.value === "task"
+                      ? t("할 일", "Task")
+                      : option.value === "shift"
+                        ? t("근무", "Shift")
+                        : t("기념일", "Anniversary")}
                 </option>
               ))}
             </select>
@@ -254,7 +262,7 @@ export function ScheduleModal({
                 htmlFor="schedule-color"
                 className="text-[11px] text-[var(--color-text-muted)] mb-1 block"
               >
-                일정 색상
+                {t("일정 색상", "Schedule color")}
               </label>
               <Input
                 id="schedule-color"
@@ -262,7 +270,7 @@ export function ScheduleModal({
                 value={color}
                 onChange={(event) => setColor(event.target.value)}
                 onKeyDown={onEnterSubmit}
-                placeholder="자동 배색"
+                placeholder={t("자동 배색", "Automatic color")}
               />
             </div>
             <div>
@@ -270,7 +278,7 @@ export function ScheduleModal({
                 htmlFor="schedule-icon"
                 className="text-[11px] text-[var(--color-text-muted)] mb-1 block"
               >
-                스티커 이모지
+                {t("스티커 이모지", "Sticker emoji")}
               </label>
               <Input
                 id="schedule-icon"
@@ -278,7 +286,7 @@ export function ScheduleModal({
                 value={icon}
                 onChange={(event) => setIcon(event.target.value)}
                 onKeyDown={onEnterSubmit}
-                placeholder="선택 사항"
+                placeholder={t("선택 사항", "Optional")}
                 aria-invalid={iconInvalid}
                 aria-describedby={iconInvalid ? "schedule-icon-error" : undefined}
               />
@@ -288,7 +296,7 @@ export function ScheduleModal({
                   role="alert"
                   className="mt-1 text-[11px] text-[var(--color-danger)]"
                 >
-                  스티커는 이모지 1개만 입력해 주세요.
+                  {t("스티커는 이모지 1개만 입력해 주세요.", "Enter a single emoji for the sticker.")}
                 </div>
               )}
             </div>
@@ -296,44 +304,44 @@ export function ScheduleModal({
 
           <div>
             <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">
-              장소
+              {t("장소", "Location")}
             </label>
             <Input
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               onKeyDown={onEnterSubmit}
-              aria-label="장소"
+              aria-label={t("장소", "Location")}
             />
           </div>
           <div>
             <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">
-              내용
+              {t("내용", "Description")}
             </label>
             <Input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onKeyDown={onEnterSubmit}
-              aria-label="내용"
+              aria-label={t("내용", "Description")}
             />
           </div>
           <div>
             <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">
-              비고
+              {t("비고", "Notes")}
             </label>
             <Input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               onKeyDown={onEnterSubmit}
-              aria-label="비고"
+              aria-label={t("비고", "Notes")}
             />
           </div>
 
           {timeMissing && (
             <div className="text-[11px] text-[var(--color-danger)]">
-              시간을 입력해 주세요.
+              {t("시간을 입력해 주세요.", "Enter a time.")}
             </div>
           )}
         </div>
@@ -348,20 +356,20 @@ export function ScheduleModal({
                 leftIcon={Trash2}
                 onClick={onDelete}
               >
-                삭제
+                {t("삭제", "Delete")}
               </Button>
             )}
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose}>
-              취소
+              {t("취소", "Cancel")}
             </Button>
             <Button
               type="submit"
               variant="primary"
               disabled={timeMissing || iconInvalid}
             >
-              저장
+              {t("저장", "Save")}
             </Button>
           </div>
         </div>

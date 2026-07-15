@@ -4,6 +4,7 @@ import { Search, Loader2, Sparkles } from "lucide-react";
 import { Icon } from "../ui/Icon";
 import { Kbd } from "../ui/Kbd";
 import { cn } from "../lib/cn";
+import { useT } from "../i18n/LocaleContext";
 
 export const CommandInput = forwardRef<
   HTMLInputElement,
@@ -20,6 +21,7 @@ export const CommandInput = forwardRef<
   { value, onChange, onKeyDown, loading, placeholder, mode, hasResponse },
   ref
 ) {
+  const t = useT();
   const isAi = mode === "ai";
   return (
     <div
@@ -50,19 +52,19 @@ export const CommandInput = forwardRef<
         placeholder={
           placeholder ??
           (isAi
-            ? "질문을 입력하고 ⏎ — 예: '? PickAt 프로젝트 추가'"
-            : "명령을 입력하거나 ?로 AI에게 물어보세요")
+            ? t("질문을 입력하고 ⏎ — 예: '? PickAt 프로젝트 추가'", "Enter a request and press ⏎ — example: '? Add a PickAt project'")
+            : t("명령을 입력하거나 ?로 AI에게 물어보세요", "Enter a command or ask AI with ?"))
         }
         className="flex-1 bg-transparent outline-none text-[14px] text-[var(--color-text-hi)] placeholder:text-[var(--color-text-dim)]"
         autoFocus
       />
       {/* Progression hint — shows the user what Enter will do next. */}
       {isAi && loading && (
-        <span className="text-[11px] text-[var(--color-brand-hi)]">응답 중…</span>
+        <span className="text-[11px] text-[var(--color-brand-hi)]">{t("응답 중…", "Responding…")}</span>
       )}
       {isAi && !loading && !hasResponse && value.trim().length > 1 && (
         <span className="text-[11px] text-[var(--color-text-muted)]">
-          ⏎ 질문 보내기
+          {t("⏎ 질문 보내기", "⏎ Send request")}
         </span>
       )}
       <Kbd>ESC</Kbd>

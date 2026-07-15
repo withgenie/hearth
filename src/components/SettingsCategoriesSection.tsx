@@ -30,6 +30,7 @@ import { useToast } from "../ui/Toast";
 import { useCategories } from "../hooks/useCategories";
 import type { CategoryRow } from "../types";
 import { cn } from "../lib/cn";
+import { useT } from "../i18n/LocaleContext";
 
 const PRESET_COLORS = [
   "#22c55e",
@@ -46,6 +47,7 @@ const PRESET_COLORS = [
 
 export function SettingsCategoriesSection() {
   const toast = useToast();
+  const t = useT();
   const { categories, create, rename, recolor, remove, reorder } =
     useCategories();
   const [adding, setAdding] = useState(false);
@@ -67,7 +69,7 @@ export function SettingsCategoriesSection() {
     try {
       await reorder(next.map((c) => c.id));
     } catch (err) {
-      toast.error(`순서 저장 실패: ${err}`);
+      toast.error(t(`순서 저장 실패: ${err}`, `Failed to save order: ${err}`));
     }
   };
 
@@ -80,9 +82,9 @@ export function SettingsCategoriesSection() {
     }
     try {
       await create({ name });
-      toast.success(`${name} 추가됨`);
+      toast.success(t(`${name} 추가됨`, `${name} added`));
     } catch (err) {
-      toast.error(`추가 실패: ${err}`);
+      toast.error(t(`추가 실패: ${err}`, `Add failed: ${err}`));
     } finally {
       setAdding(false);
       setNewName("");
@@ -106,17 +108,17 @@ export function SettingsCategoriesSection() {
                 key={c.id}
                 category={c}
                 onRename={(n) =>
-                  rename(c.id, n).catch((e) => toast.error(`이름 변경 실패: ${e}`))
+                  rename(c.id, n).catch((e) => toast.error(t(`이름 변경 실패: ${e}`, `Rename failed: ${e}`)))
                 }
                 onRecolor={(col) =>
                   recolor(c.id, col).catch((e) =>
-                    toast.error(`색 변경 실패: ${e}`)
+                    toast.error(t(`색 변경 실패: ${e}`, `Color change failed: ${e}`))
                   )
                 }
                 onDelete={() =>
                   remove(c.id)
-                    .then(() => toast.success(`${c.name} 삭제됨`))
-                    .catch((e) => toast.error(`삭제 실패: ${e}`))
+                    .then(() => toast.success(t(`${c.name} 삭제됨`, `${c.name} deleted`)))
+                    .catch((e) => toast.error(t(`삭제 실패: ${e}`, `Delete failed: ${e}`)))
                 }
               />
             ))}
@@ -138,7 +140,7 @@ export function SettingsCategoriesSection() {
                 setNewName("");
               }
             }}
-            placeholder="카테고리 이름"
+            placeholder={t("카테고리 이름", "Category name")}
             className={cn(
               "flex-1 h-9 px-3 text-[13px] rounded-[var(--radius-md)]",
               "bg-[var(--color-surface-2)] text-[var(--color-text)]",
@@ -154,7 +156,7 @@ export function SettingsCategoriesSection() {
           leftIcon={Plus}
           onClick={() => setAdding(true)}
         >
-          카테고리 추가
+          {t("카테고리 추가", "Add category")}
         </Button>
       )}
     </div>
@@ -172,6 +174,7 @@ function CategoryRowItem({
   onRecolor: (color: string) => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: category.id });
   const style = {
@@ -201,7 +204,7 @@ function CategoryRowItem({
         {...attributes}
         {...listeners}
         type="button"
-        aria-label="드래그하여 순서 변경"
+        aria-label={t("드래그하여 순서 변경", "Drag to reorder")}
         className="cursor-grab text-[var(--color-text-dim)] hover:text-[var(--color-text-muted)]"
       >
         <Icon icon={GripVertical} size={14} />
@@ -213,7 +216,7 @@ function CategoryRowItem({
             type="button"
             onClick={onClick}
             aria-expanded={ae}
-            aria-label="색상 변경"
+            aria-label={t("색상 변경", "Change color")}
             className="w-5 h-5 rounded-full border border-[var(--color-border)] shrink-0"
             style={{ backgroundColor: category.color }}
           />
@@ -255,18 +258,18 @@ function CategoryRowItem({
       />
 
       <span className="text-[11px] text-[var(--color-text-dim)] tabular-nums shrink-0">
-        {category.usage_count}개
+        {t(`${category.usage_count}개`, `${category.usage_count}`)}
       </span>
 
       <Tooltip
-        label={disableDelete ? "사용 중인 카테고리는 삭제할 수 없습니다" : "삭제"}
+        label={disableDelete ? t("사용 중인 카테고리는 삭제할 수 없습니다", "Categories in use cannot be deleted") : t("삭제", "Delete")}
         side="top"
       >
         <button
           type="button"
           onClick={() => !disableDelete && onDelete()}
           disabled={disableDelete}
-          aria-label="삭제"
+          aria-label={t("삭제", "Delete")}
           className={cn(
             "w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-sm)]",
             disableDelete
@@ -288,6 +291,7 @@ function ColorPicker({
   value: string;
   onChange: (c: string) => void;
 }) {
+  const t = useT();
   const [custom, setCustom] = useState(value);
   return (
     <div className="flex flex-col gap-2 p-2">
@@ -297,7 +301,7 @@ function ColorPicker({
             key={c}
             type="button"
             onClick={() => onChange(c)}
-            aria-label={`색상 ${c}`}
+            aria-label={t(`색상 ${c}`, `Color ${c}`)}
             className={cn(
               "w-6 h-6 rounded-full border transition-transform",
               c.toLowerCase() === value.toLowerCase()
@@ -326,7 +330,7 @@ function ColorPicker({
           }}
           className="text-[11px] px-2 h-7 rounded-[var(--radius-sm)] text-[var(--color-brand-hi)] hover:bg-[var(--color-surface-3)]"
         >
-          적용
+          {t("적용", "Apply")}
         </button>
       </div>
     </div>

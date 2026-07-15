@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { Button } from "../ui/Button";
 import * as api from "../api";
+import { useT } from "../i18n/LocaleContext";
 
 type Stage = "intro" | "choosing" | "restartPrompt" | "error";
 
@@ -10,6 +11,7 @@ type Stage = "intro" | "choosing" | "restartPrompt" | "error";
 // has not explicitly dismissed). Settings → 일반 → "데이터 폴더" handles the
 // re-entry flow inline; this component is for the boot-time prompt only.
 export function MigrationWizard() {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("intro");
   const [error, setError] = useState<string | null>(null);
@@ -110,39 +112,36 @@ export function MigrationWizard() {
           id="migration-wizard-title"
           className="text-[16px] font-semibold text-[var(--color-text-hi)] mb-3"
         >
-          데이터 폴더 연결
+          {t("데이터 폴더 연결", "Connect data folder")}
         </h2>
 
         {stage === "intro" && (
           <>
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">
-              Hearth는 <code>~/Library/Application Support/com.codewithgenie.hearth/</code>
-              에 데이터를 보관합니다. 이 위치 접근 권한을 한 번 허용해 주세요.
+              {t("Hearth는", "Hearth stores data in")} <code>~/Library/Application Support/com.codewithgenie.hearth/</code>{t("에 데이터를 보관합니다. 이 위치 접근 권한을 한 번 허용해 주세요.", ". Allow access to this location once.")}
             </p>
             <p className="text-[12px] text-[var(--color-text-muted)] leading-relaxed mb-5">
-              CLI 및 AI agent와 같은 데이터를 공유하기 위함입니다. "나중에"를
-              선택하면 기능 축소 모드로 동작하며 설정에서 언제든 다시 연결할
-              수 있습니다.
+              {t("CLI 및 AI agent와 같은 데이터를 공유하기 위함입니다. '나중에'를 선택하면 기능 축소 모드로 동작하며 설정에서 언제든 다시 연결할 수 있습니다.", "This lets the CLI and AI agents share the same data. Choose Later to continue with reduced functionality and connect it anytime in Settings.")}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={onDismiss}>
-                나중에
+                {t("나중에", "Later")}
               </Button>
-              <Button onClick={onChoose}>폴더 선택</Button>
+              <Button onClick={onChoose}>{t("폴더 선택", "Choose folder")}</Button>
             </div>
           </>
         )}
 
         {stage === "choosing" && (
           <p className="text-[13px] text-[var(--color-text-muted)]">
-            폴더 선택 창을 여는 중...
+            {t("폴더 선택 창을 여는 중...", "Opening folder picker...")}
           </p>
         )}
 
         {stage === "restartPrompt" && (
           <>
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">
-              데이터 폴더가 연결되었습니다.
+              {t("데이터 폴더가 연결되었습니다.", "Data folder connected.")}
             </p>
             {resolvedPath && (
               <p className="text-[11px] text-[var(--color-text-muted)] font-mono break-all mb-4">
@@ -150,10 +149,10 @@ export function MigrationWizard() {
               </p>
             )}
             <p className="text-[12px] text-[var(--color-text-muted)] leading-relaxed mb-5">
-              새 위치를 적용하려면 Hearth를 재시작해 주세요.
+              {t("새 위치를 적용하려면 Hearth를 재시작해 주세요.", "Restart Hearth to use the new location.")}
             </p>
             <div className="flex justify-end gap-2">
-              <Button onClick={onRestart}>지금 재시작</Button>
+              <Button onClick={onRestart}>{t("지금 재시작", "Restart now")}</Button>
             </div>
           </>
         )}
@@ -161,17 +160,17 @@ export function MigrationWizard() {
         {stage === "error" && (
           <>
             <p className="text-[13px] text-red-400 leading-relaxed mb-2">
-              오류가 발생했습니다.
+              {t("오류가 발생했습니다.", "Something went wrong.")}
             </p>
             <p className="text-[11px] text-[var(--color-text-muted)] font-mono break-all mb-5">
               {error}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setStage("intro")}>
-                다시 시도
+                {t("다시 시도", "Try again")}
               </Button>
               <Button variant="secondary" onClick={onDismiss}>
-                닫기
+                {t("닫기", "Close")}
               </Button>
             </div>
           </>

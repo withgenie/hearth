@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { Memo, Project } from "../types";
+import { useT } from "../i18n/LocaleContext";
 import { cn } from "../lib/cn";
 
 type JournalMemo = {
@@ -104,6 +105,7 @@ export function JournalMemoList({
   projects: Project[];
   timeZone?: string;
 }) {
+  const t = useT();
   const groups = useMemo(
     () => groupJournalMemos(memos, timeZone),
     [memos, timeZone],
@@ -159,7 +161,7 @@ export function JournalMemoList({
                         memo.is_bold && "font-semibold",
                       )}
                     >
-                      {memo.content || "(비어 있음)"}
+                      {memo.content || t("(비어 있음)", "(Empty)")}
                     </p>
                     <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--color-text-dim)]">
                       <time dateTime={memo.created_at}>

@@ -2,15 +2,17 @@
 // Clicking opens the settings AI tab.
 import { useAiStatus } from "../hooks/useAiStatus";
 import { cn } from "../lib/cn";
+import { useT } from "../i18n/LocaleContext";
 
 export function AiStatusPill() {
+  const t = useT();
   const status = useAiStatus();
 
   const configured = status === "configured";
-  const label = configured ? "AI 준비됨" : "AI 키 필요";
+  const label = configured ? t("AI 준비됨", "AI ready") : t("AI 키 필요", "AI key needed");
   const title = configured
-    ? "OpenAI 키가 저장되어 있습니다. ⌘K 로 AI 명령을 사용할 수 있어요."
-    : "OpenAI 키가 없습니다. 설정 → AI 탭에서 키를 입력하세요.";
+    ? t("OpenAI 키가 저장되어 있습니다. ⌘K로 AI 명령을 사용할 수 있어요.", "An OpenAI key is saved. Use AI commands with ⌘K.")
+    : t("OpenAI 키가 없습니다. 설정 → AI 탭에서 키를 입력하세요.", "No OpenAI key. Add one in Settings → AI.");
   const dot = configured
     ? "bg-[var(--color-success)]"
     : "bg-[var(--color-text-dim)]";

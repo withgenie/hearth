@@ -12,6 +12,7 @@ import type { MemoUpdateInput } from "../api";
 import { MEMO_COLORS } from "../types";
 import { cn } from "../lib/cn";
 import type { ContextMenuItem } from "../ui/ContextMenu";
+import type { AppLocale } from "../i18n/locale";
 
 const FONT_SIZE_LABELS: Record<MemoFontSize, string> = {
   small: "작게",
@@ -30,6 +31,7 @@ export function memoTagNames(memo: Pick<Memo, "tags">) {
 }
 
 export function buildMemoActionItems({
+  locale,
   memo,
   onEdit,
   onUpdate,
@@ -38,6 +40,7 @@ export function buildMemoActionItems({
   onOpenTagPicker,
   onCloseMenu,
 }: {
+  locale: AppLocale;
   memo: Memo;
   onEdit: () => void;
   onUpdate: (id: number, fields: MemoUpdateInput) => void | Promise<unknown>;
@@ -46,16 +49,20 @@ export function buildMemoActionItems({
   onOpenTagPicker: () => void;
   onCloseMenu: () => void;
 }): ContextMenuItem[] {
+  const en = locale === "en";
+  const fontSizeLabels: Record<MemoFontSize, string> = en
+    ? { small: "Small", normal: "Normal", large: "Large" }
+    : FONT_SIZE_LABELS;
   return [
     {
       id: "edit",
-      label: "편집",
+      label: en ? "Edit" : "편집",
       icon: Pencil,
       onSelect: onEdit,
     },
     {
       id: "color",
-      label: "색상 변경",
+      label: en ? "Change color" : "색상 변경",
       icon: Palette,
       onSelect: () => {},
       inline: (
@@ -64,7 +71,7 @@ export function buildMemoActionItems({
             <button
               key={color.name}
               type="button"
-              aria-label={`색상: ${color.name}`}
+              aria-label={`${en ? "Color" : "색상"}: ${color.name}`}
               onClick={() => {
                 onUpdate(memo.id, { color: color.name });
                 onCloseMenu();
@@ -83,13 +90,13 @@ export function buildMemoActionItems({
     },
     {
       id: "move",
-      label: "프로젝트 이동",
+      label: en ? "Move to project" : "프로젝트 이동",
       icon: FolderInput,
       onSelect: onOpenProjectPicker,
     },
     {
       id: "font-size",
-      label: "글씨 크기",
+      label: en ? "Font size" : "글씨 크기",
       icon: Type,
       onSelect: () => {},
       inline: (
@@ -109,7 +116,7 @@ export function buildMemoActionItems({
                   : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]",
               )}
             >
-              {FONT_SIZE_LABELS[size]}
+              {fontSizeLabels[size]}
             </button>
           ))}
         </div>
@@ -117,20 +124,22 @@ export function buildMemoActionItems({
     },
     {
       id: "bold",
-      label: memo.is_bold ? "굵게 해제" : "굵게 표시",
+      label: memo.is_bold
+        ? en ? "Remove bold" : "굵게 해제"
+        : en ? "Make bold" : "굵게 표시",
       icon: Bold,
       onSelect: () => onUpdate(memo.id, { is_bold: !memo.is_bold }),
     },
     {
       id: "tags",
-      label: "태그 편집",
+      label: en ? "Edit tags" : "태그 편집",
       icon: Tags,
       onSelect: onOpenTagPicker,
     },
     { id: "sep-delete", label: "", separator: true, onSelect: () => {} },
     {
       id: "delete",
-      label: "삭제",
+      label: en ? "Delete" : "삭제",
       icon: Trash2,
       danger: true,
       onSelect: () => onDelete(memo.id),

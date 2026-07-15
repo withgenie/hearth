@@ -22,6 +22,7 @@ import { useAi } from "../hooks/useAi";
 import { buildSystemPrompt } from "./buildSystemPrompt";
 import type { AgentResult, ChatMessage, ToolCall } from "../types";
 import type { Project, Schedule, Memo } from "../types";
+import { useLocale, useT } from "../i18n/LocaleContext";
 
 /** Carrying state for a paused agent turn — the loop is waiting on the user
  *  to approve `call`. `history` is opaque to the UI but must be round-tripped
@@ -60,6 +61,8 @@ export function CommandPalette({
    *  Wiring lives in `Layout` where the real state setters are. */
   onClientIntent?: (call: ToolCall) => void;
 }) {
+  const t = useT();
+  const { effective } = useLocale();
   const state = useCommandState(commands);
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +100,7 @@ export function CommandPalette({
           if (onClientIntent) {
             onClientIntent(ci);
           } else {
-            toast.success(`${ci.name.replace(/_/g, " ")} 요청됨`);
+            toast.success(t(`${ci.name.replace(/_/g, " ")} 요청됨`, `${ci.name.replace(/_/g, " ")} requested`));
           }
         }
       } else {
@@ -106,7 +109,7 @@ export function CommandPalette({
         setAiPending({ call: r.call, label: r.label, history: r.history });
       }
     },
-    [onClientIntent, toast]
+    [onClientIntent, t, toast]
   );
 
   const fireAi = useCallback(async () => {
@@ -114,13 +117,13 @@ export function CommandPalette({
     try {
       const snap = await snapshot();
       const r = await ai.ask(state.aiQuery, {
-        systemPrompt: buildSystemPrompt(snap),
+        systemPrompt: buildSystemPrompt(snap, effective),
       });
       applyResult(r);
     } catch (e) {
-      toast.error(`AI 오류: ${e}`);
+      toast.error(t(`AI 오류: ${e}`, `AI error: ${e}`));
     }
-  }, [state.mode, state.aiQuery, ai, snapshot, toast, applyResult]);
+  }, [state.mode, state.aiQuery, ai, snapshot, t, toast, applyResult, effective]);
 
   // AI mode no longer has selectable action rows — mutations flow through the
   // confirm dialog automatically, so the palette list only renders local
@@ -146,15 +149,15 @@ export function CommandPalette({
     async (cmd: LocalCommand) => {
       try {
         const undo = await cmd.run();
-        toast.success(`${cmd.label} 완료`, {
+        toast.success(t(`${cmd.label} 완료`, `${cmd.label} completed`), {
           undo: typeof undo === "function" ? undo : undefined,
         });
         close();
       } catch (e) {
-        toast.error(`${cmd.label} 실패: ${e}`);
+        toast.error(t(`${cmd.label} 실패: ${e}`, `${cmd.label} failed: ${e}`));
       }
     },
-    [toast, close]
+    [t, toast, close]
   );
 
   const onSelect = useCallback(
@@ -185,12 +188,12 @@ export function CommandPalette({
       notifyMutation(pending.call.name);
       applyResult(r);
       if (r.kind === "final") {
-        toast.success(`${pending.label} 완료`);
+        toast.success(t(`${pending.label} 완료`, `${pending.label} completed`));
       }
     } catch (e) {
-      toast.error(`${pending.label} 실패: ${e}`);
+      toast.error(t(`${pending.label} 실패: ${e}`, `${pending.label} failed: ${e}`));
     }
-  }, [aiPending, ai, applyResult, toast]);
+  }, [aiPending, ai, applyResult, t, toast]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
@@ -268,13 +271,13 @@ export function CommandPalette({
                 text={
                   state.mode === "ai"
                     ? state.aiQuery.length === 0
-                      ? "AI 모드 — 질문을 입력하세요. 예: '? PickAt 프로젝트 추가'"
+                      ? t("AI 모드 — 질문을 입력하세요. 예: '? PickAt 프로젝트 추가'", "AI mode — enter a request. Example: '? Add a PickAt project'")
                       : ai.loading
-                      ? "AI가 응답을 작성 중입니다…"
+                      ? t("AI가 응답을 작성 중입니다…", "AI is responding…")
                       : aiPending
-                      ? "확인 대기 중…"
-                      : "응답이 없습니다. 질문을 조금 바꿔 보세요."
-                    : "매칭되는 명령이 없습니다. '?'로 AI에 물어보세요."
+                      ? t("확인 대기 중…", "Waiting for approval…")
+                      : t("응답이 없습니다. 질문을 조금 바꿔 보세요.", "No response. Try rephrasing your request.")
+                    : t("매칭되는 명령이 없습니다. '?'로 AI에 물어보세요.", "No matching command. Ask AI with '?'.")
                 }
               />
             ) : (
@@ -299,14 +302,14 @@ export function CommandPalette({
         {pendingConfirm && (
           <>
             <h2 id="confirm-title" className="text-heading text-[var(--color-text-hi)] mb-2">
-              확인
+              {t("확인", "Confirm")}
             </h2>
             <p className="text-[13px] text-[var(--color-text)] mb-5 whitespace-pre-line">
-              {pendingConfirm.confirmMessage ?? `${pendingConfirm.label}을(를) 실행합니다.`}
+              {pendingConfirm.confirmMessage ?? t(`${pendingConfirm.label}을(를) 실행합니다.`, `Run ${pendingConfirm.label}.`)}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setPendingConfirm(null)}>
-                취소
+                {t("취소", "Cancel")}
               </Button>
               <Button
                 variant="primary"
@@ -317,7 +320,7 @@ export function CommandPalette({
                   executeCommand(cmd);
                 }}
               >
-                실행
+                {t("실행", "Run")}
               </Button>
             </div>
           </>
@@ -334,17 +337,17 @@ export function CommandPalette({
         {aiPending && (
           <>
             <h2 id="ai-confirm-title" className="text-heading text-[var(--color-text-hi)] mb-2">
-              AI 실행 확인
+              {t("AI 실행 확인", "Confirm AI action")}
             </h2>
             <p className="text-[13px] text-[var(--color-text)] mb-5 whitespace-pre-line">
               {aiPending.label}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setAiPending(null)}>
-                취소
+                {t("취소", "Cancel")}
               </Button>
               <Button variant="primary" autoFocus onClick={approveAi}>
-                실행
+                {t("실행", "Run")}
               </Button>
             </div>
           </>

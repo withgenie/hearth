@@ -12,6 +12,7 @@ import { Icon } from "../ui/Icon";
 import { MemoProjectPickerDialog } from "./MemoProjectPickerDialog";
 import { MemoTagPickerDialog } from "./MemoTagPickerDialog";
 import { buildMemoActionItems, memoFontSizeClass } from "./memoActions";
+import { useLocale, useT } from "../i18n/LocaleContext";
 
 export function FocusMemoNote({
   memo,
@@ -40,6 +41,8 @@ export function FocusMemoNote({
   onDelete: (id: number) => void;
   onCreateTag: (name: string) => Promise<MemoTag>;
 }) {
+  const t = useT();
+  const { effective } = useLocale();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(memo.content);
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
@@ -62,6 +65,7 @@ export function FocusMemoNote({
   };
 
   const menuItems = buildMemoActionItems({
+    locale: effective,
     memo,
     onEdit: () => setEditing(true),
     onUpdate,
@@ -91,7 +95,7 @@ export function FocusMemoNote({
       }}
     >
       <div className="mb-2 flex items-center gap-2 pr-5 text-[10px] font-semibold opacity-70">
-        <span aria-label={`메모 번호 ${sequenceNumber}`}>
+        <span aria-label={t(`메모 번호 ${sequenceNumber}`, `Memo number ${sequenceNumber}`)}>
           #{sequenceNumber}
         </span>
         {linkedProject && (
@@ -103,7 +107,7 @@ export function FocusMemoNote({
         type="button"
         {...attributes}
         {...listeners}
-        aria-label="포커스 메모 이동"
+        aria-label={t("포커스 메모 이동", "Move focus memo")}
         className="absolute right-2 top-2 cursor-grab rounded p-0.5 opacity-50 hover:bg-black/10 hover:opacity-80"
       >
         <Icon icon={GripVertical} size={14} />
@@ -150,7 +154,7 @@ export function FocusMemoNote({
             memo.is_bold && "font-semibold",
           )}
         >
-          {memo.content || "클릭하여 메모 작성..."}
+          {memo.content || t("클릭하여 메모 작성...", "Click to write a memo...")}
         </p>
       )}
 

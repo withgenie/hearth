@@ -7,6 +7,7 @@ import { PRIORITIES, MEMO_COLORS } from "../types";
 import type { Priority } from "../types";
 import { cn } from "../lib/cn";
 import * as api from "../api";
+import { useT } from "../i18n/LocaleContext";
 
 const ALL_PRIORITIES = new Set<Priority>(PRIORITIES);
 
@@ -20,6 +21,7 @@ export function NewMemoDialog({
   /** Pre-selects the project dropdown. Null means "프로젝트 없음". */
   defaultProjectId?: number | null;
 }) {
+  const t = useT();
   const toast = useToast();
   const { projects } = useProjects(ALL_PRIORITIES, null);
 
@@ -60,10 +62,10 @@ export function NewMemoDialog({
         project_id: projectId ?? undefined,
       });
       window.dispatchEvent(new CustomEvent("memos:changed"));
-      toast.success("메모 추가됨");
+      toast.success(t("메모 추가됨", "Memo added"));
       onClose();
     } catch (e) {
-      toast.error(`메모 추가 실패: ${e}`);
+      toast.error(t(`메모 추가 실패: ${e}`, `Memo creation failed: ${e}`));
     } finally {
       setSaving(false);
     }
@@ -79,14 +81,14 @@ export function NewMemoDialog({
         id="new-memo-title"
         className="text-heading text-[var(--color-text-hi)] mb-4"
       >
-        새 메모
+        {t("새 메모", "New memo")}
       </h2>
       <div className="flex flex-col gap-4">
         <textarea
           autoFocus
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="메모 내용…"
+          placeholder={t("메모 내용…", "Memo content…")}
           className={cn(
             "min-h-[120px] w-full px-2 py-1.5 rounded-[var(--radius-md)] text-[13px]",
             "bg-[var(--color-surface-2)] border border-[var(--color-border)]",
@@ -96,7 +98,7 @@ export function NewMemoDialog({
 
         <div>
           <label className="text-[12px] font-medium text-[var(--color-text)] mb-1.5 block">
-            프로젝트
+            {t("프로젝트", "Project")}
           </label>
           <select
             value={projectId ?? ""}
@@ -109,7 +111,7 @@ export function NewMemoDialog({
               "text-[var(--color-text)] focus:outline-none focus:border-[var(--color-brand-hi)]"
             )}
           >
-            <option value="">프로젝트 없음 (기타)</option>
+            <option value="">{t("프로젝트 없음 (기타)", "No project (Other)")}</option>
             {PRIORITIES.map((pri) => {
               const items = grouped.get(pri) ?? [];
               if (items.length === 0) return null;
@@ -128,14 +130,14 @@ export function NewMemoDialog({
 
         <div>
           <label className="text-[12px] font-medium text-[var(--color-text)] mb-1.5 block">
-            색상
+            {t("색상", "Color")}
           </label>
           <div className="flex gap-2">
             {MEMO_COLORS.map((c) => (
               <button
                 key={c.name}
                 type="button"
-                aria-label={`색상: ${c.name}`}
+                aria-label={t(`색상: ${c.name}`, `Color: ${c.name}`)}
                 onClick={() => setColor(c.name)}
                 className={cn(
                   "w-8 h-8 rounded-full border-2 transition-colors",
@@ -152,10 +154,10 @@ export function NewMemoDialog({
 
       <div className="flex justify-end gap-2 mt-5">
         <Button variant="secondary" onClick={cancel} disabled={saving}>
-          취소
+          {t("취소", "Cancel")}
         </Button>
         <Button variant="primary" onClick={submit} disabled={!canSubmit}>
-          추가
+          {t("추가", "Add")}
         </Button>
       </div>
     </Dialog>

@@ -10,6 +10,7 @@ import {
 } from "./ProjectFormFields";
 import type { Project, Memo, Priority } from "../types";
 import * as api from "../api";
+import { useT } from "../i18n/LocaleContext";
 
 export function ProjectDetailDialog({
   open,
@@ -26,6 +27,7 @@ export function ProjectDetailDialog({
   onProjectUpdated: () => void;
   onMemosChanged: () => void;
 }) {
+  const t = useT();
   const toast = useToast();
   const [form, setForm] = useState<ProjectFormState>(emptyProjectForm);
   const [saving, setSaving] = useState(false);
@@ -68,10 +70,10 @@ export function ProjectDetailDialog({
       });
       window.dispatchEvent(new CustomEvent("projects:changed"));
       onProjectUpdated();
-      toast.success("프로젝트 저장됨");
+      toast.success(t("프로젝트 저장됨", "Project saved"));
       onClose();
     } catch (e) {
-      toast.error(`저장 실패: ${e}`);
+      toast.error(t(`저장 실패: ${e}`, `Save failed: ${e}`));
     } finally {
       setSaving(false);
     }
@@ -85,13 +87,13 @@ export function ProjectDetailDialog({
       setNewMemoContent("");
       onMemosChanged();
     } catch (e) {
-      toast.error(`메모 생성 실패: ${e}`);
+      toast.error(t(`메모 생성 실패: ${e}`, `Memo creation failed: ${e}`));
     }
   };
 
   const handleDeleteMemo = async (m: Memo) => {
-    const yes = await ask("메모를 삭제할까요?", {
-      title: "메모 삭제",
+    const yes = await ask(t("메모를 삭제할까요?", "Delete this memo?"), {
+      title: t("메모 삭제", "Delete memo"),
       kind: "warning",
     });
     if (!yes) return;
@@ -99,7 +101,7 @@ export function ProjectDetailDialog({
       await api.deleteMemo(m.id);
       onMemosChanged();
     } catch (e) {
-      toast.error(`메모 삭제 실패: ${e}`);
+      toast.error(t(`메모 삭제 실패: ${e}`, `Memo deletion failed: ${e}`));
     }
   };
 
@@ -108,7 +110,7 @@ export function ProjectDetailDialog({
       await api.updateMemo(m.id, { content });
       onMemosChanged();
     } catch (e) {
-      toast.error(`메모 저장 실패: ${e}`);
+      toast.error(t(`메모 저장 실패: ${e}`, `Memo save failed: ${e}`));
     }
   };
 
@@ -133,14 +135,14 @@ export function ProjectDetailDialog({
         />
         <div className="mt-4 flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose} disabled={saving}>
-            취소
+            {t("취소", "Cancel")}
           </Button>
           <Button
             variant="primary"
             onClick={handleSave}
             disabled={saving || !form.name.trim()}
           >
-            저장
+            {t("저장", "Save")}
           </Button>
         </div>
       </section>
@@ -148,7 +150,7 @@ export function ProjectDetailDialog({
       <section className="mt-6 pt-4 border-t border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-3">
           <div className="text-[12px] text-[var(--color-text-muted)]">
-            📝 연결 메모 ({scopedMemos.length})
+            📝 {t("연결 메모", "Linked memos")} ({scopedMemos.length})
           </div>
         </div>
 
@@ -162,7 +164,7 @@ export function ProjectDetailDialog({
             />
           ))}
           {scopedMemos.length === 0 && (
-            <div className="text-[12px] text-[var(--color-text-dim)]">없음</div>
+            <div className="text-[12px] text-[var(--color-text-dim)]">{t("없음", "None")}</div>
           )}
         </div>
 
@@ -176,7 +178,7 @@ export function ProjectDetailDialog({
             rows={2}
             value={newMemoContent}
             onChange={(e) => setNewMemoContent(e.target.value)}
-            placeholder="새 메모…"
+            placeholder={t("새 메모…", "New memo…")}
           />
           <Button
             variant="primary"
@@ -184,7 +186,7 @@ export function ProjectDetailDialog({
             onClick={handleAddMemo}
             disabled={!newMemoContent.trim()}
           >
-            추가
+            {t("추가", "Add")}
           </Button>
         </div>
       </section>
@@ -201,6 +203,7 @@ function MemoRow({
   onSave: (c: string) => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(memo.content);
 
@@ -233,7 +236,7 @@ function MemoRow({
             onClick={() => setEditing(true)}
           >
             {memo.content || (
-              <span className="text-[var(--color-text-dim)]">(비어 있음)</span>
+              <span className="text-[var(--color-text-dim)]">{t("(비어 있음)", "(Empty)")}</span>
             )}
           </button>
         )}
@@ -241,7 +244,7 @@ function MemoRow({
       <button
         className="text-[12px] text-[var(--color-text-dim)] hover:text-white hover:bg-[var(--color-danger)] rounded px-1.5 py-0.5"
         onClick={onDelete}
-        aria-label="메모 삭제"
+        aria-label={t("메모 삭제", "Delete memo")}
       >
         ✕
       </button>

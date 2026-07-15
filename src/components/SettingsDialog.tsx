@@ -16,6 +16,7 @@ import { SettingsCategoriesSection } from "./SettingsCategoriesSection";
 import { SettingsIntegrationsSection } from "./SettingsIntegrationsSection";
 import { SettingsLicenseSection } from "./SettingsLicenseSection";
 import { SettingsAboutSection } from "./SettingsAboutSection";
+import { useT } from "../i18n/LocaleContext";
 
 type TabKey =
   | "general"
@@ -27,17 +28,6 @@ type TabKey =
   | "license"
   | "about";
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "general", label: "일반" },
-  { key: "theme", label: "테마" },
-  { key: "ai", label: "AI" },
-  { key: "backup", label: "백업/가져오기" },
-  { key: "categories", label: "카테고리" },
-  { key: "integrations", label: "통합" },
-  { key: "license", label: "라이선스" },
-  { key: "about", label: "정보" },
-];
-
 export function SettingsDialog({
   open,
   onClose,
@@ -47,6 +37,17 @@ export function SettingsDialog({
   onClose: () => void;
   initialTab?: TabKey;
 }) {
+  const t = useT();
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: "general", label: t("일반", "General") },
+    { key: "theme", label: t("테마", "Theme") },
+    { key: "ai", label: "AI" },
+    { key: "backup", label: t("백업/가져오기", "Backup/Import") },
+    { key: "categories", label: t("카테고리", "Categories") },
+    { key: "integrations", label: t("통합", "Integrations") },
+    { key: "license", label: t("라이선스", "License") },
+    { key: "about", label: t("정보", "About") },
+  ];
   const [tab, setTab] = useState<TabKey>(initialTab);
 
   // Sync the active tab whenever the dialog (re-)opens via a different entry
@@ -66,29 +67,29 @@ export function SettingsDialog({
         id="settings-title"
         className="text-heading text-[var(--color-text-hi)] mb-4"
       >
-        설정
+        {t("설정", "Settings")}
       </h2>
 
       <div
         role="tablist"
-        aria-label="설정 탭"
+        aria-label={t("설정 탭", "Settings tabs")}
         className="flex gap-1 mb-5 border-b border-[var(--color-border)]"
       >
-        {TABS.map((t) => (
+        {tabs.map((item) => (
           <button
-            key={t.key}
+            key={item.key}
             type="button"
             role="tab"
-            aria-selected={tab === t.key}
-            onClick={() => setTab(t.key)}
+            aria-selected={tab === item.key}
+            onClick={() => setTab(item.key)}
             className={cn(
               "px-3 h-9 text-[13px] -mb-px border-b-2 transition-colors",
-              tab === t.key
+              tab === item.key
                 ? "border-[var(--color-brand-hi)] text-[var(--color-text-hi)]"
                 : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text)]",
             )}
           >
-            {t.label}
+            {item.label}
           </button>
         ))}
       </div>
@@ -122,7 +123,7 @@ export function SettingsDialog({
 
       <div className="flex justify-end mt-6">
         <Button variant="secondary" onClick={onClose}>
-          닫기
+          {t("닫기", "Close")}
         </Button>
       </div>
     </Dialog>

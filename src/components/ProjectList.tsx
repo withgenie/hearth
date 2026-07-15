@@ -20,12 +20,13 @@ import { ProjectCard } from "./ProjectCard";
 import { EmptyDropZone } from "./EmptyDropZone";
 import { deriveTarget } from "../lib/dragTargets";
 import type { Project, Priority } from "../types";
-import { PRIORITIES, PRIORITY_COLORS, PRIORITY_LABELS } from "../types";
+import { PRIORITIES, PRIORITY_COLORS, PRIORITY_LABELS, PRIORITY_LABELS_EN } from "../types";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
 import { useToast } from "../ui/Toast";
 import { cn } from "../lib/cn";
 import * as api from "../api";
+import { useT } from "../i18n/LocaleContext";
 
 /**
  * Pointer-first collision detection. Whatever droppable's rect the cursor
@@ -88,6 +89,7 @@ export function ProjectList({
   onAdd?: () => void;
   onOpenDetail: (project: Project) => void;
 }) {
+  const t = useT();
   const toast = useToast();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -115,7 +117,7 @@ export function ProjectList({
       return;
     } catch (err) {
       if (String(err) !== api.NEEDS_BOOKMARK_ERROR) {
-        toast.error(`열기 실패: ${err}`);
+        toast.error(t(`열기 실패: ${err}`, `Open failed: ${err}`));
         return;
       }
     }
@@ -125,7 +127,7 @@ export function ProjectList({
     try {
       picked = await api.pickProjectFolder(project.path);
     } catch (err) {
-      if (String(err) !== "user_cancelled") toast.error(`폴더 선택 실패: ${err}`);
+      if (String(err) !== "user_cancelled") toast.error(t(`폴더 선택 실패: ${err}`, `Folder selection failed: ${err}`));
       return;
     }
     try {
@@ -135,13 +137,13 @@ export function ProjectList({
       });
       window.dispatchEvent(new CustomEvent("projects:changed"));
     } catch (err) {
-      toast.error(`북마크 저장 실패: ${err}`);
+      toast.error(t(`북마크 저장 실패: ${err}`, `Bookmark save failed: ${err}`));
       return;
     }
     try {
       await open(picked.path, project.id);
     } catch (err) {
-      toast.error(`열기 실패: ${err}`);
+      toast.error(t(`열기 실패: ${err}`, `Open failed: ${err}`));
     }
   };
 
@@ -227,7 +229,7 @@ export function ProjectList({
       try {
         await onReorder(target.priority, next);
       } catch (err) {
-        toast.error(`순서 저장 실패: ${err}`);
+        toast.error(t(`순서 저장 실패: ${err}`, `Order save failed: ${err}`));
       }
       return;
     }
@@ -252,7 +254,7 @@ export function ProjectList({
       await onReorder(target.priority, nextTargetIds);
       await onReorder(sourcePriority, nextSourceIds);
     } catch (err) {
-      toast.error(`우선순위 변경 실패: ${err}`);
+      toast.error(t(`우선순위 변경 실패: ${err}`, `Priority change failed: ${err}`));
     }
   };
 
@@ -261,12 +263,12 @@ export function ProjectList({
       <EmptyState
         className="flex-1"
         icon={FolderOpen}
-        title="프로젝트가 없습니다"
-        description="Excel로 가져오거나 ⌘K 로 추가하세요"
+        title={t("프로젝트가 없습니다", "No projects yet")}
+        description={t("Excel로 가져오거나 ⌘K로 추가하세요", "Import from Excel or add one with ⌘K")}
         action={
           onAdd && (
             <Button variant="primary" size="sm" leftIcon={Plus} onClick={onAdd}>
-              프로젝트 추가
+              {t("프로젝트 추가", "Add project")}
             </Button>
           )
         }
@@ -279,11 +281,11 @@ export function ProjectList({
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-heading text-[var(--color-text-hi)] flex items-center gap-2">
           <FolderOpen size={18} />
-          프로젝트
+          {t("프로젝트", "Projects")}
         </h2>
         {onAdd && (
           <Button variant="primary" size="sm" leftIcon={Plus} onClick={onAdd}>
-            프로젝트 추가
+            {t("프로젝트 추가", "Add project")}
           </Button>
         )}
       </div>
@@ -300,7 +302,7 @@ export function ProjectList({
             return (
               <section
                 key={priority}
-                aria-label={`${priority} ${PRIORITY_LABELS[priority]} 프로젝트`}
+                aria-label={`${priority} ${t(PRIORITY_LABELS[priority], PRIORITY_LABELS_EN[priority])} ${t("프로젝트", "projects")}`}
                 className={cn(
                   "rounded-[var(--radius-md)]",
                   priority === "P0" &&
@@ -315,10 +317,10 @@ export function ProjectList({
                     }}
                   />
                   <h2 className="text-sm font-semibold text-[var(--color-text)]">
-                    {priority} — {PRIORITY_LABELS[priority] ?? priority}
+                    {priority} — {t(PRIORITY_LABELS[priority], PRIORITY_LABELS_EN[priority])}
                   </h2>
                   <span className="text-xs text-[var(--color-text-muted)]">
-                    ({items.length}개)
+                    ({t(`${items.length}개`, `${items.length}`)})
                   </span>
                 </div>
                 <SortableContext
@@ -328,7 +330,7 @@ export function ProjectList({
                   {items.length === 0 ? (
                     <EmptyDropZone
                       id={`priority-${priority}-empty`}
-                      label={`${priority} 비어 있음 · 드래그해서 추가`}
+                      label={t(`${priority} 비어 있음 · 드래그해서 추가`, `${priority} empty · drag to add`)}
                     />
                   ) : (
                     <GroupDropZone
@@ -337,7 +339,7 @@ export function ProjectList({
                     >
                       <div
                         role="list"
-                        aria-label={`${priority} 프로젝트 ${compact ? "콤팩트 목록" : "카드"}`}
+                        aria-label={t(`${priority} 프로젝트 ${compact ? "콤팩트 목록" : "카드"}`, `${priority} projects ${compact ? "compact list" : "cards"}`)}
                         className={cn(
                           compact
                             ? "flex flex-col gap-1"

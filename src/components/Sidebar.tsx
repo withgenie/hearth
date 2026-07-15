@@ -1,7 +1,8 @@
-import { PRIORITIES, PRIORITY_COLORS, PRIORITY_LABELS } from "../types";
+import { PRIORITIES, PRIORITY_COLORS } from "../types";
 import type { Priority } from "../types";
 import { useCategories } from "../hooks/useCategories";
 import { cn } from "../lib/cn";
+import { useT } from "../i18n/LocaleContext";
 
 export function Sidebar({
   activePriorities,
@@ -14,29 +15,37 @@ export function Sidebar({
   onTogglePriority: (p: Priority) => void;
   onSelectCategory: (c: string | null) => void;
 }) {
+  const t = useT();
   const { categories } = useCategories();
+  const priorityLabels: Record<Priority, string> = {
+    P0: t("긴급", "Urgent"),
+    P1: t("높음", "High"),
+    P2: t("중간", "Medium"),
+    P3: t("낮음", "Low"),
+    P4: t("참고", "Reference"),
+  };
 
   return (
     <aside className="w-56 shrink-0 bg-[var(--color-surface-1)] border-r border-[var(--color-border)] py-5 px-3 flex flex-col gap-7 overflow-y-auto">
-      <FilterGroup label="우선순위">
+      <FilterGroup label={t("우선순위", "Priority")}>
         {PRIORITIES.map((p) => (
           <FilterItem
             key={p}
             active={activePriorities.has(p)}
             onClick={() => onTogglePriority(p)}
             dot={PRIORITY_COLORS[p]}
-            text={`${p} — ${PRIORITY_LABELS[p]}`}
+            text={`${p} — ${priorityLabels[p]}`}
           />
         ))}
       </FilterGroup>
 
-      <FilterGroup label="카테고리">
+      <FilterGroup label={t("카테고리", "Categories")}>
         {/* "전체 보기" — default state. Sends no category filter so rows with
              NULL category (which SQL `IN (...)` would drop) also appear. */}
         <FilterItem
           active={activeCategory === null}
           onClick={() => onSelectCategory(null)}
-          text="전체 보기"
+          text={t("전체 보기", "View all")}
         />
         {categories.map((c) => (
           <FilterItem

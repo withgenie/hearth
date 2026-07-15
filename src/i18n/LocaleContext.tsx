@@ -120,3 +120,11 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 export function useLocale() {
   return useContext(LocaleContext);
 }
+
+export function useT() {
+  const { effective } = useLocale();
+  return useCallback(
+    <T,>(korean: T, english: T): T => (effective === "ko" ? korean : english),
+    [effective],
+  );
+}

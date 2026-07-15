@@ -5,6 +5,7 @@
 // prompt covers intent only: when to call tools vs. reply naturally, how to
 // handle ambiguous references, and the tone.
 import type { Project, Schedule, Memo } from "../types";
+import type { AppLocale } from "../i18n/locale";
 
 const HEADER = `너는 Hearth의 한국어 AI 어시스턴트다. 사용자가 요청한 작업을 수행하기 위해 제공된 도구(tools)를 호출한다.
 
@@ -36,38 +37,70 @@ const HEADER = `너는 Hearth의 한국어 AI 어시스턴트다. 사용자가 �
 7) id 가 모호하거나 존재하지 않으면 호출하지 말고 되물어라.
 8) 단순 인사/한담은 도구 없이 짧게 답한다.`;
 
+const HEADER_EN = `You are Hearth's English AI assistant. Use the provided tools to perform the user's requested work.
+
+[Domains]
+- projects: priorities P0-P4; categories are user-defined values
+- schedules: date is required (YYYY-MM-DD); time is optional (HH:MM)
+- memos: color is yellow|pink|blue|green|purple; set project_id to link a project
+
+[Tool categories]
+- Read: list_projects, search_projects, list_schedules(month=YYYY-MM optional), list_memos
+- Mutations (the UI opens a confirmation dialog): create/update/delete project, schedule, and memo tools, plus update_memo_by_number/delete_memo_by_number
+- Navigation/filter: switch_tab(projects|calendar|memos), set_filter(priorities, categories), focus_project, focus_memo, focus_date
+
+[Memo rules]
+- Memos appear in project groups plus an Other group.
+- Each memo has a global sort_order badge #1, #2, and so on.
+- To create: create_memo(content, project_name?). project_name uses a partial LIKE match. If it does not match, the memo is stored under Other with resolved_as_etc=true; tell the user.
+- To edit/delete by visible number: update_memo_by_number or delete_memo_by_number.
+- #N is a snapshot identifier. Always call list_memos immediately before using a number from earlier conversation.
+
+[Rules]
+1) Call mutation tools directly; do not ask "Should I proceed?" because the UI provides the approval dialog.
+2) For reads or summaries, inspect real data with list_* or search_projects first. Never guess.
+3) Use switch_tab or set_filter for navigation requests.
+4) Send dates/times as YYYY-MM-DD and HH:MM; month filters are YYYY-MM.
+5) Use project_id=0 to unlink a memo from a project.
+6) update_schedule is partial; send only changed fields.
+7) If an id is ambiguous or missing, ask the user instead of calling a tool.
+8) Answer greetings and casual conversation briefly without tools.`;
+
 export function buildSystemPrompt(snapshot: {
   projects: Project[];
   schedules: Schedule[];
   memos: Memo[];
-}): string {
+}, locale: AppLocale = "ko"): string {
   const { projects, schedules, memos } = snapshot;
   const byPri = (p: string) => projects.filter((pr) => pr.priority === p).length;
-  const stats = `현재 상태:
+  const stats = locale === "ko" ? `현재 상태:
 - 프로젝트 ${projects.length}개 (P0 ${byPri("P0")}, P1 ${byPri("P1")}, P2 ${byPri("P2")}, P3 ${byPri("P3")}, P4 ${byPri("P4")})
 - 일정 ${schedules.length}개
-- 메모 ${memos.length}개`;
+- 메모 ${memos.length}개` : `Current state:
+- Projects: ${projects.length} (P0 ${byPri("P0")}, P1 ${byPri("P1")}, P2 ${byPri("P2")}, P3 ${byPri("P3")}, P4 ${byPri("P4")})
+- Schedules: ${schedules.length}
+- Memos: ${memos.length}`;
 
   const projectList =
-    "[프로젝트 목록]\n" +
+    (locale === "ko" ? "[프로젝트 목록]\n" : "[Projects]\n") +
     projects
       .slice(0, 50)
       .map((p) => `#${p.id} [${p.priority}] ${p.name}${p.category ? ` (${p.category})` : ""}`)
       .join("\n");
 
   const scheduleList =
-    "[이번 달 일정]\n" +
+    (locale === "ko" ? "[이번 달 일정]\n" : "[This month's schedules]\n") +
     schedules
       .slice(0, 30)
       .map((s) => `#${s.id} ${s.date}${s.time ? ` ${s.time}` : ""} ${s.description ?? ""}${s.location ? ` @ ${s.location}` : ""}`)
       .join("\n");
 
   const memoList =
-    "[최근 메모 10개]\n" +
+    (locale === "ko" ? "[최근 메모 10개]\n" : "[10 recent memos]\n") +
     memos
       .slice(0, 10)
       .map((m) => `#${m.id} ${m.content.slice(0, 80)}`)
       .join("\n");
 
-  return [HEADER, stats, projectList, scheduleList, memoList].join("\n\n");
+  return [locale === "ko" ? HEADER : HEADER_EN, stats, projectList, scheduleList, memoList].join("\n\n");
 }

@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "../../ui/Button";
+import { useLocale, useT } from "../../i18n/LocaleContext";
 
 export interface DayPanelSchedule {
   id: number | string;
@@ -41,22 +42,6 @@ export interface DayPanelProps {
   onNavigateDate: (date: string) => void;
   onClose: () => void;
 }
-
-const KOREAN_DATE = new Intl.DateTimeFormat("ko-KR", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  weekday: "long",
-});
-
-const KIND_LABELS: Record<string, string> = {
-  event: "일정",
-  task: "할 일",
-  shift: "근무",
-  anniversary: "기념일",
-  deadline: "마감",
-  meeting: "미팅",
-};
 
 function parseLocalDate(dateKey: string): Date {
   const [year, month, day] = dateKey.split("-").map(Number);
@@ -96,6 +81,22 @@ export function DayPanel({
   onNavigateDate,
   onClose,
 }: DayPanelProps) {
+  const t = useT();
+  const { effective } = useLocale();
+  const dateFormat = new Intl.DateTimeFormat(effective === "ko" ? "ko-KR" : "en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+  const kindLabels: Record<string, string> = {
+    event: t("일정", "Event"),
+    task: t("할 일", "Task"),
+    shift: t("근무", "Shift"),
+    anniversary: t("기념일", "Anniversary"),
+    deadline: t("마감", "Deadline"),
+    meeting: t("미팅", "Meeting"),
+  };
   const panelRef = useRef<HTMLElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -174,8 +175,8 @@ export function DayPanel({
                 variant="ghost"
                 size="sm"
                 leftIcon={ChevronLeft}
-                aria-label="이전 날짜"
-                title="이전 날짜"
+                aria-label={t("이전 날짜", "Previous date")}
+                title={t("이전 날짜", "Previous date")}
                 onClick={() => onNavigateDate(adjacentLocalDate(date, -1))}
               />
               <Button
@@ -183,8 +184,8 @@ export function DayPanel({
                 variant="ghost"
                 size="sm"
                 leftIcon={ChevronRight}
-                aria-label="다음 날짜"
-                title="다음 날짜"
+                aria-label={t("다음 날짜", "Next date")}
+                title={t("다음 날짜", "Next date")}
                 onClick={() => onNavigateDate(adjacentLocalDate(date, 1))}
               />
             </div>
@@ -192,15 +193,15 @@ export function DayPanel({
               id={titleId}
               className="min-w-0 flex-1 text-[16px] font-semibold text-[var(--color-text-hi)]"
             >
-              {KOREAN_DATE.format(parseLocalDate(date))}
+              {dateFormat.format(parseLocalDate(date))}
             </h2>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               leftIcon={X}
-              aria-label="날짜 페이지 닫기"
-              title="날짜 페이지 닫기"
+              aria-label={t("날짜 페이지 닫기", "Close day panel")}
+              title={t("날짜 페이지 닫기", "Close day panel")}
               onClick={onClose}
             />
           </div>
@@ -210,7 +211,7 @@ export function DayPanel({
             leftIcon={Plus}
             onClick={() => onCreate(date)}
           >
-            새 일정 추가
+            {t("새 일정 추가", "Add schedule")}
           </Button>
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
@@ -219,7 +220,7 @@ export function DayPanel({
               id={`${titleId}-schedules`}
               className="mb-2 text-[12px] font-semibold text-[var(--color-text-muted)]"
             >
-              일정 {daySchedules.length}개
+              {t(`일정 ${daySchedules.length}개`, `${daySchedules.length} schedules`)}
             </h3>
             <div className="flex min-w-0 flex-col gap-2">
               {daySchedules.map((schedule) => (
@@ -239,7 +240,7 @@ export function DayPanel({
                   />
                   <div className="flex min-w-0 items-start gap-2">
                     <span className="shrink-0 text-[12px] font-semibold tabular-nums text-[var(--color-text-hi)]">
-                      {schedule.time ?? "시간 미정"}
+                      {schedule.time ?? t("시간 미정", "No time")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-1.5">
@@ -252,7 +253,7 @@ export function DayPanel({
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[var(--color-text-muted)]">
                         <span>
-                          {KIND_LABELS[schedule.kind ?? "event"] ??
+                          {kindLabels[schedule.kind ?? "event"] ??
                             schedule.kind}
                         </span>
                         {schedule.location && <span>{schedule.location}</span>}
@@ -269,8 +270,8 @@ export function DayPanel({
                         variant="ghost"
                         size="sm"
                         leftIcon={Pencil}
-                        aria-label={`${schedule.title} 수정`}
-                        title={`${schedule.title} 수정`}
+                        aria-label={t(`${schedule.title} 수정`, `Edit ${schedule.title}`)}
+                        title={t(`${schedule.title} 수정`, `Edit ${schedule.title}`)}
                         onClick={() => onEdit(schedule)}
                       />
                       <Button
@@ -278,8 +279,8 @@ export function DayPanel({
                         variant="ghost"
                         size="sm"
                         leftIcon={Trash2}
-                        aria-label={`${schedule.title} 삭제`}
-                        title={`${schedule.title} 삭제`}
+                        aria-label={t(`${schedule.title} 삭제`, `Delete ${schedule.title}`)}
+                        title={t(`${schedule.title} 삭제`, `Delete ${schedule.title}`)}
                         onClick={() => onDelete(schedule)}
                       />
                     </div>
@@ -297,7 +298,7 @@ export function DayPanel({
                 id={`${titleId}-memos`}
                 className="mb-2 text-[12px] font-semibold text-[var(--color-text-muted)]"
               >
-                저널 메모 {dayMemos.length}개
+                {t(`저널 메모 ${dayMemos.length}개`, `${dayMemos.length} journal memos`)}
               </h3>
               <div className="flex min-w-0 flex-col gap-2">
                 {dayMemos.map((memo) => (

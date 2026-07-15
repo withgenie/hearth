@@ -10,6 +10,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLink, Sparkles, Terminal } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
+import { useT } from "../i18n/LocaleContext";
 
 const SKILL_DOCS_URL = "https://hearth.codewithgenie.com/docs/hearth-skill";
 const CLI_DOCS_URL = "https://hearth.codewithgenie.com/docs/hearth-cli";
@@ -19,17 +20,18 @@ function open(url: string) {
 }
 
 export function SettingsIntegrationsSection() {
+  const t = useT();
   return (
     <div className="flex flex-col gap-6">
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          AI 에이전트로 Hearth 조작하기
+          {t("AI 에이전트로 Hearth 조작하기", "Control Hearth with an AI agent")}
         </h3>
         <p className="text-[12px] text-[var(--color-text-muted)] mb-3">
-          Hearth는 외부 AI 에이전트가 직접 조작할 수 있는 워크스페이스입니다.
-          아래 두 도구를 함께 쓰면 Claude Code · Codex 같은 에이전트가 자연어로
-          프로젝트·메모·일정을 만들고, 열려 있는 Hearth 탭이 실시간으로
-          새로고침됩니다.
+          {t(
+            "Hearth는 외부 AI 에이전트가 직접 조작할 수 있는 워크스페이스입니다. 아래 두 도구를 함께 쓰면 Claude Code · Codex 같은 에이전트가 자연어로 프로젝트·메모·일정을 만들고, 열려 있는 Hearth 탭이 실시간으로 새로고침됩니다.",
+            "Hearth is a workspace that external AI agents can operate directly. With the tools below, agents such as Claude Code and Codex can create projects, memos, and schedules from natural language while open Hearth tabs refresh in real time.",
+          )}
         </p>
       </section>
 
@@ -41,10 +43,10 @@ export function SettingsIntegrationsSection() {
               Hearth skill (Claude Code · Codex)
             </h4>
             <p className="text-[12px] text-[var(--color-text-muted)] mb-3">
-              Claude Code와 Codex CLI에 설치되는 라우터 스킬. "오늘 PR 정리해서
-              새 프로젝트로 묶고 내일 오후 3시 리뷰 회의 잡아줘" 같은 자연어
-              요청을 분류해 hearth-cli 호출로 변환합니다. 모든 변경은
-              propose → approve → apply 게이트를 통과한 뒤 실행됩니다.
+              {t(
+                'Claude Code와 Codex CLI에 설치되는 라우터 스킬. "오늘 PR 정리해서 새 프로젝트로 묶고 내일 오후 3시 리뷰 회의 잡아줘" 같은 자연어 요청을 분류해 hearth-cli 호출로 변환합니다. 모든 변경은 propose → approve → apply 게이트를 통과한 뒤 실행됩니다.',
+                'A router Skill for Claude Code and Codex CLI. It turns requests such as "Group today\'s PRs into a project and schedule a review for 3 PM tomorrow" into hearth-cli calls. Every change passes through the propose → approve → apply gate.',
+              )}
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -53,7 +55,7 @@ export function SettingsIntegrationsSection() {
                 rightIcon={ExternalLink}
                 onClick={() => open(SKILL_DOCS_URL)}
               >
-                설치 안내 보기
+                {t("설치 안내 보기", "View installation guide")}
               </Button>
             </div>
           </div>
@@ -68,9 +70,10 @@ export function SettingsIntegrationsSection() {
               hearth-cli
             </h4>
             <p className="text-[12px] text-[var(--color-text-muted)] mb-3">
-              Hearth 데이터베이스를 명령줄에서 직접 조작하는 오픈소스 CLI.
-              스킬이 내부적으로 호출하지만, 셸 스크립트 · 자동화 워크플로에서
-              직접 사용해도 됩니다. Homebrew로 한 줄 설치:
+              {t(
+                "Hearth 데이터베이스를 명령줄에서 직접 조작하는 오픈소스 CLI. 스킬이 내부적으로 호출하지만, 셸 스크립트 · 자동화 워크플로에서 직접 사용해도 됩니다. Homebrew로 한 줄 설치:",
+                "An open-source CLI that works directly with the Hearth database. The Skill uses it internally, and you can also use it in shell scripts and automation workflows. Install with Homebrew:",
+              )}
             </p>
             <pre className="text-[11px] font-mono rounded bg-black/40 px-2 py-1 mb-3 select-all">
               brew install withgenie/hearth/hearth-cli
@@ -82,7 +85,7 @@ export function SettingsIntegrationsSection() {
                 rightIcon={ExternalLink}
                 onClick={() => open(CLI_DOCS_URL)}
               >
-                문서 열기
+                {t("문서 열기", "Open documentation")}
               </Button>
             </div>
           </div>

@@ -2,6 +2,7 @@ import type { MouseEvent } from "react";
 import type { Memo, MemoTag, Project } from "../types";
 import type { MemoUpdateInput } from "../api";
 import type { MemoGroup } from "../lib/memoSequence";
+import { useT } from "../i18n/LocaleContext";
 import { MemoRow } from "./MemoRow";
 
 export function MemoMatrix({
@@ -25,12 +26,13 @@ export function MemoMatrix({
   onCreateTag: (name: string) => Promise<MemoTag>;
   onCreateInProject: (projectId: number | null) => void;
 }) {
+  const t = useT();
   return (
     <div className="grid gap-4 grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 auto-rows-fr flex-1 min-h-0">
       {groups.map((g) => {
         const key = g.kind === "project" ? `proj-${g.project.id}` : "etc";
         const title =
-          g.kind === "project" ? g.project.name : "기타 · 프로젝트 미연결";
+          g.kind === "project" ? g.project.name : t("기타 · 프로젝트 미연결", "Other · No project");
         const priority = g.kind === "project" ? g.project.priority : null;
         return (
           <Tile

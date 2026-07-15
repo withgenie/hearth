@@ -12,6 +12,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLink } from "lucide-react";
 import { Button } from "../ui/Button";
+import { useT } from "../i18n/LocaleContext";
 
 // TODO(B-merge): import { useLicense } from "../license/useLicense";
 type StubLicense =
@@ -27,34 +28,34 @@ function useLicenseStub(): StubLicense {
 }
 
 export function SettingsLicenseSection() {
+  const t = useT();
   const license = useLicenseStub();
 
   let label: string;
   let detail: string;
   switch (license.status) {
     case "trial":
-      label = "체험판";
-      detail = `평가 기간이 ${license.daysLeft}일 남았습니다.`;
+      label = t("체험판", "Trial");
+      detail = t(`평가 기간이 ${license.daysLeft}일 남았습니다.`, `${license.daysLeft} days remain in the trial.`);
       break;
     case "purchased":
       label = "Hearth Pro";
-      detail = "구매가 완료되어 모든 기능이 영구적으로 활성화되었습니다.";
+      detail = t("구매가 완료되어 모든 기능이 영구적으로 활성화되었습니다.", "Your purchase is complete and all features are permanently enabled.");
       break;
     case "trial_expired":
-      label = "읽기 전용";
-      detail =
-        "14일 평가 기간이 끝났습니다. Hearth Pro를 구매하면 모든 기능이 다시 열립니다.";
+      label = t("읽기 전용", "Read only");
+      detail = t("14일 평가 기간이 끝났습니다. Hearth Pro를 구매하면 모든 기능이 다시 열립니다.", "The 14-day trial has ended. Purchase Hearth Pro to restore all features.");
       break;
     default:
-      label = "확인 중";
-      detail = "라이선스 상태를 불러오는 중입니다.";
+      label = t("확인 중", "Checking");
+      detail = t("라이선스 상태를 불러오는 중입니다.", "Loading license status.");
   }
 
   return (
     <div className="flex flex-col gap-6">
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          라이선스
+          {t("라이선스", "License")}
         </h3>
         <div className="rounded-md border border-[var(--color-border)] p-4">
           <div className="flex items-baseline justify-between mb-1">
@@ -70,26 +71,30 @@ export function SettingsLicenseSection() {
           {/* TODO(B-merge): wire these up to requestPurchase / restorePurchase */}
           <div className="flex items-center gap-2 mt-4">
             <Button size="sm" variant="primary" disabled>
-              Hearth Pro 구매
+              {t("Hearth Pro 구매", "Buy Hearth Pro")}
             </Button>
             <Button size="sm" variant="secondary" disabled>
-              구매 복원
+              {t("구매 복원", "Restore purchase")}
             </Button>
           </div>
           <p className="text-[11px] text-[var(--color-text-muted)] mt-3">
-            결제는 Apple App Store가 처리하며, 가족 공유를 지원합니다. Hearth
-            서버는 존재하지 않으므로 결제 정보는 Apple 외부로 전송되지 않습니다.
+            {t(
+              "결제는 Apple App Store가 처리하며, 가족 공유를 지원합니다. Hearth 서버는 존재하지 않으므로 결제 정보는 Apple 외부로 전송되지 않습니다.",
+              "The Apple App Store processes payments and supports Family Sharing. Hearth has no server, so payment information never leaves Apple.",
+            )}
           </p>
         </div>
       </section>
 
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          개인정보 처리방침
+          {t("개인정보 처리방침", "Privacy policy")}
         </h3>
         <p className="text-[12px] text-[var(--color-text-muted)] mb-3">
-          Hearth는 어떠한 개인 데이터도 수집하지 않습니다. 모든 데이터는 사용자
-          Mac의 SQLite 파일에만 저장됩니다.
+          {t(
+            "Hearth는 어떠한 개인 데이터도 수집하지 않습니다. 모든 데이터는 사용자 Mac의 SQLite 파일에만 저장됩니다.",
+            "Hearth does not collect personal data. Everything is stored only in a SQLite file on your Mac.",
+          )}
         </p>
         <Button
           size="sm"
@@ -101,7 +106,7 @@ export function SettingsLicenseSection() {
             )
           }
         >
-          전체 정책 보기
+          {t("전체 정책 보기", "View full policy")}
         </Button>
       </section>
     </div>

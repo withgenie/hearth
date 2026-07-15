@@ -7,6 +7,7 @@ import { PRIORITIES } from "../types";
 import type { Priority } from "../types";
 import { useCategories } from "../hooks/useCategories";
 import { pickProjectFolder } from "../api";
+import { useT } from "../i18n/LocaleContext";
 
 export type ProjectFormState = {
   name: string;
@@ -49,6 +50,7 @@ export function ProjectFormFields({
   disableName?: boolean;
   autoFocusName?: boolean;
 }) {
+  const t = useT();
   const { categories } = useCategories();
 
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -63,7 +65,7 @@ export function ProjectFormFields({
     <div className="flex flex-col gap-3">
       <Input
         autoFocus={autoFocusName}
-        placeholder="프로젝트 이름"
+        placeholder={t("프로젝트 이름", "Project name")}
         value={value.name}
         disabled={disableName}
         onChange={(e) => onChange({ name: e.target.value })}
@@ -86,7 +88,7 @@ export function ProjectFormFields({
           value={value.category}
           onChange={(e) => onChange({ category: e.target.value })}
         >
-          <option value="">카테고리 없음</option>
+          <option value="">{t("카테고리 없음", "No category")}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.name}>
               {c.name}
@@ -96,7 +98,7 @@ export function ProjectFormFields({
       </div>
       <div className="flex gap-2">
         <Input
-          placeholder="경로 (선택)"
+          placeholder={t("경로 (선택)", "Path (optional)")}
           value={value.path}
           // Manually-typed path can't carry a security-scoped bookmark, so
           // any captured bookmark for the previous picker selection has to
@@ -105,7 +107,7 @@ export function ProjectFormFields({
           onKeyDown={onKey}
           className="flex-1"
         />
-        <Tooltip label="Finder에서 폴더 선택">
+        <Tooltip label={t("Finder에서 폴더 선택", "Choose folder in Finder")}>
           <button
             type="button"
             onClick={async () => {
@@ -122,7 +124,7 @@ export function ProjectFormFields({
               "border border-[var(--color-border)] text-[var(--color-text-muted)] " +
               "hover:text-[var(--color-brand-hi)] hover:border-[var(--color-brand-hi)]"
             }
-            aria-label="Finder에서 폴더 선택"
+            aria-label={t("Finder에서 폴더 선택", "Choose folder in Finder")}
           >
             <Icon icon={FolderSearch} size={14} />
           </button>
@@ -135,7 +137,7 @@ export function ProjectFormFields({
             "bg-[var(--color-surface-2)] border border-[var(--color-border)] " +
             "text-[var(--color-text)] focus:outline-none focus:border-[var(--color-brand-hi)]"
           }
-          placeholder="평가, 메모, 진행 상황…"
+          placeholder={t("평가, 메모, 진행 상황…", "Evaluation, notes, progress…")}
           value={value.evaluation}
           onChange={(e) => onChange({ evaluation: e.target.value })}
         />

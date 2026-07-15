@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Button } from "../../ui/Button";
+import { useT } from "../../i18n/LocaleContext";
 
 type Captured = {
   ctrl: boolean;
@@ -35,6 +36,7 @@ export function ShortcutRecorder({
   onSave: (combo: string) => void;
   onCancel: () => void;
 }) {
+  const t = useT();
   const [cap, setCap] = useState<Captured>(EMPTY);
 
   const onKeyDown = useCallback(
@@ -78,14 +80,14 @@ export function ShortcutRecorder({
     [onCancel]
   );
 
-  const display = format(cap) ?? "키를 눌러주세요...";
+  const display = format(cap) ?? t("키를 눌러주세요...", "Press a key...");
   const canSave = !!format(cap);
 
   return (
     <div className="flex flex-col gap-3">
       <button
         type="button"
-        aria-label="단축키 녹화 영역 — 키를 누르세요"
+        aria-label={t("단축키 녹화 영역 — 키를 누르세요", "Shortcut recorder — press a key")}
         onKeyDown={onKeyDown}
         className="rounded border border-white/15 px-4 py-3 text-center text-sm bg-black/30 focus:outline-none focus:ring-2 focus:ring-amber-400"
       >
@@ -93,7 +95,7 @@ export function ShortcutRecorder({
       </button>
       <div className="flex gap-2 justify-end">
         <Button variant="secondary" size="sm" onClick={onCancel}>
-          취소
+          {t("취소", "Cancel")}
         </Button>
         <Button
           size="sm"
@@ -103,7 +105,7 @@ export function ShortcutRecorder({
             if (c) onSave(c);
           }}
         >
-          확인
+          {t("확인", "Confirm")}
         </Button>
       </div>
     </div>

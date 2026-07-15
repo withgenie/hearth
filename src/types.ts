@@ -131,6 +131,14 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   P4: "참고",
 };
 
+export const PRIORITY_LABELS_EN: Record<Priority, string> = {
+  P0: "Urgent",
+  P1: "High",
+  P2: "Medium",
+  P3: "Low",
+  P4: "Reference",
+};
+
 export const CATEGORY_COLORS: Record<Category, string> = {
   Active: "#22c55e",
   Side: "#f97316",

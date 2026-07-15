@@ -16,6 +16,7 @@ import {
   PRIORITIES,
   PRIORITY_COLORS,
   PRIORITY_LABELS,
+  PRIORITY_LABELS_EN,
 } from "../types";
 import { Badge } from "../ui/Badge";
 import { Icon } from "../ui/Icon";
@@ -25,6 +26,7 @@ import { cn } from "../lib/cn";
 import { useCategories } from "../hooks/useCategories";
 import { useContextMenu } from "../hooks/useContextMenu";
 import { ContextMenu, type ContextMenuItem } from "../ui/ContextMenu";
+import { useT } from "../i18n/LocaleContext";
 
 export function ProjectCard({
   project,
@@ -45,6 +47,7 @@ export function ProjectCard({
   highlighted?: boolean;
   compact?: boolean;
 }) {
+  const t = useT();
   const [editing, setEditing] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const {
@@ -61,7 +64,7 @@ export function ProjectCard({
   const menuItems: ContextMenuItem[] = [
     {
       id: "add-memo",
-      label: "프로젝트 메모 추가",
+      label: t("프로젝트 메모 추가", "Add project memo"),
       icon: StickyNote,
       onSelect: () =>
         window.dispatchEvent(
@@ -72,7 +75,7 @@ export function ProjectCard({
     },
     {
       id: "settings",
-      label: "프로젝트 설정",
+      label: t("프로젝트 설정", "Project settings"),
       icon: Settings2,
       onSelect: () => onOpenDetail(project),
     },
@@ -80,13 +83,13 @@ export function ProjectCard({
       ? ([
           {
             id: "terminal",
-            label: "터미널에서 열기",
+            label: t("터미널에서 열기", "Open in Terminal"),
             icon: Play,
             onSelect: () => onOpenTerminal(project),
           },
           {
             id: "finder",
-            label: "Finder에서 열기",
+            label: t("Finder에서 열기", "Open in Finder"),
             icon: FolderOpen,
             onSelect: () => onOpenFinder(project),
           },
@@ -95,7 +98,7 @@ export function ProjectCard({
     { id: "sep", label: "", separator: true, onSelect: () => {} },
     {
       id: "delete",
-      label: "삭제",
+      label: t("삭제", "Delete"),
       icon: Trash2,
       danger: true,
       onSelect: () => onDelete(project.id),
@@ -175,31 +178,31 @@ export function ProjectCard({
       >
         {project.path && (
           <>
-            <Tooltip label="터미널에서 열기">
+            <Tooltip label={t("터미널에서 열기", "Open in Terminal")}>
               <button
                 onClick={() => onOpenTerminal(project)}
                 className="w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:text-[var(--color-brand-hi)] hover:bg-[var(--color-surface-1)]"
-                aria-label="터미널에서 열기"
+                aria-label={t("터미널에서 열기", "Open in Terminal")}
               >
                 <Icon icon={Play} size={14} />
               </button>
             </Tooltip>
           </>
         )}
-        <Tooltip label="프로젝트 설정">
+        <Tooltip label={t("프로젝트 설정", "Project settings")}>
           <button
             onClick={() => onOpenDetail(project)}
             className="w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:text-[var(--color-brand-hi)] hover:bg-[var(--color-surface-1)]"
-            aria-label="프로젝트 설정"
+            aria-label={t("프로젝트 설정", "Project settings")}
           >
             <Icon icon={Settings2} size={14} />
           </button>
         </Tooltip>
-        <Tooltip label="삭제">
+        <Tooltip label={t("삭제", "Delete")}>
           <button
             onClick={() => onDelete(project.id)}
             className="w-7 h-7 inline-flex items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:text-white hover:bg-[var(--color-danger)]"
-            aria-label="삭제"
+            aria-label={t("삭제", "Delete")}
           >
             <Icon icon={X} size={14} />
           </button>
@@ -218,7 +221,7 @@ export function ProjectCard({
           onClick={stop}
           onDoubleClick={stop}
           className="mt-0.5 cursor-grab text-[var(--color-text-dim)] hover:text-[var(--color-text-muted)] shrink-0"
-          aria-label="드래그하여 순서 변경"
+          aria-label={t("드래그하여 순서 변경", "Drag to reorder")}
         >
           <Icon icon={GripVertical} size={16} />
         </button>
@@ -276,7 +279,7 @@ export function ProjectCard({
               type="button"
               onClick={onClick}
               aria-expanded={ae}
-              aria-label={`우선순위 변경 — 현재 ${project.priority}`}
+              aria-label={t(`우선순위 변경 — 현재 ${project.priority}`, `Change priority — current ${project.priority}`)}
               className="shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] rounded-full"
             >
               <span
@@ -316,7 +319,7 @@ export function ProjectCard({
                     {p}
                   </span>
                   <span className="text-[var(--color-text-dim)]">
-                    {PRIORITY_LABELS[p]}
+                    {t(PRIORITY_LABELS[p], PRIORITY_LABELS_EN[p])}
                   </span>
                 </button>
               ))}
@@ -330,13 +333,13 @@ export function ProjectCard({
               type="button"
               onClick={onClick}
               aria-expanded={ae}
-              aria-label={`카테고리 변경 — 현재 ${project.category ?? "없음"}`}
+              aria-label={t(`카테고리 변경 — 현재 ${project.category ?? "없음"}`, `Change category — current ${project.category ?? "none"}`)}
               className="shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] rounded-full"
             >
               {project.category ? (
                 <Badge tone={catColor}>{project.category}</Badge>
               ) : (
-                <Badge>카테고리</Badge>
+                <Badge>{t("카테고리", "Category")}</Badge>
               )}
             </button>
           )}
@@ -395,7 +398,7 @@ export function ProjectCard({
             className="block w-full min-h-[2.6em] overflow-hidden text-left text-[12px] leading-snug text-[var(--color-text-muted)] cursor-text line-clamp-2 whitespace-pre-wrap break-words"
           >
             {project.evaluation || (
-              <span className="text-[var(--color-text-dim)]">메모 없음</span>
+              <span className="text-[var(--color-text-dim)]">{t("메모 없음", "No notes")}</span>
             )}
           </button>
         )}
@@ -411,7 +414,7 @@ export function ProjectCard({
             <button
               type="button"
               onClick={() => onOpenFinder(project)}
-              aria-label={`Finder에서 ${pathBasename} 열기`}
+              aria-label={t(`Finder에서 ${pathBasename} 열기`, `Open ${pathBasename} in Finder`)}
               className="inline-flex max-w-full items-center gap-1.5 rounded-[var(--radius-sm)] text-[11px] font-mono text-[var(--color-text-dim)] hover:text-[var(--color-brand-hi)] focus-visible:text-[var(--color-brand-hi)]"
             >
               <Icon icon={FolderOpen} size={14} />

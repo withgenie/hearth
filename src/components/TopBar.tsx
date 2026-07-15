@@ -11,12 +11,7 @@ import { Icon } from "../ui/Icon";
 import { Tooltip } from "../ui/Tooltip";
 import { cn } from "../lib/cn";
 import { AiStatusPill } from "./AiStatusPill";
-
-const tabs: { key: Tab; label: string; icon: typeof LayoutGrid }[] = [
-  { key: "projects", label: "프로젝트", icon: LayoutGrid },
-  { key: "calendar", label: "캘린더", icon: CalendarDays },
-  { key: "memos", label: "메모보드", icon: StickyNote },
-];
+import { useT } from "../i18n/LocaleContext";
 
 const indicatorTransform: Record<Tab, string> = {
   projects: "translateX(0%)",
@@ -35,20 +30,26 @@ export function TopBar({
   onOpenSettings: () => void;
   version: string;
 }) {
+  const t = useT();
+  const tabs: { key: Tab; label: string; icon: typeof LayoutGrid }[] = [
+    { key: "projects", label: t("프로젝트", "Projects"), icon: LayoutGrid },
+    { key: "calendar", label: t("캘린더", "Calendar"), icon: CalendarDays },
+    { key: "memos", label: t("메모보드", "Memos"), icon: StickyNote },
+  ];
   return (
     <div className="flex items-center gap-1 px-4 h-12 bg-[var(--color-surface-1)] border-b border-[var(--color-border)]">
       <span className="text-heading text-[var(--color-text-hi)] mr-1 tracking-tight">
         Hearth
       </span>
       {version && (
-        <Tooltip label={`버전 v${version}`}>
+        <Tooltip label={`${t("버전", "Version")} v${version}`}>
           <span className="text-[11px] font-mono text-[var(--color-text-dim)] mr-3">
             v{version}
           </span>
         </Tooltip>
       )}
       <div
-        aria-label="주 화면"
+        aria-label={t("주 화면", "Main views")}
         className="relative grid grid-cols-3"
         role="tablist"
       >
@@ -90,7 +91,7 @@ export function TopBar({
         leftIcon={Settings2}
         onClick={onOpenSettings}
       >
-        설정
+        {t("설정", "Settings")}
       </Button>
     </div>
   );

@@ -5,6 +5,7 @@ import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { Input } from "../ui/Input";
 import { useToast } from "../ui/Toast";
+import { useT } from "../i18n/LocaleContext";
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
@@ -25,6 +26,7 @@ export function MemoTagPickerDialog({
   onApply: (tagNames: string[]) => void | Promise<void>;
   onCreateTag: (name: string) => Promise<MemoTag>;
 }) {
+  const t = useT();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
@@ -69,7 +71,7 @@ export function MemoTagPickerDialog({
       setSelected((prev) => new Set(prev).add(created.name));
       setNewName("");
     } catch (err) {
-      const message = `태그 생성 실패: ${errorMessage(err)}`;
+      const message = t(`태그 생성 실패: ${errorMessage(err)}`, `Tag creation failed: ${errorMessage(err)}`);
       setError(message);
       toast.error(message);
     } finally {
@@ -85,7 +87,7 @@ export function MemoTagPickerDialog({
       await onApply([...selected]);
       onClose();
     } catch (err) {
-      const message = `태그 저장 실패: ${errorMessage(err)}`;
+      const message = t(`태그 저장 실패: ${errorMessage(err)}`, `Tag save failed: ${errorMessage(err)}`);
       setError(message);
       toast.error(message);
     } finally {
@@ -105,17 +107,17 @@ export function MemoTagPickerDialog({
             id="memo-tag-picker-title"
             className="text-[15px] font-semibold text-[var(--color-text-hi)]"
           >
-            메모 태그
+            {t("메모 태그", "Memo tags")}
           </h3>
           <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
-            이 메모에 붙일 태그를 선택하세요.
+            {t("이 메모에 붙일 태그를 선택하세요.", "Choose tags for this memo.")}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-1.5">
           {sortedTags.length === 0 ? (
             <span className="text-[12px] text-[var(--color-text-dim)]">
-              아직 태그가 없습니다.
+              {t("아직 태그가 없습니다.", "No tags yet.")}
             </span>
           ) : (
             sortedTags.map((tag) => {
@@ -155,7 +157,7 @@ export function MemoTagPickerDialog({
               }
             }}
             disabled={saving || creating}
-            placeholder="새 태그 이름"
+            placeholder={t("새 태그 이름", "New tag name")}
           />
           <Button
             type="button"
@@ -163,7 +165,7 @@ export function MemoTagPickerDialog({
             onClick={() => void createTag()}
             disabled={!newName.trim() || creating || saving}
           >
-            {creating ? "추가 중" : "추가"}
+            {creating ? t("추가 중", "Adding") : t("추가", "Add")}
           </Button>
         </div>
 
@@ -181,7 +183,7 @@ export function MemoTagPickerDialog({
             onClick={onClose}
             disabled={saving || creating}
           >
-            취소
+            {t("취소", "Cancel")}
           </Button>
           <Button
             type="button"
@@ -190,7 +192,7 @@ export function MemoTagPickerDialog({
             onClick={() => void apply()}
             disabled={!memo || saving || creating}
           >
-            {saving ? "저장 중" : "적용"}
+            {saving ? t("저장 중", "Saving") : t("적용", "Apply")}
           </Button>
         </div>
       </div>
