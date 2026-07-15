@@ -13,6 +13,10 @@
 // pre-date the bookmark column.
 
 use serde::Serialize;
+use tauri::Manager;
+
+use crate::cmd_settings::{self, AppLocale};
+use crate::AppState;
 
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -85,9 +89,10 @@ pub async fn pick_directory(
 ) -> Result<PickFolderResponse, String> {
     #[cfg(target_os = "macos")]
     {
+        let locale = cmd_settings::load_app_locale(&app.state::<AppState>())?;
         let (tx, rx) = tokio::sync::oneshot::channel::<Result<PickFolderResponse, String>>();
         app.run_on_main_thread(move || {
-            let res = macos::pick_directory_with_bookmark(suggested.as_deref());
+            let res = macos::pick_directory_with_bookmark(suggested.as_deref(), locale);
             let _ = tx.send(res);
         })
         .map_err(|e| format!("run_on_main_thread failed: {e}"))?;
@@ -119,8 +124,8 @@ mod macos {
     use super::*;
     use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
     use objc2_foundation::{
-        MainThreadMarker, NSData, NSString, NSURL, NSURLBookmarkCreationOptions,
-        NSURLBookmarkResolutionOptions, NSUserDefaults,
+        MainThreadMarker, NSData, NSString, NSURLBookmarkCreationOptions,
+        NSURLBookmarkResolutionOptions, NSUserDefaults, NSURL,
     };
     use std::path::PathBuf;
 
@@ -134,6 +139,7 @@ mod macos {
 
     pub fn pick_directory_with_bookmark(
         suggested: Option<&str>,
+        locale: AppLocale,
     ) -> Result<PickFolderResponse, String> {
         // SAFETY: tauri::AppHandle::run_on_main_thread guarantees this
         // closure executes on the AppKit main thread.
@@ -143,13 +149,22 @@ mod macos {
         panel.setCanChooseDirectories(true);
         panel.setCanChooseFiles(false);
         panel.setAllowsMultipleSelection(false);
-        let prompt = NSString::from_str("폴더 선택");
+        let prompt = NSString::from_str(match locale {
+            AppLocale::Ko => "폴더 선택",
+            AppLocale::En => "Choose Folder",
+        });
         panel.setPrompt(Some(&prompt));
-        let title = NSString::from_str("프로젝트 폴더 연결");
+        let title = NSString::from_str(match locale {
+            AppLocale::Ko => "프로젝트 폴더 연결",
+            AppLocale::En => "Connect Project Folder",
+        });
         panel.setTitle(Some(&title));
-        let message = NSString::from_str(
-            "Hearth가 이 폴더를 Finder/터미널에서 열 수 있도록 폴더를 한 번 선택해 주세요.",
-        );
+        let message = NSString::from_str(match locale {
+            AppLocale::Ko => {
+                "Hearth가 이 폴더를 Finder/터미널에서 열 수 있도록 폴더를 한 번 선택해 주세요."
+            }
+            AppLocale::En => "Choose this folder once so Hearth can open it in Finder or Terminal.",
+        });
         panel.setMessage(Some(&message));
 
         if let Some(dir) = suggested {

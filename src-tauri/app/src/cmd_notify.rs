@@ -12,6 +12,7 @@ use tauri::async_runtime::JoinHandle;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_notification::NotificationExt;
 
+use crate::cmd_settings::{self, AppLocale};
 use crate::models::{Schedule, ScheduleKind};
 use crate::AppState;
 
@@ -48,11 +49,7 @@ pub fn notification_id(schedule_id: i64, kind: ReminderKind) -> i32 {
 
 /// Compute the local trigger time for a reminder. Returns `None` if the
 /// date/time strings fail to parse or the resulting instant is ambiguous.
-pub fn compute_at(
-    date: &str,
-    time: &str,
-    kind: ReminderKind,
-) -> Option<DateTime<Local>> {
+pub fn compute_at(date: &str, time: &str, kind: ReminderKind) -> Option<DateTime<Local>> {
     let d = NaiveDate::parse_from_str(date, "%Y-%m-%d").ok()?;
     let t = NaiveTime::parse_from_str(time, "%H:%M").ok()?;
     let naive = NaiveDateTime::new(d, t) - chrono::Duration::minutes(kind.offset_minutes());
@@ -106,7 +103,7 @@ pub fn cancel_for_id(app: &AppHandle, schedule_id: i64) {
     }
 }
 
-fn reminder_body(s: &Schedule) -> String {
+fn reminder_body(s: &Schedule, locale: AppLocale) -> String {
     let mut parts: Vec<String> = Vec::new();
     if let Some(d) = s.description.as_deref().filter(|t| !t.is_empty()) {
         parts.push(d.to_string());
@@ -115,16 +112,22 @@ fn reminder_body(s: &Schedule) -> String {
         parts.push(format!("@ {l}"));
     }
     if parts.is_empty() {
-        "일정".to_string()
+        match locale {
+            AppLocale::Ko => "일정",
+            AppLocale::En => "Schedule",
+        }
+        .to_string()
     } else {
         parts.join(" ")
     }
 }
 
-fn title_for(kind: ReminderKind) -> &'static str {
-    match kind {
-        ReminderKind::Before5Min => "일정 5분 전",
-        ReminderKind::AtStart => "일정 시작",
+fn title_for(kind: ReminderKind, locale: AppLocale) -> &'static str {
+    match (kind, locale) {
+        (ReminderKind::Before5Min, AppLocale::Ko) => "일정 5분 전",
+        (ReminderKind::AtStart, AppLocale::Ko) => "일정 시작",
+        (ReminderKind::Before5Min, AppLocale::En) => "Schedule in 5 minutes",
+        (ReminderKind::AtStart, AppLocale::En) => "Schedule starting",
     }
 }
 
@@ -134,8 +137,8 @@ fn title_for(kind: ReminderKind) -> &'static str {
 fn spawn_fire(
     app: &AppHandle,
     id: i32,
-    kind: ReminderKind,
     at_local: DateTime<Local>,
+    title: &'static str,
     body: String,
 ) {
     let handle = app.clone();
@@ -149,7 +152,7 @@ fn spawn_fire(
         if let Err(e) = handle
             .notification()
             .builder()
-            .title(title_for(kind))
+            .title(title)
             .body(body)
             .sound("default")
             .show()
@@ -173,7 +176,8 @@ pub fn apply_for(app: &AppHandle, s: &Schedule) -> Result<(), String> {
     };
 
     let now = Local::now();
-    let body = reminder_body(s);
+    let locale = cmd_settings::load_app_locale(&app.state::<AppState>())?;
+    let body = reminder_body(s, locale);
     let mut reqs: Vec<ReminderKind> = Vec::new();
     if s.remind_before_5min {
         reqs.push(ReminderKind::Before5Min);
@@ -190,7 +194,7 @@ pub fn apply_for(app: &AppHandle, s: &Schedule) -> Result<(), String> {
             continue;
         }
         let id = notification_id(s.id, kind);
-        spawn_fire(app, id, kind, at_local, body.clone());
+        spawn_fire(app, id, at_local, title_for(kind, locale), body.clone());
     }
     Ok(())
 }
@@ -311,13 +315,32 @@ mod tests {
     #[test]
     fn should_skip_past_compares_inclusively() {
         let now = Local
-            .from_local_datetime(&NaiveDateTime::parse_from_str(
-                "2026-04-18 10:00", "%Y-%m-%d %H:%M").unwrap())
-            .single().unwrap();
+            .from_local_datetime(
+                &NaiveDateTime::parse_from_str("2026-04-18 10:00", "%Y-%m-%d %H:%M").unwrap(),
+            )
+            .single()
+            .unwrap();
         let at_past = now - chrono::Duration::minutes(1);
         let at_future = now + chrono::Duration::minutes(1);
         assert!(should_skip_past(now, now));
         assert!(should_skip_past(now, at_past));
         assert!(!should_skip_past(now, at_future));
+    }
+
+    #[test]
+    fn reminder_copy_tracks_the_effective_locale() {
+        assert_eq!(
+            title_for(ReminderKind::Before5Min, AppLocale::Ko),
+            "일정 5분 전"
+        );
+        assert_eq!(
+            title_for(ReminderKind::Before5Min, AppLocale::En),
+            "Schedule in 5 minutes"
+        );
+        assert_eq!(title_for(ReminderKind::AtStart, AppLocale::Ko), "일정 시작");
+        assert_eq!(
+            title_for(ReminderKind::AtStart, AppLocale::En),
+            "Schedule starting"
+        );
     }
 }

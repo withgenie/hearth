@@ -9,7 +9,10 @@
 
 use serde::Serialize;
 use std::path::PathBuf;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
+
+use crate::cmd_settings::{self, AppLocale};
+use crate::AppState;
 
 const BOOKMARK_KEY: &str = "hearth.dataDirBookmark";
 const DISMISSED_KEY: &str = "hearth.migrationDismissed";
@@ -136,8 +139,8 @@ mod macos {
     use super::*;
     use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
     use objc2_foundation::{
-        MainThreadMarker, NSData, NSString, NSURL, NSURLBookmarkCreationOptions,
-        NSURLBookmarkResolutionOptions, NSUserDefaults,
+        MainThreadMarker, NSData, NSString, NSURLBookmarkCreationOptions,
+        NSURLBookmarkResolutionOptions, NSUserDefaults, NSURL,
     };
 
     pub fn decide_boot(fallback_dir: PathBuf) -> BootDecision {
@@ -233,6 +236,7 @@ mod macos {
     }
 
     pub async fn choose_folder(app: AppHandle) -> Result<ChooseFolderResponse, String> {
+        let locale = cmd_settings::load_app_locale(&app.state::<AppState>())?;
         // Open NSOpenPanel pre-pointed at the canonical (non-container)
         // location used by 0.x — that's where existing users' data lives,
         // and it's outside the sandbox container. `app_data_dir()` under
@@ -244,7 +248,7 @@ mod macos {
 
         let (tx, rx) = tokio::sync::oneshot::channel::<Result<ChooseFolderResponse, String>>();
         app.run_on_main_thread(move || {
-            let res = run_panel_and_persist(initial_dir.as_deref());
+            let res = run_panel_and_persist(initial_dir.as_deref(), locale);
             let _ = tx.send(res);
         })
         .map_err(|e| format!("run_on_main_thread failed: {e}"))?;
@@ -252,7 +256,10 @@ mod macos {
         rx.await.map_err(|e| format!("oneshot recv failed: {e}"))?
     }
 
-    fn run_panel_and_persist(initial_dir: Option<&str>) -> Result<ChooseFolderResponse, String> {
+    fn run_panel_and_persist(
+        initial_dir: Option<&str>,
+        locale: AppLocale,
+    ) -> Result<ChooseFolderResponse, String> {
         // SAFETY: tauri::AppHandle::run_on_main_thread guarantees this
         // closure executes on the AppKit main thread.
         let mtm = unsafe { MainThreadMarker::new_unchecked() };
@@ -265,13 +272,20 @@ mod macos {
         // says "데이터 폴더 선택", so this matches user expectations.
         panel.setCanChooseFiles(false);
         panel.setAllowsMultipleSelection(false);
-        let prompt = NSString::from_str("Hearth 데이터 폴더 선택");
+        let prompt = NSString::from_str(match locale {
+            AppLocale::Ko => "Hearth 데이터 폴더 선택",
+            AppLocale::En => "Choose Hearth Data Folder",
+        });
         panel.setPrompt(Some(&prompt));
-        let title = NSString::from_str("Hearth 데이터 폴더 연결");
+        let title = NSString::from_str(match locale {
+            AppLocale::Ko => "Hearth 데이터 폴더 연결",
+            AppLocale::En => "Connect Hearth Data Folder",
+        });
         panel.setTitle(Some(&title));
-        let message = NSString::from_str(
-            "Hearth가 데이터를 보관할 폴더를 선택해 주세요. CLI 및 AI agent와 같은 데이터를 공유합니다.",
-        );
+        let message = NSString::from_str(match locale {
+            AppLocale::Ko => "Hearth가 데이터를 보관할 폴더를 선택해 주세요. CLI 및 AI agent와 같은 데이터를 공유합니다.",
+            AppLocale::En => "Choose where Hearth stores data. The CLI and AI agents will share this data.",
+        });
         panel.setMessage(Some(&message));
 
         if let Some(dir) = initial_dir {

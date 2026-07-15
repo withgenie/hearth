@@ -128,7 +128,7 @@ pub fn specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "create_memo",
-            description: "Create a new memo. Only `content` is required. color defaults to yellow. project_id links the memo to an existing project; if omitted, project_name is resolved by LIKE match on project name (priority-then-sort_order tie-break). Unresolved project_name → saved as 기타; tell the user in that case.",
+            description: "Create a new memo. Only `content` is required. color defaults to yellow. project_id links the memo to an existing project; if omitted, project_name is resolved by LIKE match on project name (priority-then-sort_order tie-break). An unresolved project_name is saved in the unlinked Other group; tell the user in that case.",
             parameters: json!({
                 "type": "object",
                 "required": ["content"],
@@ -137,11 +137,11 @@ pub fn specs() -> Vec<ToolSpec> {
                     "color": { "type": "string", "enum": ["yellow","pink","blue","green","purple"] },
                     "project_id": {
                         "type": "integer",
-                        "description": "연결할 프로젝트 ID (선택). project_name 보다 우선."
+                        "description": "Optional project ID to link. Takes precedence over project_name."
                     },
                     "project_name": {
                         "type": "string",
-                        "description": "연결할 프로젝트 이름 부분 일치 (LIKE, 선택). project_id 가 없을 때만 사용됨. 매칭 실패 시 기타로 저장."
+                        "description": "Optional project name substring match. Used only without project_id. An unresolved name is saved unlinked in Other."
                     }
                 }
             }),
@@ -174,25 +174,25 @@ pub fn specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "update_memo_by_number",
-            description: "#N 뱃지 번호로 메모 내용 수정. 번호는 사용자 화면의 현재 #N(전역 sort_order 기준). 작업 전 list_memos로 최신 순서를 조회해 번호를 확정하세요. 범위 밖이면 '#N 메모를 찾을 수 없음' 오류.",
+            description: "Update memo content by the current on-screen #N badge (global sort_order). Call list_memos immediately before the mutation to confirm the latest number.",
             parameters: json!({
                 "type": "object",
                 "required": ["number", "content"],
                 "properties": {
-                    "number": { "type": "integer", "description": "메모 뱃지 번호 (1부터)" },
-                    "content": { "type": "string", "description": "새 내용" }
+                    "number": { "type": "integer", "description": "One-based memo badge number" },
+                    "content": { "type": "string", "description": "New content" }
                 }
             }),
             kind: ToolKind::Mutation,
         },
         ToolSpec {
             name: "delete_memo_by_number",
-            description: "#N 뱃지 번호로 메모 삭제. 작업 전 list_memos로 최신 순서를 조회해 번호를 확정하세요.",
+            description: "Delete a memo by the current on-screen #N badge. Call list_memos immediately before the mutation to confirm the latest number.",
             parameters: json!({
                 "type": "object",
                 "required": ["number"],
                 "properties": {
-                    "number": { "type": "integer", "description": "메모 뱃지 번호 (1부터)" }
+                    "number": { "type": "integer", "description": "One-based memo badge number" }
                 }
             }),
             kind: ToolKind::Mutation,
@@ -408,7 +408,10 @@ fn create_project(app: &AppHandle, args: &Value) -> Result<Value, String> {
 }
 
 fn update_project(app: &AppHandle, args: &Value) -> Result<Value, String> {
-    let id = args.get("id").and_then(|v| v.as_i64()).ok_or("missing id")?;
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_i64())
+        .ok_or("missing id")?;
     let mut sets: Vec<&str> = vec![];
     let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = vec![];
 
@@ -437,7 +440,9 @@ fn update_project(app: &AppHandle, args: &Value) -> Result<Value, String> {
     let state = app.state::<crate::AppState>();
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let refs: Vec<&dyn rusqlite::types::ToSql> = params.iter().map(|p| p.as_ref()).collect();
-    let changed = db.execute(&sql, refs.as_slice()).map_err(|e| e.to_string())?;
+    let changed = db
+        .execute(&sql, refs.as_slice())
+        .map_err(|e| e.to_string())?;
     if changed == 0 {
         return Err(format!("no project with id {}", id));
     }
@@ -445,7 +450,10 @@ fn update_project(app: &AppHandle, args: &Value) -> Result<Value, String> {
 }
 
 fn delete_project(app: &AppHandle, args: &Value) -> Result<Value, String> {
-    let id = args.get("id").and_then(|v| v.as_i64()).ok_or("missing id")?;
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_i64())
+        .ok_or("missing id")?;
     let state = app.state::<crate::AppState>();
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let changed = db
@@ -561,7 +569,10 @@ fn create_memo(app: &AppHandle, args: &Value) -> Result<Value, String> {
 }
 
 fn update_memo(app: &AppHandle, args: &Value) -> Result<Value, String> {
-    let id = args.get("id").and_then(|v| v.as_i64()).ok_or("missing id")?;
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_i64())
+        .ok_or("missing id")?;
     let mut sets: Vec<&str> = vec![];
     let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = vec![];
 
@@ -595,7 +606,9 @@ fn update_memo(app: &AppHandle, args: &Value) -> Result<Value, String> {
     let state = app.state::<crate::AppState>();
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let refs: Vec<&dyn rusqlite::types::ToSql> = params.iter().map(|p| p.as_ref()).collect();
-    let changed = db.execute(&sql, refs.as_slice()).map_err(|e| e.to_string())?;
+    let changed = db
+        .execute(&sql, refs.as_slice())
+        .map_err(|e| e.to_string())?;
     if changed == 0 {
         return Err(format!("no memo with id {}", id));
     }
@@ -603,7 +616,10 @@ fn update_memo(app: &AppHandle, args: &Value) -> Result<Value, String> {
 }
 
 fn delete_memo(app: &AppHandle, args: &Value) -> Result<Value, String> {
-    let id = args.get("id").and_then(|v| v.as_i64()).ok_or("missing id")?;
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_i64())
+        .ok_or("missing id")?;
     let state = app.state::<crate::AppState>();
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let changed = db
@@ -617,10 +633,7 @@ fn delete_memo(app: &AppHandle, args: &Value) -> Result<Value, String> {
 
 /// Resolve `#N` → memo id via sort_order OFFSET, matching the UI badge.
 /// Centralized so update/delete share one error path.
-fn resolve_memo_by_number(
-    db: &rusqlite::Connection,
-    number: i64,
-) -> Result<i64, String> {
+fn resolve_memo_by_number(db: &rusqlite::Connection, number: i64) -> Result<i64, String> {
     if number < 1 {
         return Err(format!("#{} 메모를 찾을 수 없음", number));
     }
@@ -720,18 +733,23 @@ fn list_schedules(app: &AppHandle, args: &Value) -> Result<Value, String> {
         }))
     };
     let rows = if let Some(pat) = pattern {
-        stmt.query_map([pat], map_row).map_err(|e| e.to_string())?
+        stmt.query_map([pat], map_row)
+            .map_err(|e| e.to_string())?
             .filter_map(|r| r.ok())
             .collect::<Vec<_>>()
     } else {
-        stmt.query_map([], map_row).map_err(|e| e.to_string())?
+        stmt.query_map([], map_row)
+            .map_err(|e| e.to_string())?
             .filter_map(|r| r.ok())
             .collect::<Vec<_>>()
     };
     Ok(json!({ "count": rows.len(), "schedules": rows }))
 }
 
-fn load_schedule_row(db: &rusqlite::Connection, id: i64) -> Result<crate::models::Schedule, String> {
+fn load_schedule_row(
+    db: &rusqlite::Connection,
+    id: i64,
+) -> Result<crate::models::Schedule, String> {
     db.query_row(
         "SELECT id, date, time, location, description, notes, \
          kind, color, icon, remind_before_5min, remind_at_start, created_at, updated_at \
@@ -798,7 +816,10 @@ fn create_schedule(app: &AppHandle, args: &Value) -> Result<Value, String> {
 }
 
 fn update_schedule(app: &AppHandle, args: &Value) -> Result<Value, String> {
-    let id = args.get("id").and_then(|v| v.as_i64()).ok_or("missing id")?;
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_i64())
+        .ok_or("missing id")?;
 
     // Partial update: only touch columns the model explicitly named. The HTTP
     // `cmd_schedules::update_schedule` handler does full-row replacement (to
@@ -842,7 +863,9 @@ fn update_schedule(app: &AppHandle, args: &Value) -> Result<Value, String> {
     {
         let db = state.db.lock().map_err(|e| e.to_string())?;
         let refs: Vec<&dyn rusqlite::types::ToSql> = params.iter().map(|p| p.as_ref()).collect();
-        let changed = db.execute(&sql, refs.as_slice()).map_err(|e| e.to_string())?;
+        let changed = db
+            .execute(&sql, refs.as_slice())
+            .map_err(|e| e.to_string())?;
         if changed == 0 {
             return Err(format!("no schedule with id {}", id));
         }
@@ -863,7 +886,10 @@ fn update_schedule(app: &AppHandle, args: &Value) -> Result<Value, String> {
 }
 
 fn delete_schedule(app: &AppHandle, args: &Value) -> Result<Value, String> {
-    let id = args.get("id").and_then(|v| v.as_i64()).ok_or("missing id")?;
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_i64())
+        .ok_or("missing id")?;
     let state = app.state::<crate::AppState>();
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let changed = db

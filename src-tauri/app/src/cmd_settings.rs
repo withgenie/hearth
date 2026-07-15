@@ -93,6 +93,11 @@ pub(crate) fn load_locale_settings(db: &rusqlite::Connection) -> Result<LocaleSe
     })
 }
 
+pub(crate) fn load_app_locale(state: &State<'_, AppState>) -> Result<AppLocale, String> {
+    let db = state.db.lock().map_err(|error| error.to_string())?;
+    Ok(load_locale_settings(&db)?.effective)
+}
+
 pub(crate) fn persist_locale_settings(
     db: &mut rusqlite::Connection,
     input: LocaleSettings,

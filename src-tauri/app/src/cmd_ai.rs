@@ -23,7 +23,7 @@ use serde_json::{json, Value};
 use tauri::Manager;
 
 use crate::ai_tools::{self, ToolCall, ToolKind};
-use crate::cmd_settings;
+use crate::cmd_settings::{self, AppLocale};
 
 /// OpenAI model used for every request. Intentionally hard-coded — the
 /// settings UI does not expose a picker, so changing targets is a single
@@ -102,8 +102,11 @@ pub async fn ai_confirm(
     history: Vec<ChatMessage>,
     call: ToolCall,
 ) -> Result<AgentResult, String> {
-    let result = ai_tools::execute(&app, &call)
-        .map_err(|e| format!("{} 실행 실패: {}", call.name, e))?;
+    let locale = cmd_settings::load_app_locale(&app.state::<crate::AppState>())?;
+    let result = ai_tools::execute(&app, &call).map_err(|e| match locale {
+        AppLocale::Ko => format!("{} 실행 실패: {}", call.name, e),
+        AppLocale::En => format!("Failed to run {}: {}", call.name, e),
+    })?;
     let mut history = history;
     history.push(tool_result_message(&call, &result));
     run_agent(&app, history).await
@@ -120,9 +123,16 @@ async fn run_agent(
     // Resolve the OpenAI API key. A missing key returns a friendly error
     // instead of trying a local server — AI is optional; the rest of the
     // app continues working without it.
+    let locale = cmd_settings::load_app_locale(&app.state::<crate::AppState>())?;
     let settings = cmd_settings::load_full(&app.state::<crate::AppState>())?;
     let api_key = settings.openai_api_key.ok_or_else(|| {
-        "OpenAI API 키가 설정되지 않았습니다. 설정 → AI 탭에서 키를 입력해 주세요.".to_string()
+        match locale {
+            AppLocale::Ko => {
+                "OpenAI API 키가 설정되지 않았습니다. 설정 → AI 탭에서 키를 입력해 주세요."
+            }
+            AppLocale::En => "No OpenAI API key is configured. Add one in Settings → AI.",
+        }
+        .to_string()
     })?;
 
     let client = reqwest::Client::new();
@@ -193,7 +203,11 @@ async fn run_agent(
         // tool-call request on the next iteration.
         messages.push(ChatMessage {
             role: "assistant".into(),
-            content: if content.is_empty() { None } else { Some(content.clone()) },
+            content: if content.is_empty() {
+                None
+            } else {
+                Some(content.clone())
+            },
             name: None,
             tool_calls: tool_calls_raw.clone(),
             tool_call_id: None,
@@ -215,9 +229,7 @@ async fn run_agent(
                 None => {
                     messages.push(ChatMessage {
                         role: "tool".into(),
-                        content: Some(
-                            json!({ "error": "malformed tool_call" }).to_string(),
-                        ),
+                        content: Some(json!({ "error": "malformed tool_call" }).to_string()),
                         name: None,
                         tool_calls: None,
                         tool_call_id: raw["id"].as_str().map(String::from),
@@ -228,8 +240,8 @@ async fn run_agent(
 
             match ai_tools::kind_of(&parsed.name) {
                 Some(ToolKind::Read) => {
-                    let result = ai_tools::execute(app, &parsed)
-                        .unwrap_or_else(|e| json!({ "error": e }));
+                    let result =
+                        ai_tools::execute(app, &parsed).unwrap_or_else(|e| json!({ "error": e }));
                     messages.push(tool_result_message(&parsed, &result));
                 }
                 Some(ToolKind::Mutation) => {
@@ -251,7 +263,7 @@ async fn run_agent(
                             });
                         }
                     }
-                    let label = describe_call(&parsed);
+                    let label = describe_call(&parsed, locale);
                     return Ok(AgentResult::Pending {
                         call: parsed,
                         label,
@@ -310,7 +322,7 @@ fn parse_tool_call(raw: &Value) -> Option<ToolCall> {
 /// Human-readable summary of a pending mutation for the confirm modal. Kept
 /// intentionally terse — the user already sees the AI's prose reply, so this
 /// only needs to disambiguate *which* action they're approving.
-fn describe_call(call: &ToolCall) -> String {
+fn describe_call(call: &ToolCall, locale: AppLocale) -> String {
     let a = &call.arguments;
     let s = |k: &str| a.get(k).and_then(|v| v.as_str()).unwrap_or("?").to_string();
     let i = |k: &str| a.get(k).and_then(|v| v.as_i64()).unwrap_or(-1);
@@ -325,22 +337,54 @@ fn describe_call(call: &ToolCall) -> String {
             full
         }
     };
+    let en = locale == AppLocale::En;
     match call.name.as_str() {
         // Mirror the executor's P2 default so the confirm label doesn't show
         // "(?)" when the model omits priority.
         "create_project" => {
-            let pri = a
-                .get("priority")
-                .and_then(|v| v.as_str())
-                .unwrap_or("P2");
-            format!("프로젝트 '{}' ({}) 생성", s("name"), pri)
+            let pri = a.get("priority").and_then(|v| v.as_str()).unwrap_or("P2");
+            if en {
+                format!("Create project '{}' ({})", s("name"), pri)
+            } else {
+                format!("프로젝트 '{}' ({}) 생성", s("name"), pri)
+            }
         }
-        "update_project" => format!("프로젝트 #{} 수정", i("id")),
-        "delete_project" => format!("프로젝트 #{} 삭제", i("id")),
+        "update_project" => {
+            if en {
+                format!("Update project #{}", i("id"))
+            } else {
+                format!("프로젝트 #{} 수정", i("id"))
+            }
+        }
+        "delete_project" => {
+            if en {
+                format!("Delete project #{}", i("id"))
+            } else {
+                format!("프로젝트 #{} 삭제", i("id"))
+            }
+        }
 
-        "create_memo" => format!("메모 추가: '{}'", preview("content", 40)),
-        "update_memo" => format!("메모 #{} 수정", i("id")),
-        "delete_memo" => format!("메모 #{} 삭제", i("id")),
+        "create_memo" => {
+            if en {
+                format!("Create memo: '{}'", preview("content", 40))
+            } else {
+                format!("메모 추가: '{}'", preview("content", 40))
+            }
+        }
+        "update_memo" => {
+            if en {
+                format!("Update memo #{}", i("id"))
+            } else {
+                format!("메모 #{} 수정", i("id"))
+            }
+        }
+        "delete_memo" => {
+            if en {
+                format!("Delete memo #{}", i("id"))
+            } else {
+                format!("메모 #{} 삭제", i("id"))
+            }
+        }
 
         "create_schedule" => {
             let when = match a.get("time").and_then(|v| v.as_str()) {
@@ -349,13 +393,33 @@ fn describe_call(call: &ToolCall) -> String {
             };
             let desc = a.get("description").and_then(|v| v.as_str()).unwrap_or("");
             if desc.is_empty() {
-                format!("일정 {} 등록", when)
+                if en {
+                    format!("Create schedule {}", when)
+                } else {
+                    format!("일정 {} 등록", when)
+                }
             } else {
-                format!("일정 {} · {} 등록", when, desc)
+                if en {
+                    format!("Create schedule {} · {}", when, desc)
+                } else {
+                    format!("일정 {} · {} 등록", when, desc)
+                }
             }
         }
-        "update_schedule" => format!("일정 #{} 수정", i("id")),
-        "delete_schedule" => format!("일정 #{} 삭제", i("id")),
+        "update_schedule" => {
+            if en {
+                format!("Update schedule #{}", i("id"))
+            } else {
+                format!("일정 #{} 수정", i("id"))
+            }
+        }
+        "delete_schedule" => {
+            if en {
+                format!("Delete schedule #{}", i("id"))
+            } else {
+                format!("일정 #{} 삭제", i("id"))
+            }
+        }
 
         _ => call.name.replace('_', " "),
     }
@@ -408,14 +472,17 @@ mod tests {
             name: "create_project".into(),
             arguments: json!({ "name": "pickat", "priority": "P0" }),
         };
-        assert_eq!(describe_call(&c), "프로젝트 'pickat' (P0) 생성");
+        assert_eq!(
+            describe_call(&c, AppLocale::Ko),
+            "프로젝트 'pickat' (P0) 생성"
+        );
 
         let d = ToolCall {
             id: "i".into(),
             name: "delete_project".into(),
             arguments: json!({ "id": 7 }),
         };
-        assert_eq!(describe_call(&d), "프로젝트 #7 삭제");
+        assert_eq!(describe_call(&d, AppLocale::Ko), "프로젝트 #7 삭제");
     }
 
     #[test]
@@ -426,7 +493,10 @@ mod tests {
             name: "create_project".into(),
             arguments: json!({ "name": "pickat" }),
         };
-        assert_eq!(describe_call(&c), "프로젝트 'pickat' (P2) 생성");
+        assert_eq!(
+            describe_call(&c, AppLocale::Ko),
+            "프로젝트 'pickat' (P2) 생성"
+        );
     }
 
     #[test]
@@ -436,7 +506,7 @@ mod tests {
             name: "focus_project".into(),
             arguments: json!({}),
         };
-        assert_eq!(describe_call(&c), "focus project");
+        assert_eq!(describe_call(&c, AppLocale::Ko), "focus project");
     }
 
     #[test]
@@ -446,14 +516,17 @@ mod tests {
             name: "create_memo".into(),
             arguments: json!({ "content": "회의록 정리" }),
         };
-        assert_eq!(describe_call(&create), "메모 추가: '회의록 정리'");
+        assert_eq!(
+            describe_call(&create, AppLocale::Ko),
+            "메모 추가: '회의록 정리'"
+        );
 
         let del = ToolCall {
             id: "i".into(),
             name: "delete_memo".into(),
             arguments: json!({ "id": 12 }),
         };
-        assert_eq!(describe_call(&del), "메모 #12 삭제");
+        assert_eq!(describe_call(&del, AppLocale::Ko), "메모 #12 삭제");
     }
 
     #[test]
@@ -466,7 +539,7 @@ mod tests {
             name: "create_memo".into(),
             arguments: json!({ "content": long }),
         };
-        let label = describe_call(&c);
+        let label = describe_call(&c, AppLocale::Ko);
         assert!(label.ends_with("…'"), "got: {}", label);
     }
 
@@ -482,7 +555,7 @@ mod tests {
             }),
         };
         assert_eq!(
-            describe_call(&with_time),
+            describe_call(&with_time, AppLocale::Ko),
             "일정 2026-04-20 15:00 · 디자인 리뷰 등록"
         );
 
@@ -491,13 +564,18 @@ mod tests {
             name: "create_schedule".into(),
             arguments: json!({ "date": "2026-04-20" }),
         };
-        assert_eq!(describe_call(&date_only), "일정 2026-04-20 등록");
+        assert_eq!(
+            describe_call(&date_only, AppLocale::Ko),
+            "일정 2026-04-20 등록"
+        );
 
         let del = ToolCall {
             id: "i".into(),
             name: "delete_schedule".into(),
             arguments: json!({ "id": 7 }),
         };
-        assert_eq!(describe_call(&del), "일정 #7 삭제");
+        assert_eq!(describe_call(&del, AppLocale::Ko), "일정 #7 삭제");
+
+        assert_eq!(describe_call(&del, AppLocale::En), "Delete schedule #7");
     }
 }
