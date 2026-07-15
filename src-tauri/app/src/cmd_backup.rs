@@ -10,15 +10,16 @@ use tauri::{AppHandle, Manager, State};
 /// Resolve the directory that holds rolling backups. Reads `backup.dir` from
 /// the settings KV; falls back to `$APP_DATA/backups` when unset so first-run
 /// behavior matches the pre-setting world.
-fn backup_dir(app: &AppHandle, state: &State<'_, AppState>) -> Result<PathBuf, String> {
+fn backup_dir(state: &State<'_, AppState>) -> Result<PathBuf, String> {
     let configured = {
         let db = state.db.lock().map_err(|e| e.to_string())?;
         cmd_settings::read(&db, K_BACKUP_DIR)?
     };
     let dir = if configured.is_empty() {
-        app.path()
-            .app_data_dir()
-            .map_err(|e| e.to_string())?
+        state
+            .db_path
+            .parent()
+            .ok_or_else(|| "database path has no parent directory".to_string())?
             .join("backups")
     } else {
         PathBuf::from(configured)
@@ -45,10 +46,8 @@ fn prune_backups_with_today(dir: &Path, today: NaiveDate) {
             .filter_map(|e| e.ok())
             .filter_map(|e| {
                 let name = e.file_name().to_string_lossy().into_owned();
-                let stripped =
-                    name.strip_prefix("hearth-backup-")?.strip_suffix(".db")?;
-                let ts =
-                    NaiveDateTime::parse_from_str(stripped, "%Y-%m-%d-%H%M%S").ok()?;
+                let stripped = name.strip_prefix("hearth-backup-")?.strip_suffix(".db")?;
+                let ts = NaiveDateTime::parse_from_str(stripped, "%Y-%m-%d-%H%M%S").ok()?;
                 Some((e.path(), ts))
             })
             .collect(),
@@ -93,33 +92,22 @@ fn prune_backups(dir: &Path) {
     prune_backups_with_today(dir, Local::now().date_naive());
 }
 
-fn db_path(app: &AppHandle) -> Result<PathBuf, String> {
-    Ok(app
-        .path()
-        .app_data_dir()
-        .map_err(|e| e.to_string())?
-        .join("data.db"))
+fn db_path(state: &State<'_, AppState>) -> PathBuf {
+    state.db_path.clone()
 }
 
 #[tauri::command]
-pub fn get_backup_dir(
-    state: State<'_, AppState>,
-    app: AppHandle,
-) -> Result<String, String> {
-    Ok(backup_dir(&app, &state)?.to_string_lossy().to_string())
+pub fn get_backup_dir(state: State<'_, AppState>) -> Result<String, String> {
+    Ok(backup_dir(&state)?.to_string_lossy().to_string())
 }
 
 #[tauri::command]
-pub fn set_backup_dir(
-    state: State<'_, AppState>,
-    path: String,
-) -> Result<String, String> {
+pub fn set_backup_dir(state: State<'_, AppState>, path: String) -> Result<String, String> {
     let canonical = PathBuf::from(path.trim());
     if canonical.as_os_str().is_empty() {
         return Err("백업 위치가 비어 있습니다".into());
     }
-    fs::create_dir_all(&canonical)
-        .map_err(|e| format!("백업 폴더를 만들 수 없습니다: {e}"))?;
+    fs::create_dir_all(&canonical).map_err(|e| format!("백업 폴더를 만들 수 없습니다: {e}"))?;
     let stored = canonical.to_string_lossy().to_string();
     {
         let db = state.db.lock().map_err(|e| e.to_string())?;
@@ -129,19 +117,15 @@ pub fn set_backup_dir(
 }
 
 #[tauri::command]
-pub fn backup_db(
-    state: State<'_, AppState>,
-    app: AppHandle,
-    dest_path: Option<String>,
-) -> Result<String, String> {
+pub fn backup_db(state: State<'_, AppState>, dest_path: Option<String>) -> Result<String, String> {
     {
         let db = state.db.lock().map_err(|e| e.to_string())?;
         db.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
             .map_err(|e| e.to_string())?;
     }
 
-    let source = db_path(&app)?;
-    let dir = backup_dir(&app, &state)?;
+    let source = db_path(&state);
+    let dir = backup_dir(&state)?;
     let dest = match dest_path {
         Some(p) => PathBuf::from(p),
         None => {
@@ -158,12 +142,12 @@ pub fn backup_db(
 }
 
 #[tauri::command]
-pub fn restore_db(app: AppHandle, src_path: String) -> Result<(), String> {
+pub fn restore_db(state: State<'_, AppState>, src_path: String) -> Result<(), String> {
     let source = PathBuf::from(&src_path);
     if !source.exists() {
         return Err("Backup file not found".into());
     }
-    let dest = db_path(&app)?;
+    let dest = db_path(&state);
     fs::copy(&source, &dest).map_err(|e| format!("Restore failed: {}", e))?;
     Ok(())
 }
@@ -177,11 +161,8 @@ pub struct BackupInfo {
 }
 
 #[tauri::command]
-pub fn list_backups(
-    state: State<'_, AppState>,
-    app: AppHandle,
-) -> Result<Vec<BackupInfo>, String> {
-    let dir = backup_dir(&app, &state)?;
+pub fn list_backups(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, String> {
+    let dir = backup_dir(&state)?;
     let mut backups: Vec<BackupInfo> = fs::read_dir(&dir)
         .map_err(|e| e.to_string())?
         .filter_map(|e| e.ok())
@@ -225,10 +206,7 @@ pub fn list_backups(
 /// `sqlite_sequence` table are **preserved** — the intent is "empty my
 /// workspace" not "factory reset."
 #[tauri::command]
-pub fn reset_data(
-    state: State<'_, AppState>,
-    app: AppHandle,
-) -> Result<String, String> {
+pub fn reset_data(state: State<'_, AppState>) -> Result<String, String> {
     // 1) Flush WAL so the snapshot carries the latest committed state.
     {
         let db = state.db.lock().map_err(|e| e.to_string())?;
@@ -237,12 +215,11 @@ pub fn reset_data(
     }
 
     // 2) Copy the current DB to <backup_dir>/pre-reset-<ts>.db.
-    let source = db_path(&app)?;
-    let dir = backup_dir(&app, &state)?;
+    let source = db_path(&state);
+    let dir = backup_dir(&state)?;
     let timestamp = Local::now().format("%Y-%m-%d-%H%M%S");
     let snapshot = dir.join(format!("pre-reset-{}.db", timestamp));
-    fs::copy(&source, &snapshot)
-        .map_err(|e| format!("pre-reset snapshot failed: {}", e))?;
+    fs::copy(&source, &snapshot).map_err(|e| format!("pre-reset snapshot failed: {}", e))?;
 
     // 3) Wipe user content in a single transaction. `sqlite_sequence` is
     // reset too so the next created row starts at id=1 again — otherwise
@@ -322,10 +299,7 @@ mod tests {
         let daily: Vec<PathBuf> = (0..7)
             .map(|offset| {
                 let d = today - chrono::Duration::days(offset);
-                touch(
-                    tmp.path(),
-                    d.and_hms_opt(12, 0, 0).unwrap(),
-                )
+                touch(tmp.path(), d.and_hms_opt(12, 0, 0).unwrap())
             })
             .collect();
 
@@ -333,7 +307,7 @@ mod tests {
         // to verify the "one per week" coalesce.
         let wk_same_a = touch(tmp.path(), ymdhms(2026, 4, 11, 12, 0, 0)); // age 8
         let wk_same_b = touch(tmp.path(), ymdhms(2026, 4, 10, 12, 0, 0)); // age 9, same iso week
-        let wk_other = touch(tmp.path(), ymdhms(2026, 3, 25, 12, 0, 0));  // age 25, different week
+        let wk_other = touch(tmp.path(), ymdhms(2026, 3, 25, 12, 0, 0)); // age 25, different week
 
         // Monthly window (age 35..125): two in March 2026 — only newest stays.
         let mo_same_a = touch(tmp.path(), ymdhms(2026, 3, 10, 12, 0, 0));
@@ -395,12 +369,8 @@ pub fn auto_backup_on_close(app: &AppHandle) {
     if let Ok(db) = state.db.lock() {
         db.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);").ok();
     }
-    let source = app
-        .path()
-        .app_data_dir()
-        .ok()
-        .map(|d| d.join("data.db"));
-    let dest_dir = backup_dir(app, &state).ok();
+    let source = Some(db_path(&state));
+    let dest_dir = backup_dir(&state).ok();
 
     if let (Some(src), Some(dir)) = (source, dest_dir) {
         let timestamp = Local::now().format("%Y-%m-%d-%H%M%S");

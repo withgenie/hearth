@@ -17,6 +17,7 @@ mod excel_import;
 mod models;
 mod watcher;
 
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem, WINDOW_SUBMENU_ID};
 use tauri::{Emitter, Manager};
@@ -27,6 +28,30 @@ const SHOW_MAIN_WINDOW_MENU_ACCELERATOR: Option<&str> = None;
 
 pub struct AppState {
     pub db: Mutex<rusqlite::Connection>,
+    pub db_path: PathBuf,
+}
+
+#[cfg(debug_assertions)]
+fn qa_app_data_dir(fallback_dir: &Path) -> Result<Option<PathBuf>, String> {
+    let Ok(raw) = std::env::var("HEARTH_QA_APP_DATA_DIR") else {
+        return Ok(None);
+    };
+    if raw.trim().is_empty() {
+        return Ok(None);
+    }
+    std::fs::create_dir_all(&raw).map_err(|error| error.to_string())?;
+    let selected = std::fs::canonicalize(&raw).map_err(|error| error.to_string())?;
+    let fallback = std::fs::canonicalize(fallback_dir).map_err(|error| error.to_string())?;
+    if selected == fallback {
+        return Err("HEARTH_QA_APP_DATA_DIR must not point to the live app data directory".into());
+    }
+    eprintln!("HEARTH QA app data: {}", selected.display());
+    Ok(Some(selected))
+}
+
+#[cfg(not(debug_assertions))]
+fn qa_app_data_dir(_fallback_dir: &Path) -> Result<Option<PathBuf>, String> {
+    Ok(None)
 }
 
 fn show_main_window(app_handle: &tauri::AppHandle) {
@@ -83,9 +108,10 @@ pub fn run() {
                 .map_err(|e| format!("failed to resolve app data dir: {e}"))?;
             std::fs::create_dir_all(&fallback_dir)?;
 
-            // Decide whether the DB lives under the user's bookmarked folder
-            // or the sandbox container fallback. See cmd_migration::decide_boot.
-            let (db_dir, bookmark_access, needs_wizard) =
+            let qa_dir = qa_app_data_dir(&fallback_dir)?;
+            let (db_dir, bookmark_access, needs_wizard) = if let Some(qa_dir) = qa_dir {
+                (qa_dir, None, false)
+            } else {
                 match cmd_migration::decide_boot(fallback_dir.clone()) {
                     cmd_migration::BootDecision::Bookmarked { db_dir, access } => {
                         (db_dir, Some(access), false)
@@ -94,7 +120,8 @@ pub fn run() {
                         db_dir,
                         needs_wizard,
                     } => (db_dir, None, needs_wizard),
-                };
+                }
+            };
             std::fs::create_dir_all(&db_dir)?;
 
             if let Some(access) = bookmark_access {
@@ -117,6 +144,7 @@ pub fn run() {
 
             app.manage(AppState {
                 db: Mutex::new(conn),
+                db_path,
             });
             app.manage(crate::cmd_notify::Scheduler::new());
 
@@ -307,5 +335,15 @@ mod tests {
     fn main_window_menu_does_not_claim_frontend_tab_shortcut() {
         assert_eq!(SHOW_MAIN_WINDOW_MENU_ID, "show-main-window");
         assert_eq!(SHOW_MAIN_WINDOW_MENU_ACCELERATOR, None);
+    }
+
+    #[cfg(debug_assertions)]
+    #[test]
+    fn qa_data_dir_rejects_the_live_directory() {
+        let temp = tempfile::TempDir::new().unwrap();
+        std::env::set_var("HEARTH_QA_APP_DATA_DIR", temp.path());
+        let result = super::qa_app_data_dir(temp.path());
+        std::env::remove_var("HEARTH_QA_APP_DATA_DIR");
+        assert!(result.is_err());
     }
 }
