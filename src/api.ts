@@ -202,6 +202,19 @@ export const getUiPreferences = () =>
 export const saveUiPreferences = (input: SaveUiPreferencesInput) =>
   invoke<UiPreferences>("save_ui_preferences", { input });
 
+export type LocalePreference = "system" | "ko" | "en";
+export type AppLocale = "ko" | "en";
+export type LocaleSettings = {
+  preference: LocalePreference;
+  effective: AppLocale;
+};
+
+export const getLocaleSettings = () =>
+  invoke<LocaleSettings>("get_locale_settings");
+
+export const setLocaleSettings = (input: LocaleSettings) =>
+  invoke<LocaleSettings>("set_locale_settings", { input });
+
 // UI scale (Cmd+=/-/0). Persisted in the settings KV table.
 export const getUiScale = () => invoke<number>("get_ui_scale");
 export const setUiScale = (scale: number) =>

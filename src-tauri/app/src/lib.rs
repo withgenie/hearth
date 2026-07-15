@@ -264,6 +264,8 @@ pub fn run() {
             cmd_settings::save_ai_settings,
             cmd_settings::get_ui_preferences,
             cmd_settings::save_ui_preferences,
+            cmd_settings::get_locale_settings,
+            cmd_settings::set_locale_settings,
             cmd_settings::get_ui_scale,
             cmd_settings::set_ui_scale,
             cmd_settings::get_theme,

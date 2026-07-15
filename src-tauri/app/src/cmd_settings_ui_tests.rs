@@ -188,6 +188,56 @@ mod tests {
     }
 
     #[test]
+    fn locale_settings_default_to_system_english_without_repairing_storage() {
+        let db = settings_db();
+        write(&db, K_LOCALE_PREFERENCE, "broken").unwrap();
+        write(&db, K_LOCALE_EFFECTIVE, "broken").unwrap();
+
+        assert_eq!(
+            load_locale_settings(&db).unwrap(),
+            LocaleSettings {
+                preference: LocalePreference::System,
+                effective: AppLocale::En,
+            }
+        );
+        assert_eq!(read(&db, K_LOCALE_PREFERENCE).unwrap(), "broken");
+        assert_eq!(read(&db, K_LOCALE_EFFECTIVE).unwrap(), "broken");
+    }
+
+    #[test]
+    fn locale_settings_persist_preference_and_effective_together() {
+        let mut db = settings_db();
+        let expected = LocaleSettings {
+            preference: LocalePreference::System,
+            effective: AppLocale::Ko,
+        };
+
+        assert_eq!(
+            persist_locale_settings(&mut db, expected).unwrap(),
+            expected
+        );
+        assert_eq!(read(&db, K_LOCALE_PREFERENCE).unwrap(), "system");
+        assert_eq!(read(&db, K_LOCALE_EFFECTIVE).unwrap(), "ko");
+    }
+
+    #[test]
+    fn explicit_locale_must_match_effective_locale() {
+        let mut db = settings_db();
+        let error = persist_locale_settings(
+            &mut db,
+            LocaleSettings {
+                preference: LocalePreference::Ko,
+                effective: AppLocale::En,
+            },
+        )
+        .unwrap_err();
+
+        assert!(error.contains("must match"));
+        assert_eq!(read(&db, K_LOCALE_PREFERENCE).unwrap(), "");
+        assert_eq!(read(&db, K_LOCALE_EFFECTIVE).unwrap(), "");
+    }
+
+    #[test]
     fn redact_hides_the_key_but_reports_presence() {
         let with_key = AiSettingsFull {
             openai_api_key: Some("sk-abc".into()),

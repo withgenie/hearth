@@ -9,8 +9,10 @@ import {
 import { applyTheme } from "../theme/applyTheme";
 import { DEFAULT_THEME, type ThemeSetting } from "../theme/types";
 import { THEME_EVENT, THEME_LS_KEY } from "../theme/ThemeContext";
+import { useLocale } from "../i18n/LocaleContext";
 
 export function QuickCapture() {
+  const { effective } = useLocale();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -106,12 +108,14 @@ export function QuickCapture() {
         disabled={busy}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={onKeyDown}
-        placeholder="뇌에 있는 거 한 줄..."
+        placeholder={effective === "ko" ? "뇌에 있는 거 한 줄..." : "Capture a thought..."}
         aria-label="Quick Capture"
         className="w-full resize-none bg-transparent outline-none text-[15px] text-white placeholder-white/40"
       />
       {error && (
-        <div className="mt-2 text-xs text-red-400">저장 실패 — {error}</div>
+        <div className="mt-2 text-xs text-red-400">
+          {effective === "ko" ? "저장 실패" : "Save failed"} — {error}
+        </div>
       )}
     </div>
   );

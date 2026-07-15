@@ -5,6 +5,8 @@ import { QuickCapture } from "./windows/QuickCapture";
 import { applyTheme } from "./theme/applyTheme";
 import { DEFAULT_THEME, type ThemeSetting } from "./theme/types";
 import { THEME_LS_KEY } from "./theme/ThemeContext";
+import { LocaleProvider } from "./i18n/LocaleContext";
+import { initialLocaleSettings } from "./i18n/locale";
 
 // Pre-paint before React mounts so the first frame lands in the correct
 // theme. If the cache is missing/corrupt, fall back to DEFAULT_THEME. The
@@ -19,6 +21,8 @@ import { THEME_LS_KEY } from "./theme/ThemeContext";
   }
 })();
 
+document.documentElement.lang = initialLocaleSettings().effective;
+
 const params = new URLSearchParams(window.location.search);
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -27,13 +31,17 @@ const root = ReactDOM.createRoot(
 if (params.get("window") === "quick-capture") {
   root.render(
     <React.StrictMode>
-      <QuickCapture />
+      <LocaleProvider>
+        <QuickCapture />
+      </LocaleProvider>
     </React.StrictMode>
   );
 } else {
   root.render(
     <React.StrictMode>
-      <App />
+      <LocaleProvider>
+        <App />
+      </LocaleProvider>
     </React.StrictMode>
   );
 }

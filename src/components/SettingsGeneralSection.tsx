@@ -4,12 +4,15 @@ import * as api from "../api";
 import type { DataFolderStatus, NotificationPermission } from "../api";
 import { useQuickCaptureShortcut } from "../hooks/useQuickCaptureShortcut";
 import { ShortcutRecorder } from "./settings/ShortcutRecorder";
+import { useLocale } from "../i18n/LocaleContext";
+import type { LocalePreference } from "../i18n/locale";
 
 export function SettingsGeneralSection({
   active,
 }: {
   active: boolean;
 }) {
+  const locale = useLocale();
   const [perm, setPerm] = useState<NotificationPermission>("unknown");
   const [busy, setBusy] = useState(false);
   const [folderStatus, setFolderStatus] = useState<DataFolderStatus | null>(
@@ -91,6 +94,34 @@ export function SettingsGeneralSection({
 
   return (
     <div className="flex flex-col gap-6">
+      <section>
+        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
+          {locale.effective === "ko" ? "언어" : "Language"}
+        </h3>
+        <select
+          aria-label={locale.effective === "ko" ? "표시 언어" : "Display language"}
+          className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-[13px] text-[var(--color-text)]"
+          disabled={locale.pending}
+          value={locale.preference}
+          onChange={(event) => {
+            void locale.setPreference(event.target.value as LocalePreference).catch(() => {});
+          }}
+        >
+          <option value="system">
+            {locale.effective === "ko" ? "시스템 기본값" : "System default"}
+          </option>
+          <option value="ko">한국어</option>
+          <option value="en">English</option>
+        </select>
+        {locale.error && (
+          <p className="mt-2 text-[11px] text-red-400">
+            {locale.effective === "ko"
+              ? `언어 설정을 저장하지 못했습니다: ${locale.error}`
+              : `Could not save language setting: ${locale.error}`}
+          </p>
+        )}
+      </section>
+
       <section>
         <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
           로그인 시 자동 실행

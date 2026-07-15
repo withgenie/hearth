@@ -26,8 +26,112 @@ const K_OPENAI_KEY: &str = "ai.openai_api_key";
 const K_UI_SCALE: &str = "ui.scale";
 const K_MEMO_VIEW: &str = "ui.memo_view";
 const K_ACTIVE_TAB: &str = "ui.active_tab";
+const K_LOCALE_PREFERENCE: &str = "ui.locale.preference";
+const K_LOCALE_EFFECTIVE: &str = "ui.locale.effective";
 pub(crate) const K_BACKUP_DIR: &str = "backup.dir";
 pub(crate) const K_THEME: &str = "ui.theme";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LocalePreference {
+    System,
+    Ko,
+    En,
+}
+
+impl LocalePreference {
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::System => "system",
+            Self::Ko => "ko",
+            Self::En => "en",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AppLocale {
+    Ko,
+    En,
+}
+
+impl AppLocale {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::Ko => "ko",
+            Self::En => "en",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct LocaleSettings {
+    pub preference: LocalePreference,
+    pub effective: AppLocale,
+}
+
+pub(crate) fn load_locale_settings(db: &rusqlite::Connection) -> Result<LocaleSettings, String> {
+    let preference = match read(db, K_LOCALE_PREFERENCE)?.as_str() {
+        "ko" => LocalePreference::Ko,
+        "en" => LocalePreference::En,
+        _ => LocalePreference::System,
+    };
+    let stored_effective = match read(db, K_LOCALE_EFFECTIVE)?.as_str() {
+        "ko" => AppLocale::Ko,
+        _ => AppLocale::En,
+    };
+    let effective = match preference {
+        LocalePreference::Ko => AppLocale::Ko,
+        LocalePreference::En => AppLocale::En,
+        LocalePreference::System => stored_effective,
+    };
+    Ok(LocaleSettings {
+        preference,
+        effective,
+    })
+}
+
+pub(crate) fn persist_locale_settings(
+    db: &mut rusqlite::Connection,
+    input: LocaleSettings,
+) -> Result<LocaleSettings, String> {
+    if (matches!(input.preference, LocalePreference::Ko) && input.effective != AppLocale::Ko)
+        || (matches!(input.preference, LocalePreference::En) && input.effective != AppLocale::En)
+    {
+        return Err("explicit locale preference must match effective locale".into());
+    }
+
+    let tx = db.transaction().map_err(|error| error.to_string())?;
+    write(&tx, K_LOCALE_PREFERENCE, input.preference.as_str())?;
+    write(&tx, K_LOCALE_EFFECTIVE, input.effective.as_str())?;
+    tx.commit().map_err(|error| error.to_string())?;
+    Ok(input)
+}
+
+#[tauri::command]
+pub fn get_locale_settings(state: State<'_, AppState>) -> Result<LocaleSettings, String> {
+    let db = state.db.lock().map_err(|error| error.to_string())?;
+    load_locale_settings(&db)
+}
+
+#[tauri::command]
+pub fn set_locale_settings(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    input: LocaleSettings,
+) -> Result<LocaleSettings, String> {
+    let saved = {
+        let mut db = state.db.lock().map_err(|error| error.to_string())?;
+        persist_locale_settings(&mut db, input)?
+    };
+    if let Err(error) = crate::cmd_notify::reschedule_all_future(&app) {
+        eprintln!("notification locale reschedule failed: {error}");
+    }
+    let _ = tauri::Emitter::emit(&app, "locale:changed", saved);
+    Ok(saved)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
