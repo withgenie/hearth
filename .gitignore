@@ -47,6 +47,7 @@ insane-design/
 # Local agent and browser QA evidence
 .omo/
 output/
+.playwright-cli/
 
 # MAS code-signing material (provisioning profiles, certs)
 certs/*.provisionprofile
