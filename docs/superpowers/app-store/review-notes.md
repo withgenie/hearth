@@ -10,6 +10,17 @@ release: 1.1.0
 
 Thank you for reviewing Hearth.
 
+0. RESUBMISSION REMEDIATION — BUILD 14
+   - China mainland has been removed from App Availability. Hearth's optional
+     OpenAI integration and related metadata are available only outside China.
+   - Build 13 accidentally exposed an unfinished, non-functional License tab
+     that could only display "Loading license status." Build 14 removes that
+     entire tab and all trial, product ID, purchase, and restore references.
+   - Hearth is paid upfront. There are no In-App Purchase products or
+     subscriptions in App Store Connect and no IAP to submit with this version.
+   - To verify the fix, open Settings. The visible tabs are General, Theme, AI,
+     Backup/Import, Categories, Integrations, and About. There is no License tab.
+
 1. PURCHASE MODEL
    Hearth is a paid-upfront Mac app. Version 1.1.0 contains no In-App
    Purchases, subscriptions, trial gate, or separate account sign-in.

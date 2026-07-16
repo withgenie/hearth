@@ -41,18 +41,18 @@
   },
   "build": {
     "marketing_version": "1.1.0",
-    "build_number": 13,
-    "package": "dist-mas/Hearth-1.1.0-13.pkg",
-    "sha256": "db40a8fa497c4d1d7984960820cb2757f70fc90bcc1cbe499869037becc9db49",
-    "receipt": "dist-mas/Hearth-1.1.0-13.receipt.json",
-    "source_commit": "77a88cd3ea2858eed9162e7f9a4d471e293adf37",
-    "source_tree": "82ca9657fcea112740374e361b41956526885540",
+    "build_number": 14,
+    "package": "dist-mas/Hearth-1.1.0-14.pkg",
+    "sha256": "dbb47cac16d204cf04725ccc451d7acc53d6bff173fceed042a840f6fd275314",
+    "receipt": "dist-mas/Hearth-1.1.0-14.receipt.json",
+    "source_commit": "7811c0131c40dac144200045fb8c0d3aa7c6eb07",
+    "source_tree": "9327bcb48c4bf682f489744010a202b9ebed1534",
     "codesign_verified": true,
     "installer_signature_verified": true,
     "apple_validation": "passed",
     "uploaded": true,
-    "uploaded_at": "2026-07-15T03:29:39-07:00",
-    "asc_build_id": "f01917b2-5d8d-49b3-94f4-6081b37f6181",
+    "uploaded_at": "2026-07-16T09:06:23-07:00",
+    "asc_build_id": "8da7bab7-0e99-400f-93cc-dad1099bf595",
     "delivery_identifier_source": "asc_build_id",
     "processing_status": "VALID",
     "linked_to_version": true
@@ -78,18 +78,35 @@
     "upload_state": "COMPLETE"
   },
   "availability": {
-    "checked_at": "2026-07-15T20:01:18+09:00",
+    "checked_at": "2026-07-17T00:03:03+08:00",
     "territory_count": 175,
-    "available_territory_count": 175,
+    "available_territory_count": 174,
     "available_in_new_territories": true,
+    "excluded_territories": [
+      "CHN"
+    ],
+    "china_mainland_available": false,
+    "china_mainland_content_status": "PROCESSING_TO_NOT_AVAILABLE",
     "asc_propagation_window": "up_to_24_hours",
     "dsa_declaration_changed": false
   },
+  "in_app_purchases": {
+    "business_model": "paid_upfront",
+    "product_count": 0,
+    "verified_at": "2026-07-17T00:08:00+08:00",
+    "review_submission_attachment_count": 0
+  },
   "review_submission": {
     "id": "42617e83-af27-4fb6-8bf0-fe42b028e23c",
-    "submitted_at": "2026-07-15T10:56:56.496Z",
+    "submitted_at": "2026-07-16T16:15:33.302Z",
     "state": "WAITING_FOR_REVIEW",
-    "item_state": "READY_FOR_REVIEW"
+    "item_state": "READY_FOR_REVIEW",
+    "review_notes_build": 14,
+    "rejection_remediation": {
+      "china_mainland_excluded": true,
+      "unfinished_license_surface_removed": true,
+      "iap_products_required": false
+    }
   },
   "marketing_site": {
     "prepared": true,
