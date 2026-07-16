@@ -78,7 +78,7 @@
     "upload_state": "COMPLETE"
   },
   "availability": {
-    "checked_at": "2026-07-17T00:03:03+08:00",
+    "checked_at": "2026-07-17T00:21:02+08:00",
     "territory_count": 175,
     "available_territory_count": 174,
     "available_in_new_territories": true,
@@ -86,7 +86,7 @@
       "CHN"
     ],
     "china_mainland_available": false,
-    "china_mainland_content_status": "PROCESSING_TO_NOT_AVAILABLE",
+    "china_mainland_content_status": "CANNOT_SELL",
     "asc_propagation_window": "up_to_24_hours",
     "dsa_declaration_changed": false
   },
