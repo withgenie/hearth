@@ -112,6 +112,13 @@ expected button labels are "폴더 선택" / "나중에" / "다른 폴더 연결
 - [ ] Inline "지금 재시작" button appears below
 - [ ] Click it; app restarts; new folder is now the canonical DB location
 
+### T11 — Paid-upfront review contract
+- [ ] Install the exact signed package/build selected in App Store Connect
+- [ ] Open Settings and inspect every visible tab
+- [ ] No License tab, trial state, `io.hearth.app.pro`, purchase/restore control, or loading license status appears
+- [ ] Create and edit one memo or schedule without an entitlement lookup or purchase gate
+- [ ] `bash scripts/check-paid-upfront-contract.sh dist` passes against the frontend bundled into the release build
+
 ---
 
 ## 2. Migration edge cases (D5-specific)

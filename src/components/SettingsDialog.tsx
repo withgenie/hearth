@@ -14,7 +14,6 @@ import { SettingsAiSection } from "./SettingsAiSection";
 import { SettingsBackupSection } from "./SettingsBackupSection";
 import { SettingsCategoriesSection } from "./SettingsCategoriesSection";
 import { SettingsIntegrationsSection } from "./SettingsIntegrationsSection";
-import { SettingsLicenseSection } from "./SettingsLicenseSection";
 import { SettingsAboutSection } from "./SettingsAboutSection";
 import { useT } from "../i18n/LocaleContext";
 
@@ -25,7 +24,6 @@ type TabKey =
   | "backup"
   | "categories"
   | "integrations"
-  | "license"
   | "about";
 
 export function SettingsDialog({
@@ -45,7 +43,6 @@ export function SettingsDialog({
     { key: "backup", label: t("백업/가져오기", "Backup/Import") },
     { key: "categories", label: t("카테고리", "Categories") },
     { key: "integrations", label: t("통합", "Integrations") },
-    { key: "license", label: t("라이선스", "License") },
     { key: "about", label: t("정보", "About") },
   ];
   const [tab, setTab] = useState<TabKey>(initialTab);
@@ -113,9 +110,6 @@ export function SettingsDialog({
       </div>
       <div className={tab === "integrations" ? "" : "hidden"}>
         <SettingsIntegrationsSection />
-      </div>
-      <div className={tab === "license" ? "" : "hidden"}>
-        <SettingsLicenseSection />
       </div>
       <div className={tab === "about" ? "" : "hidden"}>
         <SettingsAboutSection active={tab === "about"} />

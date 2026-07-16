@@ -71,6 +71,8 @@ mkdir -p dist-mas
 # provisioning profile is embedded.
 npx tauri build --bundles app --target aarch64-apple-darwin
 
+bash scripts/check-paid-upfront-contract.sh dist
+
 APP_PATH="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Hearth.app"
 INFO_PLIST="$APP_PATH/Contents/Info.plist"
 
