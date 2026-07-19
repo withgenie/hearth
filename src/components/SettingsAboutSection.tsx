@@ -1,16 +1,11 @@
-// About / Version section. Per the MAS readiness spec (sub-project A, D1
-// decision), Hearth 1.0 ships through the Mac App Store only — the
-// in-app auto-updater is removed. Version updates flow through
-// App Store → Updates, which we surface with a one-click link.
+// About / Version section. Hearth ships through the Mac App Store only —
+// updates are delivered by the App Store itself. No update-related UI here:
+// App Review guideline 2.4.5(vii) forbids any in-app update check surface
+// (build 14 was rejected for a mere "open App Store Updates" link).
 
 import { useEffect, useState } from "react";
 import { getVersion, getTauriVersion } from "@tauri-apps/api/app";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLink } from "lucide-react";
-import { Button } from "../ui/Button";
 import { useT } from "../i18n/LocaleContext";
-
-const APP_STORE_UPDATES_URL = "macappstore://showUpdatesPage";
 
 export function SettingsAboutSection({ active }: { active: boolean }) {
   const t = useT();
@@ -67,30 +62,6 @@ export function SettingsAboutSection({ active }: { active: boolean }) {
             </div>
           )}
         </div>
-      </section>
-
-      <section>
-        <h3 className="text-[13px] text-[var(--color-text-hi)] mb-2">
-          {t("업데이트", "Updates")}
-        </h3>
-        <p className="text-[12px] text-[var(--color-text-muted)] mb-3">
-          {t(
-            "Hearth 업데이트는 Mac App Store가 자동으로 처리합니다. 직접 확인하려면 App Store의 업데이트 페이지를 여세요.",
-            "The Mac App Store handles Hearth updates automatically. Open the Updates page to check manually.",
-          )}
-        </p>
-        <Button
-          size="sm"
-          variant="secondary"
-          rightIcon={ExternalLink}
-          onClick={() =>
-            void openUrl(APP_STORE_UPDATES_URL).catch((e) =>
-              console.error("openUrl failed:", e),
-            )
-          }
-        >
-          {t("App Store에서 업데이트 확인", "Check for updates in the App Store")}
-        </Button>
       </section>
 
       <section>
